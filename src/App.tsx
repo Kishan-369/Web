@@ -8,16 +8,15 @@ import { HeroScene } from './components/scenes/HeroScene';
 import { QuizTimeScene } from './components/scenes/QuizTimeScene';
 import { FakeNewsScene } from './components/scenes/FakeNewsScene';
 import { Carousel3DScene } from './components/scenes/Carousel3DScene';
-import { DarkRoomScene } from './components/scenes/DarkRoomScene';
 import { AppEcosystemScene } from './components/scenes/AppEcosystemScene';
-import { DefinitionScene } from './components/scenes/DefinitionScene';
 import { WorldUsageScene } from './components/scenes/WorldUsageScene';
 import { IndiaUsageScene } from './components/scenes/IndiaUsageScene';
+import { InstagramEvolutionScene } from './components/scenes/InstagramEvolutionScene';
+import { DefinitionScene } from './components/scenes/DefinitionScene';
 import { HealthyVsAddictionScene } from './components/scenes/HealthyVsAddictionScene';
 import { DopamineScene } from './components/scenes/DopamineScene';
 import { InfiniteScrollScene } from './components/scenes/InfiniteScrollScene';
 import { EasyAccessScene } from './components/scenes/EasyAccessScene';
-import { InstagramEvolutionScene } from './components/scenes/InstagramEvolutionScene';
 import { IndiaYouthImpactScene } from './components/scenes/IndiaYouthImpactScene';
 import { LifeCalculatorInfographicScene } from './components/scenes/LifeCalculatorInfographicScene';
 import { AttentionEconomyScene } from './components/scenes/AttentionEconomyScene';
@@ -111,14 +110,24 @@ export default function App() {
           <Carousel3DScene />
         </div>
 
-        {/* Scene 6: Dark Room Scene */}
-        <div ref={(el) => (sceneRefs.current[5] = el)} data-scene-id="6" className="h-screen w-full snap-start snap-always">
-          <DarkRoomScene />
+        {/* Scene 4: App Ecosystem Explosion (Designed to capture every second of your attention) */}
+        <div ref={(el) => (sceneRefs.current[3] = el)} data-scene-id="4" className="h-screen w-full snap-start snap-always">
+          <AppEcosystemScene />
         </div>
 
-        {/* Scene 7: App Ecosystem Explosion */}
+        {/* Scene 5: World's Digital Screen Reality */}
+        <div ref={(el) => (sceneRefs.current[4] = el)} data-scene-id="5" className="h-screen w-full snap-start snap-always">
+          <WorldUsageScene />
+        </div>
+
+        {/* Scene 6: India's Digital Screen Reality */}
+        <div ref={(el) => (sceneRefs.current[5] = el)} data-scene-id="6" className="h-screen w-full snap-start snap-always">
+          <IndiaUsageScene />
+        </div>
+
+        {/* Scene 7: The Instagram Trap — Feature Evolution & Psychology (How Every Feature Was Engineered To Glue Users In) */}
         <div ref={(el) => (sceneRefs.current[6] = el)} data-scene-id="7" className="h-screen w-full snap-start snap-always">
-          <AppEcosystemScene />
+          <InstagramEvolutionScene />
         </div>
 
         {/* Scene 8: Behavioral Definition */}
@@ -126,90 +135,75 @@ export default function App() {
           <DefinitionScene />
         </div>
 
-        {/* Scene 9: World's Digital Screen Reality */}
+        {/* Scene 9: Healthy Balance vs. Digital Chaos */}
         <div ref={(el) => (sceneRefs.current[8] = el)} data-scene-id="9" className="h-screen w-full snap-start snap-always">
-          <WorldUsageScene />
-        </div>
-
-        {/* Scene 10: India's Digital Screen Reality */}
-        <div ref={(el) => (sceneRefs.current[9] = el)} data-scene-id="10" className="h-screen w-full snap-start snap-always">
-          <IndiaUsageScene />
-        </div>
-
-        {/* Scene 11: Healthy Balance vs. Digital Chaos */}
-        <div ref={(el) => (sceneRefs.current[10] = el)} data-scene-id="11" className="h-screen w-full snap-start snap-always">
           <HealthyVsAddictionScene />
         </div>
 
-        {/* Scene 12: Dopamine Loop & Infinite Scroll Tunnel */}
-        <div ref={(el) => (sceneRefs.current[11] = el)} data-scene-id="12" className="h-[300vh] w-full snap-start relative sticky-scene-container">
+        {/* Scene 10: Dopamine Loop & Infinite Scroll Tunnel */}
+        <div ref={(el) => (sceneRefs.current[9] = el)} data-scene-id="10" className="h-[300vh] w-full snap-start relative sticky-scene-container">
           <div className="sticky top-0 h-screen w-full overflow-hidden">
             <DopamineScene />
           </div>
         </div>
 
-        {/* Scene 14: Easy Access & Frictionless Addiction */}
-        <div ref={(el) => (sceneRefs.current[13] = el)} data-scene-id="14" className="h-screen w-full snap-start snap-always">
+        {/* Scene 11: Easy Access & Frictionless Addiction */}
+        <div ref={(el) => (sceneRefs.current[10] = el)} data-scene-id="11" className="h-screen w-full snap-start snap-always">
           <EasyAccessScene />
         </div>
 
-        {/* Scene 15: The Instagram Trap — Feature Evolution & Psychology */}
-        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
-          <InstagramEvolutionScene />
-        </div>
-
-        {/* Scene 16: Why India's Youth Is Most Targeted */}
-        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
+        {/* Scene 12: Why India's Youth Is Most Targeted */}
+        <div ref={(el) => (sceneRefs.current[11] = el)} data-scene-id="12" className="h-screen w-full snap-start snap-always">
           <IndiaYouthImpactScene />
         </div>
 
-        {/* Scene 17: Life Expectancy & Social Media Reality Check */}
-        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
+        {/* Scene 13: Life Expectancy & Social Media Reality Check */}
+        <div ref={(el) => (sceneRefs.current[12] = el)} data-scene-id="13" className="h-screen w-full snap-start snap-always">
           <LifeCalculatorInfographicScene />
         </div>
 
-        {/* Scene 18: Attention Economy */}
-        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
+        {/* Scene 14: Attention Economy */}
+        <div ref={(el) => (sceneRefs.current[13] = el)} data-scene-id="14" className="h-screen w-full snap-start snap-always">
           <AttentionEconomyScene />
         </div>
 
-        {/* Scene 19: Algorithm Machine */}
-        <div ref={(el) => (sceneRefs.current[18] = el)} data-scene-id="19" className="h-screen w-full snap-start snap-always">
+        {/* Scene 15: Algorithm Machine */}
+        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
           <AlgorithmScene />
         </div>
 
-        {/* Scene 20: Global Statistics */}
-        <div ref={(el) => (sceneRefs.current[19] = el)} data-scene-id="20" className="h-screen w-full snap-start snap-always">
+        {/* Scene 16: Global Statistics */}
+        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
           <StatisticsScene />
         </div>
 
-        {/* Scene 21: Positive Side of Technology */}
-        <div ref={(el) => (sceneRefs.current[20] = el)} data-scene-id="21" className="h-screen w-full snap-start snap-always">
+        {/* Scene 17: Positive Side of Technology */}
+        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
           <PositiveSideScene />
         </div>
 
-        {/* Scene 22: Family Dinner Table */}
-        <div ref={(el) => (sceneRefs.current[21] = el)} data-scene-id="22" className="h-screen w-full snap-start snap-always">
+        {/* Scene 18: Family Dinner Table */}
+        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
           <FamilyDinnerScene />
         </div>
 
-        {/* Scene 23: Human Relationships */}
-        <div ref={(el) => (sceneRefs.current[22] = el)} data-scene-id="23" className="h-screen w-full snap-start snap-always">
+        {/* Scene 19: Human Relationships */}
+        <div ref={(el) => (sceneRefs.current[18] = el)} data-scene-id="19" className="h-screen w-full snap-start snap-always">
           <RelationshipsScene />
         </div>
 
-        {/* Scene 24: Career Focus & Deep Work */}
-        <div ref={(el) => (sceneRefs.current[23] = el)} data-scene-id="24" className="h-screen w-full snap-start snap-always">
+        {/* Scene 20: Career Focus & Deep Work */}
+        <div ref={(el) => (sceneRefs.current[19] = el)} data-scene-id="20" className="h-screen w-full snap-start snap-always">
           <CareerFocusScene />
         </div>
 
-        {/* Scene 25: Mental Health & Digital Detox */}
-        <div ref={(el) => (sceneRefs.current[24] = el)} data-scene-id="25" className="h-screen w-full snap-start snap-always">
+        {/* Scene 21: Mental Health & Digital Detox */}
+        <div ref={(el) => (sceneRefs.current[20] = el)} data-scene-id="21" className="h-screen w-full snap-start snap-always">
           <MentalHealthDetoxScene />
         </div>
 
-        {/* Scene 26: Final Awakening */}
-        <div ref={(el) => (sceneRefs.current[25] = el)} data-scene-id="26" className="h-screen w-full snap-start snap-always">
+        {/* Scene 22: Final Awakening */}
+        <div ref={(el) => (sceneRefs.current[21] = el)} data-scene-id="22" className="h-screen w-full snap-start snap-always">
           <FinalAwakeningScene />
         </div>
       </main>
