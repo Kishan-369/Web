@@ -93,49 +93,41 @@ export const Carousel3DScene: React.FC = () => {
                y: 0,
                z: 0,
                rotateX: 0,
-               rotateY: 0,
                rotateZ: 0,
                opacity: 1,
-               filter: "blur(0px)",
                zIndex: 30
              };
 
              if (isRevealed) {
                if (index === 0) {
-                 animateProps = { scale: 0.65, x: "-20vw", y: "-6vh", z: 0, rotateX: 0, rotateY: 0, rotateZ: -12, opacity: 0.8, filter: "blur(0px)", zIndex: 10 };
+                 animateProps = { scale: 0.65, x: "-20vw", y: "-6vh", z: 0, rotateX: 0, rotateZ: -12, opacity: 0.8, zIndex: 10 };
                } else if (index === 1) {
-                 animateProps = { scale: 0.7, x: "20vw", y: "-2vh", z: 0, rotateX: 0, rotateY: 0, rotateZ: 8, opacity: 0.9, filter: "blur(0px)", zIndex: 20 };
+                 animateProps = { scale: 0.7, x: "20vw", y: "-2vh", z: 0, rotateX: 0, rotateZ: 8, opacity: 0.9, zIndex: 20 };
                } else if (index === 2) {
-                 animateProps = { scale: 0.8, x: "0vw", y: "4vh", z: 0, rotateX: 0, rotateY: 0, rotateZ: -4, opacity: 1, filter: "blur(0px)", zIndex: 30 };
+                 animateProps = { scale: 0.8, x: "0vw", y: "4vh", z: 0, rotateX: 0, rotateZ: -4, opacity: 1, zIndex: 30 };
                }
              } else {
                if (offset === 1) {
-                 // Right position
                  animateProps = {
-                   scale: 0.75,
-                   x: "35vw",
-                   y: 0,
-                   z: -150,
-                   rotateX: 0,
-                   rotateY: -25,
+                   scale: 0.9,
+                   x: 0,
+                   y: -40,
+                   z: -100,
+                   rotateX: 5,
                    rotateZ: 0,
-                   opacity: 0.6,
-                   filter: "blur(8px)",
+                   opacity: 0.8,
                    zIndex: 20
                  };
                } else if (offset === 2) {
-                 // Left position
                  animateProps = {
-                   scale: 0.75,
-                   x: "-35vw",
-                   y: 0,
-                   z: -150,
-                   rotateX: 0,
-                   rotateY: 25,
+                   scale: 0.8,
+                   x: 0,
+                   y: -80,
+                   z: -200,
+                   rotateX: 10,
                    rotateZ: 0,
-                   opacity: 0.6,
-                   filter: "blur(8px)",
-                   zIndex: 20
+                   opacity: 0.4,
+                   zIndex: 10
                  };
                }
              }
@@ -152,9 +144,7 @@ export const Carousel3DScene: React.FC = () => {
                    y: animateProps.y,
                    z: animateProps.z,
                    opacity: animateProps.opacity,
-                    filter: animateProps.filter,
                    rotateX: animateProps.rotateX,
-                   rotateY: animateProps.rotateY,
                    rotateZ: animateProps.rotateZ
                  }}
                  transition={{
