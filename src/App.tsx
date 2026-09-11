@@ -6,7 +6,9 @@ import { soundEngine } from './utils/soundEngine';
 // Scenes
 import { HeroScene } from './components/scenes/HeroScene';
 import { QuizTimeScene } from './components/scenes/QuizTimeScene';
+import { FakeNewsScene } from './components/scenes/FakeNewsScene';
 import { Carousel3DScene } from './components/scenes/Carousel3DScene';
+import { DarkRoomScene } from './components/scenes/DarkRoomScene';
 import { AppEcosystemScene } from './components/scenes/AppEcosystemScene';
 import { DefinitionScene } from './components/scenes/DefinitionScene';
 import { WorldUsageScene } from './components/scenes/WorldUsageScene';
@@ -107,6 +109,11 @@ export default function App() {
         {/* Scene 3: Fake News 3D Carousel (replaces stories 1-3) */}
         <div ref={(el) => (sceneRefs.current[2] = el)} data-scene-id="3" className="h-screen w-full snap-start snap-always">
           <Carousel3DScene />
+        </div>
+
+        {/* Scene 6: Dark Room Scene */}
+        <div ref={(el) => (sceneRefs.current[5] = el)} data-scene-id="6" className="h-screen w-full snap-start snap-always">
+          <DarkRoomScene />
         </div>
 
         {/* Scene 7: App Ecosystem Explosion */}

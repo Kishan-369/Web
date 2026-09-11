@@ -107,12 +107,53 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
     phoneGroup.add(screenMesh);
     
     // Dynamic Island
-    const islandShape = createRoundedRectShape(1.3, 0.38, 0.19);
+    const islandGroup = new THREE.Group();
+    islandGroup.position.set(0, screenHeight / 2 - 0.35, 0.2); // Moved slightly down and more forward to prevent z-fighting
+
+    // Main pill
+    const islandBaseWidth = 1.3;
+    const islandHeight = 0.38;
+    const islandRadius = 0.19;
+    const islandShape = createRoundedRectShape(islandBaseWidth, islandHeight, islandRadius);
     const islandGeo = new THREE.ShapeGeometry(islandShape);
     const islandMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const islandMesh = new THREE.Mesh(islandGeo, islandMat);
-    islandMesh.position.set(0, screenHeight / 2 - 0.28, 0.17);
-    phoneGroup.add(islandMesh);
+    islandGroup.add(islandMesh);
+    
+    // Add a subtle rim/glow to the island so it's always slightly visible
+    const islandRimGeo = new THREE.EdgesGeometry(islandGeo, 15);
+    const islandRimMat = new THREE.LineBasicMaterial({
+      color: 0x333333,
+      transparent: true,
+      opacity: 0.8,
+    });
+    const islandRim = new THREE.LineSegments(islandRimGeo, islandRimMat);
+    islandRim.position.z = 0.01;
+    islandGroup.add(islandRim);
+
+    // Camera lens
+    const lensGeo = new THREE.CircleGeometry(0.12, 16);
+    const lensMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const lensMesh = new THREE.Mesh(lensGeo, lensMat);
+    lensMesh.position.set(0.42, 0, 0.01);
+    islandGroup.add(lensMesh);
+
+    // Camera lens reflection
+    const reflectionGeo = new THREE.CircleGeometry(0.04, 8);
+    const reflectionMat = new THREE.MeshBasicMaterial({ color: 0x223344 });
+    const reflectionMesh = new THREE.Mesh(reflectionGeo, reflectionMat);
+    reflectionMesh.position.set(0.44, 0.03, 0.02);
+    islandGroup.add(reflectionMesh);
+
+    // Dynamic Island Content (Notification dot)
+    const dotGeo = new THREE.CircleGeometry(0.06, 16);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Will update color
+    const dotMesh = new THREE.Mesh(dotGeo, dotMat);
+    dotMesh.position.set(-0.45, 0, 0.01);
+    dotMesh.scale.set(0, 0, 0); // Hidden initially
+    islandGroup.add(dotMesh);
+
+    phoneGroup.add(islandGroup);
 
     scene.add(phoneGroup);
 
@@ -261,6 +302,26 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
       );
       outlineMat.color.lerp(targetOutlineColor, 0.08);
 
+      // Dynamic Island Animation
+      const isAppSelected = selAppIndex !== null;
+      const targetIslandScaleX = isAppSelected ? 1.6 : 1.0;
+      islandMesh.scale.x = THREE.MathUtils.lerp(islandMesh.scale.x, targetIslandScaleX, 0.1);
+      islandRim.scale.x = islandMesh.scale.x; // Make sure the rim scales with it
+      
+      // Move camera lens to keep it looking right
+      const targetLensX = isAppSelected ? 0.65 : 0.42;
+      lensMesh.position.x = THREE.MathUtils.lerp(lensMesh.position.x, targetLensX, 0.1);
+      reflectionMesh.position.x = THREE.MathUtils.lerp(reflectionMesh.position.x, targetLensX + 0.02, 0.1);
+
+      // Notification dot
+      if (isAppSelected) {
+        dotMat.color.setHex(appOutlineColors[selAppIndex]);
+      }
+      const targetDotScale = isAppSelected ? 1.0 : 0.0;
+      dotMesh.scale.setScalar(THREE.MathUtils.lerp(dotMesh.scale.x, targetDotScale, 0.1));
+      const targetDotX = isAppSelected ? -0.7 : -0.45;
+      dotMesh.position.x = THREE.MathUtils.lerp(dotMesh.position.x, targetDotX, 0.1);
+
       // Update material opacities and positions
       appParticles.forEach((item) => {
         const isSelected = selAppIndex === item.iconIndex;
@@ -301,6 +362,10 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
       textures.forEach(t => t.dispose());
       screenMat.dispose();
       islandMat.dispose();
+      islandRimMat.dispose();
+      lensMat.dispose();
+      reflectionMat.dispose();
+      dotMat.dispose();
       outlineMat.dispose();
       dustMat.dispose();
       phoneMat.dispose();
@@ -310,6 +375,10 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
       phoneGeo.dispose();
       screenGeo.dispose();
       islandGeo.dispose();
+      islandRimGeo.dispose();
+      lensGeo.dispose();
+      reflectionGeo.dispose();
+      dotGeo.dispose();
       renderer.dispose();
     };
   }, []); // Empty dependency array, scene created only once!
