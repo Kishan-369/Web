@@ -19,14 +19,10 @@ import { InfiniteScrollScene } from './components/scenes/InfiniteScrollScene';
 import { EasyAccessScene } from './components/scenes/EasyAccessScene';
 import { IndiaYouthImpactScene } from './components/scenes/IndiaYouthImpactScene';
 import { LifeCalculatorInfographicScene } from './components/scenes/LifeCalculatorInfographicScene';
-import { AttentionEconomyScene } from './components/scenes/AttentionEconomyScene';
-import { AlgorithmScene } from './components/scenes/AlgorithmScene';
 import { StatisticsScene } from './components/scenes/StatisticsScene';
-import { PositiveSideScene } from './components/scenes/PositiveSideScene';
 import { FamilyDinnerScene } from './components/scenes/FamilyDinnerScene';
 import { RelationshipsScene } from './components/scenes/RelationshipsScene';
 import { CareerFocusScene } from './components/scenes/CareerFocusScene';
-import { MentalHealthDetoxScene } from './components/scenes/MentalHealthDetoxScene';
 import { FinalAwakeningScene } from './components/scenes/FinalAwakeningScene';
 
 export default function App() {
@@ -162,48 +158,28 @@ export default function App() {
           <LifeCalculatorInfographicScene />
         </div>
 
-        {/* Scene 14: Attention Economy */}
+        {/* Scene 14: Global Statistics */}
         <div ref={(el) => (sceneRefs.current[13] = el)} data-scene-id="14" className="h-screen w-full snap-start snap-always">
-          <AttentionEconomyScene />
-        </div>
-
-        {/* Scene 15: Algorithm Machine */}
-        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
-          <AlgorithmScene />
-        </div>
-
-        {/* Scene 16: Global Statistics */}
-        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
           <StatisticsScene />
         </div>
 
-        {/* Scene 17: Positive Side of Technology */}
-        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
-          <PositiveSideScene />
-        </div>
-
-        {/* Scene 18: Family Dinner Table */}
-        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
+        {/* Scene 15: Family Dinner Table */}
+        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
           <FamilyDinnerScene />
         </div>
 
-        {/* Scene 19: Human Relationships */}
-        <div ref={(el) => (sceneRefs.current[18] = el)} data-scene-id="19" className="h-screen w-full snap-start snap-always">
+        {/* Scene 16: Human Relationships */}
+        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
           <RelationshipsScene />
         </div>
 
-        {/* Scene 20: Career Focus & Deep Work */}
-        <div ref={(el) => (sceneRefs.current[19] = el)} data-scene-id="20" className="h-screen w-full snap-start snap-always">
+        {/* Scene 17: Career Focus & Deep Work */}
+        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
           <CareerFocusScene />
         </div>
 
-        {/* Scene 21: Mental Health & Digital Detox */}
-        <div ref={(el) => (sceneRefs.current[20] = el)} data-scene-id="21" className="h-screen w-full snap-start snap-always">
-          <MentalHealthDetoxScene />
-        </div>
-
-        {/* Scene 22: Final Awakening */}
-        <div ref={(el) => (sceneRefs.current[21] = el)} data-scene-id="22" className="h-screen w-full snap-start snap-always">
+        {/* Scene 18: Final Awakening */}
+        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
           <FinalAwakeningScene />
         </div>
       </main>
