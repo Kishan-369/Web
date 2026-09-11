@@ -7,6 +7,7 @@ import { soundEngine } from './utils/soundEngine';
 import { HeroScene } from './components/scenes/HeroScene';
 import { QuizTimeScene } from './components/scenes/QuizTimeScene';
 import { FakeNewsScene } from './components/scenes/FakeNewsScene';
+import { Carousel3DScene } from './components/scenes/Carousel3DScene';
 import { DarkRoomScene } from './components/scenes/DarkRoomScene';
 import { AppEcosystemScene } from './components/scenes/AppEcosystemScene';
 import { DefinitionScene } from './components/scenes/DefinitionScene';
@@ -105,19 +106,9 @@ export default function App() {
           <QuizTimeScene />
         </div>
 
-        {/* Scene 3: Fake News Magazine Story 1 */}
+        {/* Scene 3: Fake News 3D Carousel (replaces stories 1-3) */}
         <div ref={(el) => (sceneRefs.current[2] = el)} data-scene-id="3" className="h-screen w-full snap-start snap-always">
-          <FakeNewsScene storyIndex={1} onNextStory={() => scrollToScene(4)} />
-        </div>
-
-        {/* Scene 4: Fake News Magazine Story 2 */}
-        <div ref={(el) => (sceneRefs.current[3] = el)} data-scene-id="4" className="h-screen w-full snap-start snap-always">
-          <FakeNewsScene storyIndex={2} onNextStory={() => scrollToScene(5)} />
-        </div>
-
-        {/* Scene 5: Fake News Magazine Story 3 */}
-        <div ref={(el) => (sceneRefs.current[4] = el)} data-scene-id="5" className="h-screen w-full snap-start snap-always">
-          <FakeNewsScene storyIndex={3} onNextStory={() => scrollToScene(6)} />
+          <Carousel3DScene />
         </div>
 
         {/* Scene 6: Dark Room Scene */}
