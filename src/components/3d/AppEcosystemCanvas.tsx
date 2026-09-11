@@ -107,12 +107,31 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
     phoneGroup.add(screenMesh);
     
     // Dynamic Island
+    const islandGroup = new THREE.Group();
+    islandGroup.position.set(0, screenHeight / 2 - 0.28, 0.17);
+
+    // Main pill
     const islandShape = createRoundedRectShape(1.3, 0.38, 0.19);
     const islandGeo = new THREE.ShapeGeometry(islandShape);
     const islandMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const islandMesh = new THREE.Mesh(islandGeo, islandMat);
-    islandMesh.position.set(0, screenHeight / 2 - 0.28, 0.17);
-    phoneGroup.add(islandMesh);
+    islandGroup.add(islandMesh);
+
+    // Camera lens
+    const lensGeo = new THREE.CircleGeometry(0.12, 16);
+    const lensMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const lensMesh = new THREE.Mesh(lensGeo, lensMat);
+    lensMesh.position.set(0.42, 0, 0.01);
+    islandGroup.add(lensMesh);
+
+    // Camera lens reflection
+    const reflectionGeo = new THREE.CircleGeometry(0.04, 8);
+    const reflectionMat = new THREE.MeshBasicMaterial({ color: 0x223344 });
+    const reflectionMesh = new THREE.Mesh(reflectionGeo, reflectionMat);
+    reflectionMesh.position.set(0.44, 0.03, 0.02);
+    islandGroup.add(reflectionMesh);
+
+    phoneGroup.add(islandGroup);
 
     scene.add(phoneGroup);
 

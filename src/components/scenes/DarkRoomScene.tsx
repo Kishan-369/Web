@@ -89,12 +89,19 @@ export const DarkRoomScene: React.FC = () => {
 
         {/* Interactive Phone Graphic + Trigger */}
         <div className="flex justify-center items-center gap-6">
-          <div className="relative w-36 sm:w-44 h-48 sm:h-56 rounded-[30px] border-2 border-neutral-800 bg-neutral-950 p-3 shadow-xl flex flex-col justify-between overflow-hidden border-cyan-500/30 glow-blue">
-            <div className="w-16 h-3 bg-black rounded-full mx-auto relative z-20 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-neutral-800" />
+          <div className="relative w-40 sm:w-48 h-72 sm:h-80 rounded-[40px] border-[6px] border-neutral-800 bg-neutral-950 shadow-xl flex flex-col justify-between overflow-hidden border-cyan-500/30 glow-blue">
+            
+            {/* Dynamic Island */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 sm:w-24 h-6 sm:h-7 bg-black rounded-full z-30 flex items-center justify-between px-2 shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]">
+              {/* Sensor */}
+              <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-neutral-800" />
+              {/* Camera Lens */}
+              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-blue-900/30 border border-blue-900/50 flex items-center justify-center">
+                <div className="w-1 h-1 rounded-full bg-blue-500/30" />
+              </div>
             </div>
 
-            <div className="relative z-20 my-auto text-center space-y-2">
+            <div className="relative z-20 my-auto text-center space-y-2 mt-12">
               <Smartphone className="w-8 h-8 text-cyan-400 mx-auto animate-bounce" />
               <div className="text-[10px] font-mono uppercase tracking-widest text-cyan-300">
                 {notificationCount} Alerts Pending
