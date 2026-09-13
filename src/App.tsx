@@ -4,7 +4,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { soundEngine } from './utils/soundEngine';
 
 // Scenes
-import { HeroScene } from './components/scenes/HeroScene';
+import { TheLoopOpeningScene } from './components/scenes/TheLoopOpeningScene';
 import { QuizTimeScene } from './components/scenes/QuizTimeScene';
 import { FakeNewsScene } from './components/scenes/FakeNewsScene';
 import { Carousel3DScene } from './components/scenes/Carousel3DScene';
@@ -23,7 +23,7 @@ import { StatisticsScene } from './components/scenes/StatisticsScene';
 import { FamilyDinnerScene } from './components/scenes/FamilyDinnerScene';
 import { RelationshipsScene } from './components/scenes/RelationshipsScene';
 import { CareerFocusScene } from './components/scenes/CareerFocusScene';
-import { FinalAwakeningScene } from './components/scenes/FinalAwakeningScene';
+import { TheLoopClosingScene } from './components/scenes/TheLoopClosingScene';
 
 export default function App() {
   const [currentScene, setCurrentScene] = useState(1);
@@ -91,9 +91,9 @@ export default function App() {
 
       {/* Sequential Full-Page Snap Scenes */}
       <main className="w-full relative z-10">
-        {/* Scene 1: Title Page */}
+        {/* Scene 1: The Loop Opening Scene */}
         <div ref={(el) => (sceneRefs.current[0] = el)} data-scene-id="1" className="h-screen w-full snap-start snap-always">
-          <HeroScene onScrollToNext={() => scrollToScene(2)} />
+          <TheLoopOpeningScene onScrollToNext={() => scrollToScene(2)} />
         </div>
 
         {/* Scene 2: Dedicated Assembly Live Quiz Time */}
@@ -178,9 +178,9 @@ export default function App() {
           <CareerFocusScene />
         </div>
 
-        {/* Scene 18: Final Awakening */}
+        {/* Scene 18: The Loop Closing Scene */}
         <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
-          <FinalAwakeningScene />
+          <TheLoopClosingScene onRestart={() => scrollToScene(1)} />
         </div>
       </main>
     </div>
