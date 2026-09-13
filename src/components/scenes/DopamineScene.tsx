@@ -27,7 +27,7 @@ export const DopamineScene: React.FC = () => {
 
   // Interactive Tunnel State (for the Infinite Scroll Tunnel card)
   const [postsGenerated, setPostsGenerated] = useState(12);
-  const [tunnelSpeed, setTunnelSpeed] = useState(0.15);
+  const [tunnelSpeed, setTunnelSpeed] = useState(0.9);
   const [isRunning, setIsRunning] = useState(true);
   const [hasStarted, setHasStarted] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -219,7 +219,7 @@ export const DopamineScene: React.FC = () => {
             <div className="bg-neutral-900 p-2.5 rounded-xl border border-white/5">
               <div className="text-[10px] text-neutral-400 uppercase font-mono">VORTEX VELOCITY</div>
               <div className="text-sm font-bold text-red-500 font-mono">
-                {isRunning ? `${Math.round(tunnelSpeed * 65)} km/h` : '0 km/h (Stopped)'}
+                {isRunning ? `${Math.min(36, Math.round(tunnelSpeed * 40))} km/h` : '0 km/h (Stopped)'}
               </div>
             </div>
             <div className="bg-neutral-900 p-2.5 rounded-xl border border-white/5">

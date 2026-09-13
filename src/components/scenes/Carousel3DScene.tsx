@@ -68,7 +68,8 @@ export const Carousel3DScene: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="z-40 text-center w-full px-4 mb-0"
           >
-            <div className="inline-flex items-center space-x-2 bg-neutral-800 text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-3 border border-neutral-700">
+            <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3.5 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(220,38,38,0.6)]">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>Reality Check</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-serif italic font-bold text-white tracking-tight drop-shadow-lg">

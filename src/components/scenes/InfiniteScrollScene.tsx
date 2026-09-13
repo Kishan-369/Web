@@ -106,7 +106,7 @@ export const InfiniteScrollScene: React.FC = () => {
             <div className="bg-neutral-900 p-2.5 rounded-xl border border-white/5">
               <div className="text-[10px] text-neutral-400 uppercase font-mono">Vortex Velocity</div>
               <div className="text-sm font-bold text-red-500 font-mono">
-                {isRunning ? `${Math.round(tunnelSpeed * 65)} km/h` : '0 km/h (Stopped)'}
+                {isRunning ? `${Math.min(36, Math.round(tunnelSpeed * 40))} km/h` : '0 km/h (Stopped)'}
               </div>
             </div>
             <div className="bg-neutral-900 p-2.5 rounded-xl border border-white/5">

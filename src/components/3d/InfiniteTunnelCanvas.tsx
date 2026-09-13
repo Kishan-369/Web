@@ -19,9 +19,10 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
   onSpeedChange,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const speedRef = useRef(0.15); // Starts slowly
+  const speedRef = useRef(0.9); // Calibrated for target vortex velocity 36 km/h
   const isRunningRef = useRef(isRunning);
   const onSpeedChangeRef = useRef(onSpeedChange);
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
     isRunningRef.current = isRunning;
@@ -31,11 +32,15 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     onSpeedChangeRef.current = onSpeedChange;
   }, [onSpeedChange]);
 
-  // Reset speed when reset trigger fires
+  // Reset speed when reset trigger fires (skipping initial mount)
   useEffect(() => {
-    speedRef.current = 0.15;
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    speedRef.current = 0.35;
     if (onSpeedChangeRef.current) {
-      onSpeedChangeRef.current(0.15);
+      onSpeedChangeRef.current(0.35);
     }
   }, [speedResetTrigger]);
 
@@ -110,7 +115,8 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     }
 
     // Swirling Emoji Particle Vortex being eaten by Black Hole
-    const emojiCount = 80;
+    // Reduced count from 80 to 35 for a cleaner, less cluttered tunnel
+    const emojiCount = 35;
     const emojiGroup = new THREE.Group();
     const emojiItems: {
       sprite: THREE.Sprite;
@@ -123,8 +129,8 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
       baseSize: number;
     }[] = [];
 
-    // Ghost trail materials for speed pathways
-    const ghostCount = 3;
+    // Ghost trail materials for speed pathways (reduced to 1 for clarity)
+    const ghostCount = 1;
 
     for (let i = 0; i < emojiCount; i++) {
       const tex = emojiTextures[i % emojiTextures.length];
@@ -259,8 +265,8 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
 
       // Move tunnel rings towards camera (giving inward pull illusion)
       rings.forEach((ring) => {
-        ring.position.z += 0.08 * currentMultiplier;
-        ring.rotation.z += 0.004 * currentMultiplier;
+        ring.position.z += 0.05 * currentMultiplier; // Calibrated for 36 km/h
+        ring.rotation.z += 0.0025 * currentMultiplier;
         if (ring.position.z > 2) {
           ring.position.z = -(ringCount * 2.2);
         }
@@ -272,9 +278,9 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
         const prevZ = item.z;
         const prevAngle = item.angle;
 
-        // Advance item deeper into the black hole singularity (from Z=5 to Z=-45)
-        item.z -= item.speedZ * 0.45 * currentMultiplier;
-        item.angle += item.swirlSpeed * currentMultiplier;
+        // Advance item deeper into the black hole singularity (calibrated for 36 km/h)
+        item.z -= item.speedZ * 0.28 * currentMultiplier;
+        item.angle += item.swirlSpeed * 0.75 * currentMultiplier;
 
         // Calculate progress t from outer viewport (Z=5) to black hole center (Z=-45)
         const t = Math.max(0, Math.min(1, (5 - item.z) / 50));

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Globe, Clock, Users, Sparkles, TrendingUp, BarChart3, ShieldCheck, Zap } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
+import worldMapCountries from './worldMapData.json';
 
 export const InstagramLogo = ({ className = "w-7 h-7" }: { className?: string }) => (
   <svg className={`${className} shrink-0`} viewBox="0 0 24 24" fill="none">
@@ -219,52 +220,81 @@ export const WorldUsageScene: React.FC = () => {
             </div>
 
             {/* World Map SVG with glowing continent contours & pulse hubs */}
-            <div className="relative w-full h-[180px] sm:h-[210px] flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden p-2">
-              <svg className="w-full h-full opacity-80" viewBox="0 0 1000 500" fill="none">
-                {/* World Map Continents Contour Path */}
-                {/* North America */}
-                <path d="M150 120 Q 220 80, 290 110 T 320 220 T 200 240 T 130 180 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
-                {/* South America */}
-                <path d="M280 260 Q 340 280, 320 380 T 260 460 T 230 350 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
-                {/* Europe */}
-                <path d="M460 100 Q 540 80, 580 130 T 520 180 T 450 140 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
-                {/* Africa */}
-                <path d="M450 200 Q 560 210, 550 330 T 480 400 T 430 280 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
-                {/* Asia */}
-                <path d="M590 90 Q 750 70, 850 150 T 800 280 T 630 220 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
-                {/* Australia */}
-                <path d="M780 340 Q 860 330, 880 400 T 800 430 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+            <div className="relative w-full h-[180px] sm:h-[210px] flex items-center justify-center bg-[#1e3a8a]/40 rounded-2xl border border-sky-500/20 overflow-hidden p-1 shadow-inner">
+              <svg className="w-full h-full" viewBox="0 0 1000 500" fill="none">
+                {/* Ocean Background & Subtle Graticule Grid */}
+                <rect width="1000" height="500" fill="#172554" fillOpacity="0.7" />
+                <g stroke="#38bdf8" strokeOpacity="0.12" strokeWidth="0.8" strokeDasharray="3 4">
+                  {/* Longitude lines */}
+                  <line x1="166" y1="0" x2="166" y2="500" />
+                  <line x1="333" y1="0" x2="333" y2="500" />
+                  <line x1="500" y1="0" x2="500" y2="500" />
+                  <line x1="666" y1="0" x2="666" y2="500" />
+                  <line x1="833" y1="0" x2="833" y2="500" />
+                  {/* Latitude parallels */}
+                  <line x1="0" y1="125" x2="1000" y2="125" />
+                  <line x1="0" y1="250" x2="1000" y2="250" strokeOpacity="0.25" strokeWidth="1" /> {/* Equator */}
+                  <line x1="0" y1="375" x2="1000" y2="375" />
+                </g>
 
-                {/* Grid latitude lines */}
-                <line x1="0" y1="125" x2="1000" y2="125" stroke="#ffffff10" strokeDasharray="3 3" />
-                <line x1="0" y1="250" x2="1000" y2="250" stroke="#ffffff15" strokeDasharray="4 4" />
-                <line x1="0" y1="375" x2="1000" y2="375" stroke="#ffffff10" strokeDasharray="3 3" />
+                {/* Political Country Boundaries from real geographic dataset matching user reference image */}
+                <g stroke="#0f172a" strokeWidth="0.6" strokeOpacity="0.8" strokeLinejoin="round">
+                  {worldMapCountries.map((country, idx) => (
+                    <path
+                      key={idx}
+                      d={country.d}
+                      fill={country.color}
+                      className="transition-colors hover:brightness-110"
+                    >
+                      <title>{country.name}</title>
+                    </path>
+                  ))}
+                </g>
 
-                {/* Animated Global Data Nodes & Pulsing Signal Arcs */}
-                {/* North America Node (NYC/LA) */}
-                <circle cx="230" cy="160" r="6" fill={active.mapPulseColor} className="animate-pulse" />
-                <circle cx="230" cy="160" r="14" stroke={active.mapPulseColor} strokeWidth="1" fill="none" className="animate-ping opacity-75" />
+                {/* Animated Global Data Hubs & Pulsing Signal Arcs */}
+                {/* North America Node (USA Market) */}
+                <g>
+                  <circle cx="215" cy="180" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="215" cy="180" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
+                  <text x="215" y="165" fill="#1e293b" stroke="#ffffff" strokeWidth="2" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">USA</text>
+                </g>
 
                 {/* South America Node (Brazil) */}
-                <circle cx="310" cy="330" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                <g>
+                  <circle cx="340" cy="335" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="340" cy="335" r="12" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
+                  <text x="340" y="322" fill="#1e293b" stroke="#ffffff" strokeWidth="2" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">BRAZIL</text>
+                </g>
 
-                {/* Europe Node (London/Paris) */}
-                <circle cx="500" cy="130" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                {/* Europe Node (UK / France / Germany) */}
+                <g>
+                  <circle cx="515" cy="145" r="4.5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="515" cy="145" r="12" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
+                  <text x="515" y="133" fill="#1e293b" stroke="#ffffff" strokeWidth="2" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">EUROPE</text>
+                </g>
 
-                {/* India Node (HIGHLIGHTED LARGEST HUB) */}
-                <circle cx="710" cy="220" r="9" fill={active.mapPulseColor} className="animate-pulse" />
-                <circle cx="710" cy="220" r="22" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-90" />
-                <text x="710" y="250" fill="#f59e0b" fontSize="12" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
-                  #1 User Market
-                </text>
+                {/* India Node (PRIMARY #1 GLOBAL EPICENTER) */}
+                <g>
+                  <circle cx="718" cy="235" r="8" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="718" cy="235" r="22" stroke={active.mapPulseColor} strokeWidth="2" fill="none" className="animate-ping opacity-90" />
+                  <circle cx="718" cy="235" r="32" stroke={active.mapPulseColor} strokeWidth="1.2" strokeDasharray="3 3" fill="none" className="opacity-80" />
+                  <text x="718" y="215" fill="#991b1b" stroke="#ffffff" strokeWidth="3" paintOrder="stroke" fontSize="11" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+                    ★ #1 INDIA
+                  </text>
+                </g>
 
                 {/* Southeast Asia Node (Indonesia) */}
-                <circle cx="810" cy="270" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                <g>
+                  <circle cx="825" cy="295" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="825" cy="295" r="12" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
+                  <text x="825" y="282" fill="#1e293b" stroke="#ffffff" strokeWidth="2" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">INDONESIA</text>
+                </g>
 
-                {/* Data Signal Arcs connecting India to Global Hubs */}
-                <path d="M710 220 Q 470 80, 230 160" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-60" />
-                <path d="M710 220 Q 600 120, 500 130" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-60" />
-                <path d="M710 220 Q 510 300, 310 330" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-60" />
+                {/* Global Data Flow Curves (Connecting India Hub to World Markets) */}
+                <path d="M 718 235 Q 460 70, 215 180" stroke={active.mapPulseColor} strokeWidth="2" strokeDasharray="5 5" fill="none" className="opacity-80" />
+                <path d="M 718 235 Q 610 150, 515 145" stroke={active.mapPulseColor} strokeWidth="2" strokeDasharray="5 5" fill="none" className="opacity-80" />
+                <path d="M 718 235 Q 520 320, 340 335" stroke={active.mapPulseColor} strokeWidth="2" strokeDasharray="5 5" fill="none" className="opacity-80" />
+                <path d="M 718 235 Q 770 255, 825 295" stroke={active.mapPulseColor} strokeWidth="2" strokeDasharray="5 5" fill="none" className="opacity-80" />
               </svg>
 
               {/* Overlay Country Badge Pills */}

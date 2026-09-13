@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 interface Props {
-  exploded: boolean;
+  exploded?: boolean;
   selectedAppIndex: number | null;
+  phoneVisible?: boolean;
 }
 
 const createRoundedRectShape = (width: number, height: number, radius: number) => {
@@ -20,17 +21,19 @@ const createRoundedRectShape = (width: number, height: number, radius: number) =
   return shape;
 };
 
-export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex }) => {
+export const AppEcosystemCanvas: React.FC<Props> = ({ exploded = true, selectedAppIndex, phoneVisible = true }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   // Use refs for props so we don't recreate the scene on change
   const explodedRef = useRef(exploded);
   const selectedAppIndexRef = useRef(selectedAppIndex);
+  const phoneVisibleRef = useRef(phoneVisible);
 
   useEffect(() => {
     explodedRef.current = exploded;
     selectedAppIndexRef.current = selectedAppIndex;
-  }, [exploded, selectedAppIndex]);
+    phoneVisibleRef.current = phoneVisible;
+  }, [exploded, selectedAppIndex, phoneVisible]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -52,7 +55,12 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
 
     // 1. Central Phone Mesh (iPhone Style)
     const phoneGroup = new THREE.Group();
-    phoneGroup.position.y = -1.2; // Move phone slightly down to align with side buttons
+    // Position phone slightly left (-1.5) and lowered further (-2.3) so it stays well clear of the header text
+    phoneGroup.position.set(-1.5, -2.3, 0);
+    if (!phoneVisibleRef.current) {
+      phoneGroup.scale.set(0.0001, 0.0001, 0.0001);
+      phoneGroup.visible = false;
+    }
     
     const phoneWidth = 4.2;
     const phoneHeight = 8.6;
@@ -185,6 +193,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
       })
     );
 
+    // Restored icon size back to original (3.5 x 3.5)
     const particleGeos = new THREE.PlaneGeometry(3.5, 3.5);
 
     const appParticles: { mesh: THREE.Mesh; targetPos: THREE.Vector3; initialPos: THREE.Vector3; speed: number, iconIndex: number, material: THREE.MeshBasicMaterial }[] = [];
@@ -289,6 +298,14 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded, selectedAppIndex
       const elapsedTime = clock.getElapsedTime();
       
       const selAppIndex = selectedAppIndexRef.current;
+      const isPhoneVisible = phoneVisibleRef.current;
+
+      // Animate phone appearance/disappearance
+      const targetPhoneScale = isPhoneVisible ? 1.0 : 0.0001;
+      phoneGroup.scale.x = THREE.MathUtils.lerp(phoneGroup.scale.x, targetPhoneScale, 0.08);
+      phoneGroup.scale.y = THREE.MathUtils.lerp(phoneGroup.scale.y, targetPhoneScale, 0.08);
+      phoneGroup.scale.z = THREE.MathUtils.lerp(phoneGroup.scale.z, targetPhoneScale, 0.08);
+      phoneGroup.visible = phoneGroup.scale.x > 0.02;
 
       // Update screen color based on selection
       const targetScreenColor = new THREE.Color(

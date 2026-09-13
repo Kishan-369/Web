@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Smartphone, Clock, Users, Sparkles, TrendingUp, Award, BarChart3, Flame } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
 import { InstagramLogo, YouTubeLogo, FacebookLogo, WhatsAppLogo } from './WorldUsageScene';
+import indiaStatesData from './indiaStatesData.json';
 
 interface PlatformIndiaData {
   id: string;
@@ -186,59 +187,105 @@ export const IndiaUsageScene: React.FC = () => {
             </div>
 
             {/* India Map SVG with vector contours & city pulse nodes */}
-            <div className="relative w-full h-[180px] sm:h-[210px] flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden p-2">
-              <svg className="h-full w-auto max-w-full opacity-85" viewBox="0 0 350 400" fill="none">
-                {/* Simplified India Geographic Map Path Outline */}
-                <path
-                  d="M 140 30 
-                     L 165 40 L 190 25 L 210 40 L 220 70 L 210 90 L 240 100 L 280 120 L 320 135 L 310 160 
-                     L 280 165 L 260 180 L 245 200 L 220 190 L 205 220 L 190 250 L 180 290 L 165 330 L 150 370 
-                     L 140 340 L 120 290 L 100 250 L 80 220 L 60 190 L 40 170 L 50 140 L 80 120 L 110 100 
-                     L 125 70 Z"
-                  fill="#1c1917"
-                  stroke="#44403c"
-                  strokeWidth="2"
-                />
+            <div className="relative w-full h-[210px] sm:h-[240px] flex items-center justify-center bg-[#172554]/30 rounded-2xl border border-amber-500/20 overflow-hidden p-1 shadow-inner">
+              <svg className="h-full w-auto max-w-full" viewBox="0 0 500 580" fill="none">
+                {/* Background Ocean / Canvas Grid */}
+                <rect width="500" height="580" fill="#0f172a" fillOpacity="0.4" />
+                <g stroke="#f59e0b" strokeOpacity="0.08" strokeWidth="0.8" strokeDasharray="3 4">
+                  <line x1="125" y1="0" x2="125" y2="580" />
+                  <line x1="250" y1="0" x2="250" y2="580" />
+                  <line x1="375" y1="0" x2="375" y2="580" />
+                  <line x1="0" y1="145" x2="500" y2="145" />
+                  <line x1="0" y1="290" x2="500" y2="290" />
+                  <line x1="0" y1="435" x2="500" y2="435" />
+                </g>
 
-                {/* State boundaries inner grid lines */}
-                <path d="M 140 70 L 210 90" stroke="#f59e0b20" strokeWidth="1" strokeDasharray="3 3" />
-                <path d="M 110 100 L 260 180" stroke="#f59e0b20" strokeWidth="1" strokeDasharray="3 3" />
-                <path d="M 80 220 L 205 220" stroke="#f59e0b20" strokeWidth="1" strokeDasharray="3 3" />
+                {/* State Polygons with Distinct Reference Palette Colors & Dark State Boundaries */}
+                <g stroke="#1e293b" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round">
+                  {indiaStatesData.map((st, idx) => (
+                    <path
+                      key={idx}
+                      d={st.d}
+                      fill={st.color}
+                      className="transition-colors hover:brightness-110 cursor-pointer"
+                    >
+                      <title>{st.name}</title>
+                    </path>
+                  ))}
+                </g>
 
-                {/* Major Indian City Nodes */}
+                {/* State Names Printed inside States Matching Reference Image */}
+                <g pointerEvents="none">
+                  {indiaStatesData.map((st, idx) => {
+                    if (!st.label || !st.labelPos || st.labelPos[0] <= 0) return null;
+                    return (
+                      <text
+                        key={`label-${idx}`}
+                        x={st.labelPos[0]}
+                        y={st.labelPos[1]}
+                        fill="#0f172a"
+                        fontSize="8.5"
+                        fontWeight="700"
+                        textAnchor="middle"
+                        fontFamily="sans-serif"
+                        opacity="0.88"
+                      >
+                        {st.label}
+                      </text>
+                    );
+                  })}
+                </g>
+
+                {/* Major Indian Tech & Consumption Metro Hubs */}
                 {/* Delhi NCR */}
-                <circle cx="140" cy="95" r="6" fill={active.mapPulseColor} className="animate-pulse" />
-                <circle cx="140" cy="95" r="16" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
-                <text x="140" y="85" fill="#f59e0b" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">Delhi</text>
+                <g>
+                  <circle cx="165" cy="181" r="5.5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="165" cy="181" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-85" />
+                  <text x="165" y="168" fill="#991b1b" stroke="#ffffff" strokeWidth="2.5" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">Delhi</text>
+                </g>
 
                 {/* Mumbai */}
-                <circle cx="85" cy="210" r="6" fill={active.mapPulseColor} className="animate-pulse" />
-                <circle cx="85" cy="210" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
-                <text x="50" y="215" fill="#f59e0b" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">Mumbai</text>
+                <g>
+                  <circle cx="98" cy="354" r="5.5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="98" cy="354" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-85" />
+                  <text x="70" y="358" fill="#991b1b" stroke="#ffffff" strokeWidth="2.5" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">Mumbai</text>
+                </g>
 
                 {/* Bengaluru */}
-                <circle cx="130" cy="290" r="6" fill={active.mapPulseColor} className="animate-pulse" />
-                <circle cx="130" cy="290" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-80" />
-                <text x="175" y="295" fill="#f59e0b" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">Bengaluru</text>
+                <g>
+                  <circle cx="171" cy="465" r="5.5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <circle cx="171" cy="465" r="14" stroke={active.mapPulseColor} strokeWidth="1.5" fill="none" className="animate-ping opacity-85" />
+                  <text x="171" y="482" fill="#991b1b" stroke="#ffffff" strokeWidth="2.5" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">Bengaluru</text>
+                </g>
 
                 {/* Kolkata */}
-                <circle cx="235" cy="175" r="5" fill={active.mapPulseColor} className="animate-pulse" />
-                <text x="265" y="180" fill="#f59e0b" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">Kolkata</text>
+                <g>
+                  <circle cx="336" cy="290" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <text x="365" y="294" fill="#991b1b" stroke="#ffffff" strokeWidth="2.5" paintOrder="stroke" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">Kolkata</text>
+                </g>
 
                 {/* Hyderabad */}
-                <circle cx="145" cy="240" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                <g>
+                  <circle cx="185" cy="385" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                  <text x="215" y="389" fill="#991b1b" stroke="#ffffff" strokeWidth="2.5" paintOrder="stroke" fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">Hyderabad</text>
+                </g>
 
                 {/* Chennai */}
-                <circle cx="150" cy="315" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                <g>
+                  <circle cx="212" cy="463" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                </g>
 
                 {/* Ahmedabad */}
-                <circle cx="80" cy="155" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                <g>
+                  <circle cx="94" cy="282" r="5" fill={active.mapPulseColor} className="animate-pulse" />
+                </g>
 
-                {/* Pulsing Intercity Data Stream Lines */}
-                <path d="M 140 95 L 85 210" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-70" />
-                <path d="M 85 210 L 130 290" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-70" />
-                <path d="M 140 95 L 235 175" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-70" />
-                <path d="M 130 290 L 145 240" stroke={active.mapPulseColor} strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="opacity-70" />
+                {/* Intercity High-Speed Digital Traffic Stream Lines */}
+                <path d="M 165 181 L 98 354" stroke={active.mapPulseColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="opacity-80" />
+                <path d="M 98 354 L 171 465" stroke={active.mapPulseColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="opacity-80" />
+                <path d="M 165 181 L 336 290" stroke={active.mapPulseColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="opacity-80" />
+                <path d="M 171 465 L 185 385" stroke={active.mapPulseColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="opacity-80" />
+                <path d="M 98 354 L 94 282" stroke={active.mapPulseColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="opacity-80" />
               </svg>
 
               {/* Overlay Hub City Pills */}
