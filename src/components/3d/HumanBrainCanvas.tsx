@@ -307,43 +307,32 @@ export const HumanBrainCanvas: React.FC<HumanBrainCanvasProps> = ({
       ctx.globalAlpha = currentBrainOpacity;
 
       // ----------------------------------------------------------
-      // Background
+      // Background (Pure black to blend seamlessly with dark website theme)
       // ----------------------------------------------------------
 
-      const bg = ctx.createLinearGradient(
-        0,
-        0,
-        width,
-        height
-      );
-
-      bg.addColorStop(0, "#29136f");
-      bg.addColorStop(0.45, "#17298c");
-      bg.addColorStop(1, "#063b91");
-
-      ctx.fillStyle = bg;
+      ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, width, height);
 
       // ----------------------------------------------------------
-      // Responsive brain size
+      // Responsive brain size (compact to avoid overlapping header text)
       // ----------------------------------------------------------
 
       const scale = Math.min(
-        width / 1050,
-        height / 650
+        width / 1100,
+        height / 720
       );
 
       const baseBrainScale = Math.max(
-        0.75,
-        Math.min(scale * 1.25, 1.65)
+        0.58,
+        Math.min(scale * 0.95, 1.2)
       );
 
       // Brain expands slightly as user scrolls into tunnel
       const brainScale = baseBrainScale * (1 + sp * 1.2);
 
-      // Brain positioned slightly above center for full visibility
+      // Brain centered comfortably above the bottom signals box with clear margin
       const cx = width * 0.5;
-      const cy = height * 0.41;
+      const cy = height * 0.38;
 
       const brainPath = createBrainPath(
         cx,

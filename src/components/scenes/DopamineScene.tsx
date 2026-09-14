@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { HumanBrainCanvas } from '../3d/HumanBrainCanvas';
 import { InfiniteTunnelCanvas } from '../3d/InfiniteTunnelCanvas';
 import { soundEngine } from '../../utils/soundEngine';
-import { Heart, Zap, Gauge, RefreshCw, ChevronDown, Play, Square, RotateCcw } from 'lucide-react';
+import { Heart, Zap, Gauge, RefreshCw, ChevronDown, Play, Square, RotateCcw, Activity } from 'lucide-react';
 
 const REWARD_FEED = [
   { text: '🚨 Shocking Highway Accident Video Released!', icon: '💥' },
@@ -85,7 +85,7 @@ export const DopamineScene: React.FC = () => {
 
   const handleImpact = useCallback((text: string) => {
     soundEngine.playNotificationPing();
-    setImpactHistory((prev) => [text, ...prev.slice(0, 3)]);
+    setImpactHistory((prev) => [text, ...prev.slice(0, 2)]);
   }, []);
 
   // Tunnel control handlers
@@ -131,7 +131,7 @@ export const DopamineScene: React.FC = () => {
         style={{
           opacity: Math.max(0, Math.min(1, scrollProgress * 1.6)),
           transform: `scale(${0.2 + scrollProgress * 0.8})`,
-          transformOrigin: '50% 41%', // Aligned with center of brain
+          transformOrigin: '50% 38%', // Aligned with center of brain
         }}
       >
         <InfiniteTunnelCanvas
@@ -148,6 +148,22 @@ export const DopamineScene: React.FC = () => {
         onImpact={handleImpact}
         scrollProgress={scrollProgress}
       />
+
+      {/* Brain Scene Header (Visible at start, fades out as user scrolls into tunnel) */}
+      <div
+        className="relative z-20 max-w-4xl mx-auto text-center space-y-2 pt-2 sm:pt-4 transition-opacity duration-300 pointer-events-none"
+        style={{
+          opacity: Math.max(0, 1 - scrollProgress * 2.5),
+        }}
+      >
+        <div className="inline-flex items-center space-x-2 text-[11px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 bg-cyan-950/70 border border-cyan-500/40 px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-lg">
+          <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+          <span>Neurochemical Hijack • Dopamine Loop</span>
+        </div>
+        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-lg">
+          Inside Your Brain: The Reward Hijack
+        </h2>
+      </div>
 
       {/* Header Overlay (Fades in when scroll enters tunnel) */}
       <div
@@ -283,7 +299,7 @@ export const DopamineScene: React.FC = () => {
             <span>RECENT SOCIAL SIGNALS INGESTED BY BRAIN:</span>
           </div>
           <div className="flex flex-col items-center justify-center gap-1.5">
-            {impactHistory.map((line, idx) => (
+            {impactHistory.slice(0, 3).map((line, idx) => (
               <span
                 key={idx}
                 className="text-xs font-mono px-3.5 py-1 rounded-full bg-neutral-900/90 border border-cyan-500/20 text-cyan-300 shadow-sm transition-all"
