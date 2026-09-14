@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { soundEngine } from '../../utils/soundEngine';
 
@@ -21,26 +21,54 @@ const NEWS_DATA = [
 ];
 
 export const Carousel3DScene: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [clickCount, setClickCount] = useState(0);
+  // Step 0: Image 1, Step 1: Image 2, Step 2: Image 3, Step 3: Fake News Reveal
+  const [step, setStep] = useState(0);
 
-  const isRevealed = clickCount >= 3;
+  const isRevealed = step === 3;
+  const currentIndex = step < 3 ? step : 0;
 
-  const handleClick = () => {
-    if (isRevealed) return; // Prevent clicking after reveal
-
+  const handleNext = () => {
     soundEngine.playNotificationPing();
-    setClickCount((prev) => prev + 1);
-    
-    if (clickCount < 2) {
-      setCurrentIndex((prev) => (prev + 1) % NEWS_DATA.length);
-    }
+    setStep((prev) => (prev + 1) % 4); // Loops back to 0 after step 3 (Fake News)
   };
 
+  const handlePrev = () => {
+    if (step === 0) return; // Prevent wrapping to fake news from the first image
+    soundEngine.playClickTone();
+    setStep((prev) => prev - 1);
+  };
+
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrev();
+      } else if (e.key === 'ArrowRight') {
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <section className="h-screen w-full bg-black relative flex flex-col justify-center items-center overflow-hidden snap-start snap-always py-10 px-4">
+    <section className="h-screen w-full bg-black relative flex flex-col justify-center items-center overflow-hidden snap-start snap-always py-6 md:py-10 px-4 select-none">
       {/* Background radial */}
       <div className="absolute inset-0 bg-radial from-red-950/30 via-black to-black opacity-90 pointer-events-none" />
+
+      {/* Invisible Full-Screen Left Click Area (Click anywhere on the left half to go previous) */}
+      <div 
+        onClick={handlePrev}
+        className={`absolute inset-y-0 left-0 w-1/2 z-40 ${step === 0 ? 'cursor-default' : 'cursor-pointer'}`}
+        aria-label="Previous Slide"
+      />
+
+      {/* Invisible Full-Screen Right Click Area (Click anywhere on the right half to go next / loop back) */}
+      <div 
+        onClick={handleNext}
+        className="absolute inset-y-0 right-0 w-1/2 z-40 cursor-pointer"
+        aria-label="Next Slide"
+      />
 
       <AnimatePresence mode="wait">
         {!isRevealed ? (
@@ -50,13 +78,13 @@ export const Carousel3DScene: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
             transition={{ duration: 0.3 }}
-            className="z-40 text-center w-full px-4 mb-4 md:mb-8"
+            className="z-30 text-center w-full px-4 mb-2 md:mb-6 pointer-events-none"
           >
-            <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(220,38,38,0.6)]">
+            <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-2 md:mb-3 shadow-[0_0_15px_rgba(220,38,38,0.6)]">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>{NEWS_DATA[currentIndex].tag}</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-serif italic font-bold text-white tracking-tight drop-shadow-lg">
+            <h2 className="text-2xl md:text-5xl font-serif italic font-bold text-white tracking-tight drop-shadow-lg">
               {NEWS_DATA[currentIndex].title}
             </h2>
           </motion.div>
@@ -66,13 +94,13 @@ export const Carousel3DScene: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="z-40 text-center w-full px-4 mb-0"
+            className="z-30 text-center w-full px-4 mb-2 md:mb-6 pointer-events-none"
           >
-            <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3.5 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(220,38,38,0.6)]">
+            <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3.5 py-1 rounded-sm text-xs font-bold uppercase tracking-widest mb-2 md:mb-3 shadow-[0_0_15px_rgba(220,38,38,0.6)]">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>Reality Check</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-serif italic font-bold text-white tracking-tight drop-shadow-lg">
+            <h2 className="text-2xl md:text-5xl font-serif italic font-bold text-white tracking-tight drop-shadow-lg">
               Don't Believe Everything You See
             </h2>
           </motion.div>
@@ -80,9 +108,8 @@ export const Carousel3DScene: React.FC = () => {
       </AnimatePresence>
 
       <div 
-        className="relative w-full max-w-5xl h-[70vh] flex items-center justify-center cursor-pointer"
+        className="relative w-full max-w-5xl h-[66vh] md:h-[72vh] flex items-center justify-center pointer-events-none"
         style={{ perspective: 1200 }}
-        onClick={handleClick}
       >
         <AnimatePresence>
           {NEWS_DATA.map((item, index) => {
@@ -144,7 +171,7 @@ export const Carousel3DScene: React.FC = () => {
              return (
                <motion.div
                  key={index}
-                 className="absolute w-full max-w-[900px] flex items-center justify-center"
+                 className="absolute w-full max-w-[900px] flex items-center justify-center pointer-events-none"
                  initial={false}
                  animate={{
                    zIndex: animateProps.zIndex,
@@ -153,7 +180,7 @@ export const Carousel3DScene: React.FC = () => {
                    y: animateProps.y,
                    z: animateProps.z,
                    opacity: animateProps.opacity,
-                    filter: animateProps.filter,
+                   filter: animateProps.filter,
                    rotateX: animateProps.rotateX,
                    rotateY: animateProps.rotateY,
                    rotateZ: animateProps.rotateZ
@@ -167,7 +194,7 @@ export const Carousel3DScene: React.FC = () => {
                    transformOrigin: "bottom center"
                  }}
                >
-                 <img src={item.src} alt={`Fake News Story ${index + 1}`} className="max-w-full max-h-[70vh] w-auto h-auto object-contain pointer-events-none rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10" />
+                 <img src={item.src} alt={`Fake News Story ${index + 1}`} className="max-w-full max-h-[66vh] md:max-h-[72vh] w-auto h-auto object-contain pointer-events-none rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10" />
                  {/* Fallback overlay in case image not found */}
                  <div className="absolute inset-0 flex items-center justify-center -z-10 text-neutral-600 font-mono text-xs p-4 text-center">
                    Please upload {item.src} to the public folder
@@ -179,11 +206,12 @@ export const Carousel3DScene: React.FC = () => {
             <motion.div
               initial={{ scale: 4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 12, stiffness: 100, delay: 0.1 }}
-              className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center"
+              className="absolute inset-0 z-35 pointer-events-none flex flex-col items-center justify-center"
             >
               <div 
-                className="border-[6px] md:border-[12px] border-red-600 text-red-600 font-black text-6xl md:text-[8rem] uppercase tracking-tighter px-6 py-2 md:px-12 md:py-4 rounded-3xl transform -rotate-12 bg-black/40 backdrop-blur-sm"
+                className="border-[6px] md:border-[12px] border-red-600 text-red-600 font-black text-6xl md:text-[8rem] uppercase tracking-tighter px-6 py-2 md:px-12 md:py-4 rounded-3xl transform -rotate-12 bg-black/40 backdrop-blur-sm shadow-[0_0_40px_rgba(220,38,38,0.6)]"
                 style={{
                   textShadow: "0 0 20px rgba(220,38,38,0.8)", 
                   boxShadow: "inset 0 0 30px rgba(220,38,38,0.6), 0 0 40px rgba(220,38,38,0.6)"
@@ -198,3 +226,4 @@ export const Carousel3DScene: React.FC = () => {
     </section>
   );
 };
+
