@@ -92,19 +92,33 @@ export default function App() {
 
       {/* Sequential Full-Page Snap Scenes */}
       <main className="w-full relative z-10">
-        {/* Scene 1: The Loop Opening Scene */}
-        <div ref={(el) => (sceneRefs.current[0] = el)} data-scene-id="1" className="h-screen w-full snap-start snap-always">
-          <TheLoopOpeningScene onScrollToNext={() => scrollToScene(2)} />
-        </div>
-
-        {/* Scene 2: Dedicated Assembly Live Quiz Time */}
-        <div ref={(el) => (sceneRefs.current[1] = el)} data-scene-id="2" className="h-screen w-full snap-start snap-always">
-          <QuizTimeScene />
-        </div>
-
-        {/* Scene 3: Fake News 3D Carousel (replaces stories 1-3) */}
-        <div ref={(el) => (sceneRefs.current[2] = el)} data-scene-id="3" className="h-screen w-full snap-start snap-always">
-          <Carousel3DScene />
+        {/* Unified Scene 1, 2 & 3: The Loop Opening, Live Quiz, & 3D Newspaper Scroll Experience */}
+        <div
+          ref={(el) => (sceneRefs.current[0] = el)}
+          data-scene-id="1"
+          className="h-[1100vh] w-full snap-start relative sticky-scene-container"
+        >
+          <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <TheLoopOpeningScene
+              onScrollToNext={() => scrollToScene(4)}
+              onScrollToQuiz={() => scrollToScene(2)}
+              onScrollToNews={() => scrollToScene(3)}
+            />
+          </div>
+          {/* Subtle progressive scroll snap guides */}
+          <div className="absolute top-[20%] h-px w-full snap-start pointer-events-none" />
+          {/* Scene 2 Anchor: Live Quiz Stage (QR Code) - Stable Zone (0.44-0.60) */}
+          <div
+            ref={(el) => (sceneRefs.current[1] = el)}
+            data-scene-id="2"
+            className="absolute top-[52%] h-px w-full snap-start pointer-events-none"
+          />
+          {/* Scene 3 Anchor: First News Broadsheet - Stable Zone (0.70-0.80) */}
+          <div
+            ref={(el) => (sceneRefs.current[2] = el)}
+            data-scene-id="3"
+            className="absolute top-[75%] h-px w-full snap-start pointer-events-none"
+          />
         </div>
 
         {/* Scene 4: App Ecosystem Explosion (Designed to capture every second of your attention) */}

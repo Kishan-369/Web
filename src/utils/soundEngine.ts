@@ -144,6 +144,97 @@ class SoundEngine {
     }
   }
 
+  // Realistic newspaper page turn / rustle sound
+  public playPaperTurnSound() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.18);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    filter.frequency.exponentialRampToValueAtTime(450, now + 0.18);
+    filter.Q.value = 1.0;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(this.volume * 0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    noise.start(now);
+  }
+
+  // Authentic official government rubber stamp slam (mechanical snap + paper slap + low thump)
+  public playRubberStampSound() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    // 1. Initial mechanical stamp strike click
+    const clickOsc = this.ctx.createOscillator();
+    const clickGain = this.ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(260, now);
+    clickOsc.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+    clickGain.gain.setValueAtTime(this.volume * 0.7, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    clickOsc.connect(clickGain);
+    clickGain.connect(this.ctx.destination);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.08);
+
+    // 2. Paper ink slap noise
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.12);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, now);
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(this.volume * 0.55, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noise.start(now);
+
+    // 3. Resonant desk/paper impact thump
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(105, now);
+    subOsc.frequency.exponentialRampToValueAtTime(25, now + 0.45);
+    subGain.gain.setValueAtTime(this.volume * 0.6, now);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    subOsc.connect(subGain);
+    subGain.connect(this.ctx.destination);
+    subOsc.start(now);
+    subOsc.stop(now + 0.5);
+
+    this.triggerHaptic([70, 40, 90]);
+  }
+
   // Dopamine Slot Machine Chime
   public playDopamineTrigger() {
     if (this.isMuted) return;

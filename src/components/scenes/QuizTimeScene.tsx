@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, Activity, Users, Maximize2, X, Smartphone } from 'lucide-react';
+import { X } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
 
 // ============================================================================
 // 📌 LIVE QUIZ CONFIGURATION
 // ============================================================================
-// Easily configure your external quiz URL, join code, or custom QR code image here:
 export const MENTIMETER_CONFIG = {
-  // 1. External quiz or voting link (e.g., 'https://www.menti.com/al123456' or your custom quiz portal):
+  // External quiz or voting link:
   mentiUrl: 'https://www.menti.com/',
 
-  // 2. Quiz Join Code to display on screen (e.g., '1234 5678'):
+  // Quiz Join Code:
   mentiCode: '1234 5678',
 
-  // 3. Custom QR Code image URL or local file path (e.g., '/quiz-qr.png' or an online URL).
-  //    If set to null, a high-resolution vector QR code will be generated automatically.
+  // Custom QR Code image URL or local file path (optional):
   customQrCodeImageUrl: null as string | null,
 };
 // ============================================================================
@@ -31,150 +29,133 @@ export const QuizTimeScene: React.FC = () => {
   return (
     <section
       id="scene-where-do-you-stand"
-      className="h-screen w-full bg-black text-white relative flex flex-col justify-between py-6 px-4 snap-start snap-always shrink-0 overflow-hidden"
+      className="h-screen w-full bg-black text-white relative flex flex-col justify-center items-center py-8 px-4 snap-start snap-always shrink-0 overflow-hidden select-none"
     >
-      {/* Background Subtle Radial Glow */}
-      <div className="absolute inset-0 bg-radial from-red-950/25 via-black to-black opacity-90 pointer-events-none" />
+      {/* Background Atmosphere */}
+      <div className="absolute inset-0 bg-radial from-neutral-900/30 via-black to-black opacity-95 pointer-events-none" />
 
-      {/* Header Banner */}
-      <div className="relative z-10 max-w-3xl mx-auto w-full text-center space-y-2 pt-2 sm:pt-4">
-        <div
-          id="quiz-scene-badge"
-          className="inline-flex items-center space-x-2 text-xs font-mono uppercase tracking-widest text-red-500 bg-red-950/60 border border-red-500/40 px-3.5 py-1 rounded-full backdrop-blur-md shadow-lg"
+      {/* Subtle Ambient Rings */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-20">
+        <div className="w-[400px] h-[400px] sm:w-[550px] sm:h-[550px] border border-white/10 rounded-full" />
+        <div className="w-[650px] h-[650px] sm:w-[850px] sm:h-[850px] border border-white/[0.04] rounded-full" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center max-w-4xl xl:max-w-5xl w-full text-center">
+        {/* Text 1: Where Do You Stand? — Strictly ONE Single Line */}
+        <motion.h2
+          id="quiz-scene-title"
+          initial={{ opacity: 0, y: -35, filter: 'blur(10px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-100 to-neutral-400 drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)] leading-none select-none px-2"
         >
-          <Activity className="w-3.5 h-3.5 text-red-500 animate-pulse" />
-          <span>Scene 2 • Assembly Live Quiz</span>
-        </div>
-        <h2 id="quiz-scene-title" className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
           Where Do You Stand?
-        </h2>
-        <p className="text-xs sm:text-sm text-neutral-300 font-sans max-w-lg mx-auto">
-          Scan the QR code with your phone camera or visit <span className="text-cyan-400 font-mono font-bold">menti.com</span> to participate in the live quiz.
-        </p>
-      </div>
+        </motion.h2>
 
-      {/* Main Dedicated QR Code Card */}
-      <div id="quiz-main-container" className="relative z-10 max-w-xl w-full mx-auto my-auto">
-        <div
-          id="quiz-card"
-          className="apple-card p-6 sm:p-8 rounded-3xl border border-red-500/30 bg-neutral-950/90 text-center space-y-6 shadow-2xl relative overflow-hidden glow-red"
+        {/* Text 2: Scan to Join Live Quiz */}
+        <motion.h3
+          initial={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold tracking-widest text-red-500 uppercase mt-5 sm:mt-6 select-none transition-all flex items-center justify-center gap-2 drop-shadow-[0_0_25px_rgba(239,68,68,0.8)]"
         >
-          {/* Direct Join Header */}
-          <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-3.5 py-1 rounded-full">
-              <Users className="w-3.5 h-3.5 text-cyan-400" />
-              <span>
-                Join at menti.com • Code:{' '}
-                <strong className="text-white font-mono tracking-wider ml-1">{MENTIMETER_CONFIG.mentiCode}</strong>
-              </span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white">
-              Scan to Join Live Quiz
-            </h3>
-            <p className="text-xs text-neutral-400 max-w-sm mx-auto">
-              Aim your mobile camera at the QR code below to connect instantly without installing any app.
-            </p>
-          </div>
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+          <span>Scan to Join Live Quiz</span>
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+        </motion.h3>
 
-          {/* QR Code Container */}
-          <div className="relative group max-w-[220px] mx-auto">
-            <div
-              id="qr-code-interactive"
-              onClick={toggleModal}
-              className="p-4 sm:p-5 bg-white rounded-2xl shadow-2xl cursor-pointer transition-all duration-300 hover:scale-105 border-4 border-neutral-900 group-hover:border-red-500/50"
-              title="Click to expand fullscreen"
-            >
-              {MENTIMETER_CONFIG.customQrCodeImageUrl ? (
-                <img
-                  src={MENTIMETER_CONFIG.customQrCodeImageUrl}
-                  alt="Live Quiz QR Code"
-                  className="w-44 h-44 object-contain mx-auto"
-                />
-              ) : (
-                <svg viewBox="0 0 100 100" className="w-44 h-44 fill-black mx-auto">
-                  {/* Position detection corners */}
-                  <path d="M0,0 h30 v30 h-30 z M5,5 h20 v20 h-20 z M10,10 h10 v10 h-10 z" />
-                  <path d="M70,0 h30 v30 h-30 z M75,5 h20 v20 h-20 z M80,10 h10 v10 h-10 z" />
-                  <path d="M0,70 h30 v30 h-30 z M5,75 h20 v20 h-20 z M10,80 h10 v10 h-10 z" />
-                  {/* Matrix Data */}
-                  <rect x="35" y="5" width="8" height="8" />
-                  <rect x="48" y="5" width="8" height="8" />
-                  <rect x="35" y="18" width="8" height="8" />
-                  <rect x="52" y="18" width="8" height="8" />
-                  <rect x="5" y="35" width="8" height="8" />
-                  <rect x="18" y="35" width="8" height="8" />
-                  <rect x="35" y="35" width="10" height="10" fill="#e50914" />
-                  <rect x="50" y="35" width="10" height="10" />
-                  <rect x="65" y="35" width="8" height="8" />
-                  <rect x="80" y="35" width="8" height="8" />
-                  <rect x="35" y="52" width="8" height="8" />
-                  <rect x="48" y="52" width="8" height="8" />
-                  <rect x="70" y="52" width="8" height="8" />
-                  <rect x="85" y="52" width="8" height="8" />
-                  <rect x="35" y="70" width="8" height="8" />
-                  <rect x="50" y="70" width="8" height="8" />
-                  <rect x="65" y="70" width="8" height="8" />
-                  <rect x="85" y="70" width="8" height="8" />
-                  <rect x="40" y="85" width="8" height="8" />
-                  <rect x="60" y="85" width="8" height="8" />
-                  <rect x="85" y="85" width="8" height="8" />
-                </svg>
-              )}
-              <div className="text-[10px] font-mono text-neutral-900 font-bold tracking-widest mt-2.5 uppercase flex items-center justify-center space-x-1">
-                <span>Click to Expand</span>
-                <Maximize2 className="w-3 h-3 text-red-600" />
-              </div>
-            </div>
-          </div>
+        {/* Big High-Visibility High-Tech QR Code Card */}
+        <motion.div
+          id="quiz-main-container"
+          initial={{ opacity: 0, scale: 0.65, y: 50, filter: 'blur(14px)' }}
+          whileInView={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.95, delay: 0.3, type: 'spring', damping: 20, stiffness: 90 }}
+          className="relative mt-6 sm:mt-8 group cursor-pointer"
+          onClick={toggleModal}
+          title="Click to view full screen"
+        >
+          {/* Very Subtle Ambient Depth Aura */}
+          <div className="absolute -inset-4 sm:-inset-6 rounded-3xl bg-red-600/[0.06] blur-2xl pointer-events-none transition-all duration-700" />
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-            <a
-              id="open-external-quiz-btn"
-              href={MENTIMETER_CONFIG.mentiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-extrabold text-xs tracking-wider uppercase flex items-center space-x-2 transition-all shadow-xl glow-red"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Open Quiz Link</span>
-            </a>
+          {/* High-Resolution Clean QR Card with Neutral Shadows */}
+          <motion.div
+            animate={{ y: [-3, 3, -3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative p-6 sm:p-8 md:p-9 bg-white rounded-3xl sm:rounded-[36px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_15px_rgba(255,255,255,0.05)] border-2 sm:border-4 border-neutral-800 transition-colors duration-300 overflow-hidden"
+          >
+            {/* Subtle Laser Scanning Line */}
+            <motion.div
+              className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500/60 to-transparent shadow-[0_0_6px_rgba(239,68,68,0.3)] z-20 pointer-events-none"
+              animate={{ top: ['4%', '94%', '4%'] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
 
-            <button
-              id="fullscreen-qr-btn"
-              onClick={toggleModal}
-              className="px-4 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 hover:text-white text-xs font-mono transition-all flex items-center space-x-1.5"
-            >
-              <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Fullscreen View</span>
-            </button>
-          </div>
+            {/* Subtle Minimal Corner Accents */}
+            <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 w-4 h-4 border-t-2 border-l-2 border-neutral-400 z-10 pointer-events-none" />
+            <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-4 h-4 border-t-2 border-r-2 border-neutral-400 z-10 pointer-events-none" />
+            <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 w-4 h-4 border-b-2 border-l-2 border-neutral-400 z-10 pointer-events-none" />
+            <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 w-4 h-4 border-b-2 border-r-2 border-neutral-400 z-10 pointer-events-none" />
 
-          {/* Subtle instructions note */}
-          <div className="flex items-center justify-center space-x-2 text-[11px] font-mono text-neutral-400 pt-1">
-            <Smartphone className="w-3.5 h-3.5 text-neutral-400" />
-            <span>Opens directly in any mobile web browser</span>
-          </div>
-        </div>
+            {/* Vector or Custom QR Code */}
+            {MENTIMETER_CONFIG.customQrCodeImageUrl ? (
+              <img
+                src={MENTIMETER_CONFIG.customQrCodeImageUrl}
+                alt="Live Quiz QR Code"
+                className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[320px] lg:h-[320px] object-contain mx-auto relative z-0"
+              />
+            ) : (
+              <svg viewBox="0 0 100 100" className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[320px] lg:h-[320px] fill-black mx-auto relative z-0">
+                {/* Position detection corners */}
+                <path d="M0,0 h30 v30 h-30 z M5,5 h20 v20 h-20 z M10,10 h10 v10 h-10 z" />
+                <path d="M70,0 h30 v30 h-30 z M75,5 h20 v20 h-20 z M80,10 h10 v10 h-10 z" />
+                <path d="M0,70 h30 v30 h-30 z M5,75 h20 v20 h-20 z M10,80 h10 v10 h-10 z" />
+                {/* Matrix Data */}
+                <rect x="35" y="5" width="8" height="8" />
+                <rect x="48" y="5" width="8" height="8" />
+                <rect x="35" y="18" width="8" height="8" />
+                <rect x="52" y="18" width="8" height="8" />
+                <rect x="5" y="35" width="8" height="8" />
+                <rect x="18" y="35" width="8" height="8" />
+                <rect x="35" y="35" width="10" height="10" />
+                <rect x="50" y="35" width="10" height="10" />
+                <rect x="65" y="35" width="8" height="8" />
+                <rect x="80" y="35" width="8" height="8" />
+                <rect x="35" y="52" width="8" height="8" />
+                <rect x="48" y="52" width="8" height="8" />
+                <rect x="70" y="52" width="8" height="8" />
+                <rect x="85" y="52" width="8" height="8" />
+                <rect x="35" y="70" width="8" height="8" />
+                <rect x="50" y="70" width="8" height="8" />
+                <rect x="65" y="70" width="8" height="8" />
+                <rect x="85" y="70" width="8" height="8" />
+                <rect x="40" y="85" width="8" height="8" />
+                <rect x="60" y="85" width="8" height="8" />
+                <rect x="85" y="85" width="8" height="8" />
+              </svg>
+            )}
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Footer Info */}
-      <div className="relative z-10 text-center text-[11px] font-mono text-neutral-500 pb-1">
-        Assembly Reality Check • Live results broadcasted on screen
-      </div>
-
-      {/* Fullscreen Big QR Code Modal (Optimized for Auditorium / Projector Display) */}
+      {/* Fullscreen Big QR Code Modal (Available when clicking the QR code) */}
       <AnimatePresence>
         {showLargeQr && (
           <div
             id="fullscreen-qr-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
+            onClick={toggleModal}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="apple-card p-6 sm:p-8 rounded-3xl border border-red-500/40 max-w-md w-full bg-neutral-950 text-center space-y-5 shadow-2xl relative"
+              exit={{ scale: 0.85, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="apple-card p-6 sm:p-8 rounded-3xl border border-red-500/40 max-w-md w-full bg-neutral-950 text-center space-y-6 shadow-2xl relative"
             >
               <button
                 id="close-fullscreen-qr-btn"
@@ -185,14 +166,8 @@ export const QuizTimeScene: React.FC = () => {
               </button>
 
               <div className="space-y-1 pt-2">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-950/60 border border-red-500/30 px-3 py-1 rounded-full">
-                  Assembly Live Quiz
-                </span>
-                <h4 className="text-2xl font-black text-white">Scan to Join Live</h4>
-                <p className="text-xs text-neutral-400">
-                  Point your phone camera at the QR code or go to <strong className="text-cyan-400">menti.com</strong> with code{' '}
-                  <strong className="text-white">{MENTIMETER_CONFIG.mentiCode}</strong>
-                </p>
+                <h4 className="text-2xl sm:text-3xl font-black text-white">Where Do You Stand?</h4>
+                <p className="text-sm font-bold text-red-500 uppercase tracking-wider">Scan to Join Live Quiz</p>
               </div>
 
               {/* Large QR Display */}
@@ -231,30 +206,6 @@ export const QuizTimeScene: React.FC = () => {
                     <rect x="85" y="85" width="8" height="8" />
                   </svg>
                 )}
-                <span className="text-[10px] font-mono text-neutral-900 font-extrabold tracking-widest mt-2 uppercase">
-                  LIVE ASSEMBLY POLL
-                </span>
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <a
-                  id="modal-open-quiz-link"
-                  href={MENTIMETER_CONFIG.mentiUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg glow-red transition-all"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Open Quiz Directly</span>
-                </a>
-
-                <button
-                  id="modal-close-window-btn"
-                  onClick={toggleModal}
-                  className="w-full py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/10 text-xs font-mono transition-all"
-                >
-                  Close Window
-                </button>
               </div>
             </motion.div>
           </div>
