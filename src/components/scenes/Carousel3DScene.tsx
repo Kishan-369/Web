@@ -60,33 +60,34 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
   const p = Math.max(0, Math.min(1, scrollProgress));
 
   // =========================================================================
-  // SCROLL PROGRESS PHASES (0.0 to 1.0):
+  // SCROLL PROGRESS TIMELINE FOR ALL 3 NEWS (0.0 to 1.0):
   // -------------------------------------------------------------------------
-  // Phase 1: Image 1 (Sheet 1)
-  //   0.00 -> 0.08: Flat, uncut, motionless, resting stable!
-  //   0.08 -> 0.35: Middle-fold turn 1: Right half folds along center crease
-  //                 to the left, revealing Image 2!
-  // Phase 2: Image 2 (Sheet 2)
-  //   0.35 -> 0.44: Flat, uncut, motionless, resting stable!
-  //   0.44 -> 0.70: Middle-fold turn 2: Right half folds along center crease
-  //                 to the left, revealing Image 3!
-  // Phase 3: Image 3 (Sheet 3)
-  //   0.70 -> 0.78: Flat, uncut, motionless, resting stable!
-  // Phase 4: The Grand Finale (ALL 3 IMAGES APPEAR & SPREAD)
-  //   0.78 -> 0.90: All 3 images smoothly spread out across the screen!
-  //   0.90 -> 1.00: ONE SINGLE massive "FAKE NEWS" stamp spans across ALL 3 images!
+  // Phase 1: News 1 (Govt Screen Time Limit)
+  //   0.00 -> 0.08: Flat uncut resting stable
+  //   0.08 -> 0.34: Middle-fold Turn 1: Right half folds over to left, smoothly
+  //                 revealing the next news (News 2) on both left and right sides!
+  // Phase 2: News 2 (Meta Paid Subscription)
+  //   0.34 -> 0.44: Flat uncut resting stable at 100% clarity
+  //   0.44 -> 0.70: Middle-fold Turn 2: Right half folds over to left, smoothly
+  //                 revealing the next news (News 3) on both left and right sides!
+  // Phase 3: News 3 (AMC Guidelines)
+  //   0.70 -> 0.78: Flat uncut resting stable at 100% clarity (Zero blank pages!)
+  // Phase 4: The Grand Finale (ALL 3 BROADSHEETS SPREAD & FAKE NEWS STAMP)
+  //   0.78 -> 0.86: All 3 images smoothly spread out across the screen!
+  //   0.86 -> 0.93: Massive official government "FAKE NEWS" rubber stamp slams across all 3!
+  //   0.93 -> 1.00: Smooth vacuum zoom into phone screen!
   // =========================================================================
 
-  // Turn 1 calculation (Image 1 -> Image 2)
+  // Turn 1 calculation (News 1 -> News 2)
   let turn1 = 0;
-  if (p >= 0.08 && p <= 0.35) {
-    const raw = (p - 0.08) / 0.27;
+  if (p >= 0.08 && p <= 0.34) {
+    const raw = (p - 0.08) / 0.26;
     turn1 = raw * raw * (3 - 2 * raw); // Smooth cubic hermite
-  } else if (p > 0.35) {
+  } else if (p > 0.34) {
     turn1 = 1;
   }
 
-  // Turn 2 calculation (Image 2 -> Image 3)
+  // Turn 2 calculation (News 2 -> News 3)
   let turn2 = 0;
   if (p >= 0.44 && p <= 0.70) {
     const raw = (p - 0.44) / 0.26;
@@ -95,16 +96,16 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
     turn2 = 1;
   }
 
-  // Spread calculation for the finale (All 3 images appear side by side)
+  // Spread calculation for the finale (All 3 broadsheets appear side-by-side)
   let spreadT = 0;
-  if (p >= 0.72) {
-    const raw = Math.min(1, (p - 0.72) / 0.10); // 0.72 to 0.82
+  if (p >= 0.78) {
+    const raw = Math.min(1, (p - 0.78) / 0.08); // 0.78 to 0.86
     spreadT = raw * raw * (3 - 2 * raw);
   }
 
   // Unified Fake News stamp slam calculation (Applied ONE single stamp across ALL 3 images)
-  const isStampVisible = p >= 0.82;
-  const stampProgress = isStampVisible ? Math.min(1, (p - 0.82) / 0.06) : 0;
+  const isStampVisible = p >= 0.86;
+  const stampProgress = isStampVisible ? Math.min(1, (p - 0.86) / 0.05) : 0;
   const stampScale = Math.max(1, 3.0 - stampProgress * 2.0);
   const stampOpacity = Math.min(1, stampProgress * 3.5);
 
@@ -118,8 +119,8 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
   // Zoom out / vacuum shrink into the phone screen when scrolling past Fake News
   let fakeNewsZoomOutScale = 1.0;
   let fakeNewsZoomOutOpacity = 1.0;
-  if (p >= 0.91) {
-    const zp = Math.min(1, (p - 0.91) / 0.08); // 0.91 -> 0.99
+  if (p >= 0.93) {
+    const zp = Math.min(1, (p - 0.93) / 0.06);
     const easeZoomIn = zp * zp;
     fakeNewsZoomOutScale = Math.max(0.12, 1.0 - easeZoomIn * 0.88);
     fakeNewsZoomOutOpacity = Math.max(0, 1.0 - zp * 1.15);
@@ -244,10 +245,22 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
               );
             })}
 
+            {/* Top Scene Headline across the 3 Broadsheets (Positioned close to the cards) */}
+            <div
+              className="absolute -top-3 sm:-top-5 md:-top-6 left-0 right-0 z-40 text-center pointer-events-none transition-all duration-300 px-4"
+              style={{
+                opacity: Math.min(1, spreadT * 1.5),
+              }}
+            >
+              <h2 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-black tracking-wider uppercase drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
+                <span className="text-red-500">REALITY CHECK</span>
+                <span className="text-neutral-400 mx-2">•</span>
+                <span className="text-white">ALL 3 STORIES WERE FAKE NEWS</span>
+              </h2>
+            </div>
+
             {/* =============================================================== */}
             {/* AUTHENTIC GOVERNMENT RUBBER STAMP: "Fake News" */}
-            {/* Strictly in ONE line (whitespace-nowrap) across all 3 news images! */}
-            {/* Background is semi-transparent so all 3 news images remain visible! */}
             {/* =============================================================== */}
             {isStampVisible && (
               <div
@@ -276,9 +289,9 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
       )}
 
       {/* ===================================================================== */}
-      {/* MODE B: 3D NEWSPAPER MIDDLE-FOLD TURNING STAGE (spreadT < 1) */}
-      {/* Newspaper page folding directly on the pure uncut news images! */}
-      {/* NO white background page: the turned flap carries the next news's left half! */}
+      {/* MODE B: 3D NEWSPAPER MIDDLE-FOLD TURNING STAGE FOR ALL THREE NEWS */}
+      {/* When turning, the back side is a realistic Blurred Newspaper Page, and the */}
+      {/* sheet underneath is blurred during transition to avoid premature repetition! */}
       {/* ===================================================================== */}
       {spreadT < 1 && (
         <div
@@ -292,22 +305,26 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
           }}
         >
           {/* ================================================================= */}
-          {/* SHEET 3: Image 3 (/image3.jpeg - Bottom Sheet) */}
+          {/* SHEET 3: Image 3 (/image3.jpeg - Bottom Sheet, Flat & Crystal Clear) */}
           {/* ================================================================= */}
           <div
-            className="absolute inset-0 rounded-xl overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.08)] bg-neutral-900"
-            style={{ zIndex: 10 }}
+            className="absolute inset-0 rounded-xl overflow-visible shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.08)] bg-neutral-900"
+            style={{
+              zIndex: 10,
+              transformStyle: 'preserve-3d',
+            }}
           >
-            {/* 100% Full Uncut News Image 3 */}
-            <img
-              src={NEWS_DATA[2].src}
-              alt={NEWS_DATA[2].title}
-              className="w-full h-full object-cover block select-none pointer-events-none"
-            />
-            {/* Center crease */}
-            <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none" />
-            <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none" />
-            <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none" />
+            {/* RESTING FLAT SHEET 3 (100% Uncut Image 3, 0px blur, crystal clear) */}
+            <div className="w-full h-full rounded-xl overflow-hidden relative">
+              <img
+                src={NEWS_DATA[2].src}
+                alt={NEWS_DATA[2].title}
+                className="w-full h-full object-cover block select-none pointer-events-none"
+              />
+              <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none" />
+              <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none" />
+              <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none" />
+            </div>
           </div>
 
           {/* ================================================================= */}
@@ -322,7 +339,7 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
               }}
             >
               {turn2 === 0 ? (
-                // RESTING FLAT SHEET 2 (100% Uncut Image 2)
+                // RESTING FLAT SHEET 2 (100% Uncut Image 2, crystal clear 0px blur)
                 <div className="w-full h-full rounded-xl overflow-hidden relative">
                   <img
                     src={NEWS_DATA[1].src}
@@ -336,20 +353,20 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
               ) : (
                 // 3D MIDDLE FOLD SHEET 2 (Right half folds over center crease)
                 <div className="w-full h-full relative" style={{ transformStyle: 'preserve-3d' }}>
-                  {/* Left Half (Underneath: transitions smoothly to Image 3's left half as turn completes) */}
+                  {/* Left Half (Underneath: News 2 left half with fold shadow deepening) */}
                   <div className="absolute top-0 bottom-0 left-0 w-1/2 overflow-hidden z-10 rounded-l-xl">
                     <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
                       <img
-                        src={turn2 > 0.5 ? NEWS_DATA[2].src : NEWS_DATA[1].src}
-                        alt={turn2 > 0.5 ? NEWS_DATA[2].title : NEWS_DATA[1].title}
+                        src={NEWS_DATA[1].src}
+                        alt={NEWS_DATA[1].title}
                         className="w-full h-full object-cover block select-none pointer-events-none"
                       />
                     </div>
                     {/* Shadow deepening on left as right folds over */}
-                    {turn2 > 0.35 && (
+                    {turn2 > 0.05 && (
                       <div
                         className="absolute inset-0 bg-black pointer-events-none"
-                        style={{ opacity: (turn2 - 0.35) * 0.45 }}
+                        style={{ opacity: Math.min(0.65, turn2 * 0.65) }}
                       />
                     )}
                   </div>
@@ -358,7 +375,7 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                   <div
                     className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-visible z-30 will-change-transform rounded-r-xl"
                     style={{
-                      transformOrigin: 'left center', // The center crease!
+                      transformOrigin: 'left center', // Center crease!
                       transformStyle: 'preserve-3d',
                       transform: `rotateY(${-turn2 * 180}deg) rotateZ(${-Math.sin(turn2 * Math.PI) * 3.5}deg) scale(${
                         1 - Math.sin(turn2 * Math.PI) * 0.02
@@ -384,13 +401,13 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                       />
                     </div>
 
-                    {/* Back of right half: THE LEFT HALF OF NEXT IMAGE (Image 3: /image3.jpeg) */}
-                    {/* NO white background page! It reveals the left side of the next news! */}
+                    {/* Back of right half: NEXT NEWS (NEWS 3) LEFT HALF (Visible 90 to 180 deg) */}
                     <div
-                      className="absolute inset-0 rounded-l-xl overflow-hidden"
+                      className="absolute inset-0 overflow-hidden rounded-l-xl pointer-events-none"
                       style={{
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)',
+                        backgroundColor: '#171717',
                       }}
                     >
                       <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
@@ -400,19 +417,15 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                           className="w-full h-full object-cover block select-none pointer-events-none"
                         />
                       </div>
-                      {/* Spine crease shadow gradient on fold */}
+                      {/* Spine crease shadow on the fold */}
                       <div
-                        className="absolute inset-0 bg-gradient-to-l from-black/50 via-transparent to-transparent pointer-events-none"
-                        style={{ opacity: Math.sin(turn2 * Math.PI) * 0.55 }}
-                      />
-                      <div
-                        className="absolute inset-0 bg-black pointer-events-none"
-                        style={{ opacity: Math.max(0, (1 - turn2) * 0.35) }}
+                        className="absolute inset-0 bg-gradient-to-l from-black/60 via-transparent to-transparent pointer-events-none"
+                        style={{ opacity: Math.sin(turn2 * Math.PI) * 0.65 }}
                       />
                     </div>
                   </div>
 
-                  {/* Underneath right side: Sheet 3 right half is revealed */}
+                  {/* Underneath right side: Sheet 3 right half is revealed crystal clear */}
                   <div className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-hidden z-0 rounded-r-xl">
                     <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
                       <img
@@ -456,20 +469,20 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
               ) : (
                 // 3D MIDDLE FOLD SHEET 1 (Right half folds over center crease)
                 <div className="w-full h-full relative" style={{ transformStyle: 'preserve-3d' }}>
-                  {/* Left Half (Underneath: transitions smoothly to Image 2's left half as turn completes) */}
+                  {/* Left Half (Underneath: News 1 left half with fold shadow deepening) */}
                   <div className="absolute top-0 bottom-0 left-0 w-1/2 overflow-hidden z-10 rounded-l-xl">
                     <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
                       <img
-                        src={turn1 > 0.5 ? NEWS_DATA[1].src : NEWS_DATA[0].src}
-                        alt={turn1 > 0.5 ? NEWS_DATA[1].title : NEWS_DATA[0].title}
+                        src={NEWS_DATA[0].src}
+                        alt={NEWS_DATA[0].title}
                         className="w-full h-full object-cover block select-none pointer-events-none"
                       />
                     </div>
                     {/* Shadow deepening on left as right folds over */}
-                    {turn1 > 0.35 && (
+                    {turn1 > 0.05 && (
                       <div
                         className="absolute inset-0 bg-black pointer-events-none"
-                        style={{ opacity: (turn1 - 0.35) * 0.45 }}
+                        style={{ opacity: Math.min(0.65, turn1 * 0.65) }}
                       />
                     )}
                   </div>
@@ -504,13 +517,13 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                       />
                     </div>
 
-                    {/* Back of right half: THE LEFT HALF OF NEXT IMAGE (Image 2: /image2.jpeg) */}
-                    {/* NO white background page! It reveals the left side of the next news! */}
+                    {/* Back of right half: NEXT NEWS (NEWS 2) LEFT HALF (Visible 90 to 180 deg) */}
                     <div
-                      className="absolute inset-0 rounded-l-xl overflow-hidden"
+                      className="absolute inset-0 overflow-hidden rounded-l-xl pointer-events-none"
                       style={{
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)',
+                        backgroundColor: '#171717',
                       }}
                     >
                       <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
@@ -520,19 +533,15 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                           className="w-full h-full object-cover block select-none pointer-events-none"
                         />
                       </div>
-                      {/* Spine crease shadow gradient on fold */}
+                      {/* Spine crease shadow on the fold */}
                       <div
-                        className="absolute inset-0 bg-gradient-to-l from-black/50 via-transparent to-transparent pointer-events-none"
-                        style={{ opacity: Math.sin(turn1 * Math.PI) * 0.55 }}
-                      />
-                      <div
-                        className="absolute inset-0 bg-black pointer-events-none"
-                        style={{ opacity: Math.max(0, (1 - turn1) * 0.35) }}
+                        className="absolute inset-0 bg-gradient-to-l from-black/60 via-transparent to-transparent pointer-events-none"
+                        style={{ opacity: Math.sin(turn1 * Math.PI) * 0.65 }}
                       />
                     </div>
                   </div>
 
-                  {/* Underneath right side: Sheet 2 right half is revealed */}
+                  {/* Underneath right side: Sheet 2 right half is revealed crystal clear (NO BLUR on right side!) */}
                   <div className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-hidden z-0 rounded-r-xl">
                     <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
                       <img

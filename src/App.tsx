@@ -111,19 +111,19 @@ export default function App() {
           <div
             ref={(el) => (sceneRefs.current[1] = el)}
             data-scene-id="2"
-            className="absolute top-[48%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[46%] h-px w-full snap-start pointer-events-none"
           />
           {/* Scene 3 Anchor: First News Broadsheet */}
           <div
             ref={(el) => (sceneRefs.current[2] = el)}
             data-scene-id="3"
-            className="absolute top-[66%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[56%] h-px w-full snap-start pointer-events-none"
           />
           {/* Scene 4 Anchor: App Ecosystem Phone Settled Stage */}
           <div
             ref={(el) => (sceneRefs.current[3] = el)}
             data-scene-id="4"
-            className="absolute top-[85%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[84%] h-px w-full snap-start pointer-events-none"
           />
         </div>
 

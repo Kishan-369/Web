@@ -43,6 +43,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     lDockedY: 0,
     pDockedX: 140,
     pDockedY: 0,
+    lWidth: 60,
   });
 
   // Scroll Progress & Smoothing
@@ -55,6 +56,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   const hasNewsLandedSoundPlayedRef = useRef(false);
   const hasPage1TurnSoundPlayedRef = useRef(false);
   const hasPage2TurnSoundPlayedRef = useRef(false);
+  const hasPage3TurnSoundPlayedRef = useRef(false);
   const hasFakeNewsStampSoundPlayedRef = useRef(false);
   const hasZoomOutSoundPlayedRef = useRef(false);
   const hasPhoneSettledSoundPlayedRef = useRef(false);
@@ -84,6 +86,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       lDockedY: 0,
       pDockedX,
       pDockedY: 0,
+      lWidth: lW,
     });
 
     setViewport({
@@ -162,74 +165,82 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         }
 
         // Bounce Transition audio cue as QR screen launches towards bottom-right
-        if (next >= 0.60 && !hasBounceSoundPlayedRef.current) {
+        if (next >= 0.49 && !hasBounceSoundPlayedRef.current) {
           hasBounceSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.54) {
+        } else if (next < 0.45) {
           hasBounceSoundPlayedRef.current = false;
         }
 
         // First News bounce landing impact audio cue as it settles at center
-        if (next >= 0.69 && !hasNewsLandedSoundPlayedRef.current) {
+        if (next >= 0.56 && !hasNewsLandedSoundPlayedRef.current) {
           hasNewsLandedSoundPlayedRef.current = true;
           soundEngine.playSubBassImpact();
-        } else if (next < 0.62) {
+        } else if (next < 0.51) {
           hasNewsLandedSoundPlayedRef.current = false;
         }
 
         // Newspaper page 1 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.72 && !hasPage1TurnSoundPlayedRef.current) {
+        if (next >= 0.65 && !hasPage1TurnSoundPlayedRef.current) {
           hasPage1TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.69) {
+        } else if (next < 0.62) {
           hasPage1TurnSoundPlayedRef.current = false;
         }
 
         // Newspaper page 2 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.75 && !hasPage2TurnSoundPlayedRef.current) {
+        if (next >= 0.69 && !hasPage2TurnSoundPlayedRef.current) {
           hasPage2TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.72) {
+        } else if (next < 0.66) {
           hasPage2TurnSoundPlayedRef.current = false;
         }
 
+        // Newspaper page 3 turn rustle sound (Middle-fold page turn)
+        if (next >= 0.72 && !hasPage3TurnSoundPlayedRef.current) {
+          hasPage3TurnSoundPlayedRef.current = true;
+          soundEngine.playPaperTurnSound();
+        } else if (next < 0.70) {
+          hasPage3TurnSoundPlayedRef.current = false;
+        }
+
         // Official government rubber stamp impact sound (Slam down across ALL 3 images)
-        if (next >= 0.78 && !hasFakeNewsStampSoundPlayedRef.current) {
+        if (next >= 0.75 && !hasFakeNewsStampSoundPlayedRef.current) {
           hasFakeNewsStampSoundPlayedRef.current = true;
           soundEngine.playRubberStampSound();
-        } else if (next < 0.76) {
+        } else if (next < 0.73) {
           hasFakeNewsStampSoundPlayedRef.current = false;
         }
 
         // Cinematic Zoom-out vacuum suck sound (Fake news shrinks into mobile phone)
-        if (next >= 0.80 && !hasZoomOutSoundPlayedRef.current) {
+        if (next >= 0.76 && !hasZoomOutSoundPlayedRef.current) {
           hasZoomOutSoundPlayedRef.current = true;
           soundEngine.playZoomOutSuckSound();
-        } else if (next < 0.78) {
+        } else if (next < 0.74) {
           hasZoomOutSoundPlayedRef.current = false;
         }
 
         // Phone settled impact tone
-        if (next >= 0.85 && !hasPhoneSettledSoundPlayedRef.current) {
+        if (next >= 0.83 && !hasPhoneSettledSoundPlayedRef.current) {
           hasPhoneSettledSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.83) {
+        } else if (next < 0.81) {
           hasPhoneSettledSoundPlayedRef.current = false;
         }
 
         // Instagram notification ping on scroll
-        if (next >= 0.88 && !hasInstagramSoundPlayedRef.current) {
+        if (next >= 0.86 && !hasInstagramSoundPlayedRef.current) {
           hasInstagramSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.86) {
+        } else if (next < 0.84) {
           hasInstagramSoundPlayedRef.current = false;
         }
 
         // YouTube notification ping on scroll
-        if (next >= 0.91 && !hasYouTubeSoundPlayedRef.current) {
+        if (next >= 0.90 && !hasYouTubeSoundPlayedRef.current) {
           hasYouTubeSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.89) {
+        } else if (next < 0.88) {
           hasYouTubeSoundPlayedRef.current = false;
         }
 
@@ -275,19 +286,19 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (showLargeQr) return;
-    if (displayProgress < 0.44) {
+    if (displayProgress < 0.43) {
       if (onScrollToQuiz) {
         onScrollToQuiz();
       } else {
         onScrollToNext();
       }
-    } else if (displayProgress < 0.70) {
+    } else if (displayProgress < 0.58) {
       if (onScrollToNews) {
         onScrollToNews();
       } else {
         onScrollToNext();
       }
-    } else if (displayProgress < 0.90) {
+    } else if (displayProgress < 0.83) {
       if (onScrollToPhone) {
         onScrollToPhone();
       } else {
@@ -313,15 +324,17 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   // -------------------------------------------------------------------------
   const ampX = Math.max(180, Math.min(viewport.w * 0.42, 680));
   const ampY = Math.max(90, Math.min(viewport.h * 0.30, 300));
-
   let opacity_L = 0;
   let opacity_P = 0;
+  let opacity_The = 0;
   let scale_L = 0;
   let scale_P = 0;
+  let scale_The = 0.85;
   let transX_L = 0;
   let transY_L = 0;
   let transX_P = 0;
   let transY_P = 0;
+  let transY_The = -14;
   let tilt_L = 0;
   let tilt_P = 0;
   let isDocked = false;
@@ -334,17 +347,17 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   // 0.02 -> 0.22: Screen-wide infinity orbit of L and P
   // 0.22 -> 0.30: Smooth docking into "L ∞ P" (LOOP)
   // 0.30 -> 0.35: LOOP locked & glowing in full glory
-  // 0.35 -> 0.44: Apple-Grade Glitch Transition into Live Quiz
-  // 0.44 -> 0.60: STABLE ZONE 1: Live Quiz & QR Code in full prominence
-  //               (16% wide rock-solid resting zone! Zero jitter or movement)
-  // 0.60 -> 0.70: SLOW SMOOTH BOUNCE TRANSITION:
+  // 0.35 -> 0.43: Apple-Grade Glitch Transition into Live Quiz
+  // 0.43 -> 0.49: STABLE ZONE 1: Live Quiz & QR Code in full prominence
+  // 0.49 -> 0.56: FAST SMOOTH BOUNCE TRANSITION (Takes only 2-3 scrolls):
   //               - QR code screen exits with bounce to bottom-right corner!
   //               - First news appears with bounce from left-upper corner!
-  // 0.70 -> 0.80: STABLE ZONE 2: First News Broadsheet is 100% STABLE & RESTED!
-  //               (10% wide rock-solid resting zone! No folding or peeling yet)
-  // 0.80 -> 1.00: 3D NEWSPAPER MIDDLE-FOLD READING EXPERIENCE:
+  // 0.56 -> 0.62: STABLE ZONE 2: First News Broadsheet is 100% STABLE & RESTED!
+  // 0.62 -> 0.76: 3D NEWSPAPER MIDDLE-FOLD READING EXPERIENCE:
   //               - One-by-one realistic page folds driven by scrolling!
   //               - Sheet 1 -> Sheet 2 -> Sheet 3 -> "Fake News" Stamp!
+  // 0.76 -> 0.83: Phone Zoom-Out & Fake News vacuum shrink
+  // 0.83 -> 1.00: Phone apps on scroll (Instagram, YouTube, Facebook, WhatsApp)
   // =========================================================================
 
   // Calculate Glitch & Cross-transition variables
@@ -379,8 +392,11 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     // 1. Initial State: Only ∞ loop visible, L and P disappeared
     opacity_L = 0;
     opacity_P = 0;
+    opacity_The = 0;
     scale_L = 0;
     scale_P = 0;
+    scale_The = 0.85;
+    transY_The = -14;
     loopOpacity = 1;
     quizOpacity = 0;
   } else if (displayProgress < 0.22) {
@@ -389,6 +405,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     const alpha = Math.min(1, orbitProgress * 3.5);
     opacity_L = alpha;
     opacity_P = alpha;
+    opacity_The = 0;
+    scale_The = 0.85;
+    transY_The = -14;
 
     const baseScale = 0.26 + orbitProgress * 0.66; // 0.26 -> 0.92
     scale_L = baseScale;
@@ -427,7 +446,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       );
     }
   } else if (displayProgress < 0.30) {
-    // 3. Smooth Docking Transition into LOOP
+    // 3. Smooth Docking Transition into LOOP & Reveal of "THE" above
     const dockRaw = (displayProgress - 0.22) / 0.08;
     const dockEase = dockRaw * dockRaw * (3 - 2 * dockRaw);
 
@@ -448,26 +467,42 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
     tilt_L = (1 - dockEase) * -8;
     tilt_P = (1 - dockEase) * 8;
+
+    // As letters finish docking to form LOOP, "THE" appears smoothly above LOOP
+    if (displayProgress >= 0.24) {
+      const theRaw = (displayProgress - 0.24) / 0.06;
+      const theEase = theRaw * theRaw * (3 - 2 * theRaw);
+      opacity_The = theEase;
+      scale_The = 0.85 + theEase * 0.15;
+      transY_The = (1 - theEase) * -14;
+    } else {
+      opacity_The = 0;
+      scale_The = 0.85;
+      transY_The = -14;
+    }
   } else if (displayProgress < 0.35) {
-    // 4. Fully Docked "L ∞ P" (LOOP)
+    // 4. Fully Docked "LOOP" with "THE" above
     opacity_L = 1;
     opacity_P = 1;
+    opacity_The = 1;
     scale_L = 1;
     scale_P = 1;
+    scale_The = 1;
     transX_L = 0;
     transY_L = 0;
     transX_P = 0;
     transY_P = 0;
+    transY_The = 0;
     tilt_L = 0;
     tilt_P = 0;
     isDocked = true;
     loopOpacity = 1;
     quizOpacity = 0;
-  } else if (displayProgress < 0.44) {
+  } else if (displayProgress < 0.43) {
     // 5. THE APPLE-GRADE GLITCH TRANSITION:
-    // LOOP dissolves with chromatic digital glitch, while Quiz materializes gracefully!
+    // LOOP & THE dissolve with chromatic digital glitch, while Quiz materializes gracefully!
     isDocked = true;
-    const transPhase = Math.max(0, Math.min(1, (displayProgress - 0.35) / 0.09));
+    const transPhase = Math.max(0, Math.min(1, (displayProgress - 0.35) / 0.08));
     const smoothEase = transPhase * transPhase * (3 - 2 * transPhase); // hermite smooth cubic
 
     loopGlitchIntensity = Math.sin(transPhase * Math.PI);
@@ -480,18 +515,22 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
     opacity_L = loopOpacity;
     opacity_P = loopOpacity;
+    opacity_The = loopOpacity;
     scale_L = loopScale;
     scale_P = loopScale;
+    scale_The = loopScale;
+    transY_The = loopJitterY;
 
     quizOpacity = smoothEase;
     quizScale = 0.88 + smoothEase * 0.12;
     quizJitterX = quizGlitchIntensity > 0.04 ? Math.sin(displayProgress * 100) * 6 * quizGlitchIntensity : 0;
-  } else if (displayProgress < 0.60) {
-    // 6. STABLE ZONE 1: LIVE QUIZ STAGE (16% wide rock-solid resting zone! Zero jitter or movement)
+  } else if (displayProgress < 0.49) {
+    // 6. STABLE ZONE 1: LIVE QUIZ STAGE (Balanced resting zone for QR code)
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
     opacity_P = 0;
+    opacity_The = 0;
     quizOpacity = 1;
     quizScale = 1;
     quizGlitchIntensity = 0;
@@ -500,8 +539,8 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     quizExitY = 0;
     quizExitRotate = 0;
     quizExitScale = 1;
-  } else if (displayProgress < 0.70) {
-    // 7. SLOW SMOOTH BOUNCE TRANSITION:
+  } else if (displayProgress < 0.56) {
+    // 7. SMOOTH BOUNCE TRANSITION (2-3 SCROLLS FROM QR TO NEWS):
     // QR code screen exits with bounce towards bottom-right corner!
     // First news appears with bounce from left-upper corner!
     isDocked = true;
@@ -512,7 +551,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     quizScale = 1;
     quizGlitchIntensity = 0;
 
-    const bT = Math.max(0, Math.min(1, (displayProgress - 0.60) / 0.10));
+    const bT = Math.max(0, Math.min(1, (displayProgress - 0.49) / 0.07));
 
     // A) QR Screen Elastic Bounce Exit to Bottom-Right Corner
     const elasticExitFactor = Math.pow(bT, 1.45);
@@ -546,9 +585,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsScale = 0.65 + effectiveT * 0.35;
     newsOpacity = Math.min(1, bT * 2.4);
     newsReadingProgress = 0;
-  } else if (displayProgress < 0.68) {
+  } else if (displayProgress < 0.62) {
     // 8. STABLE ZONE 2: FIRST NEWS IS 100% STABLE & RESTED!
-    // (Rock-solid resting zone! Zero movement, no folding yet)
+    // (Rock-solid resting zone! Zero movement, flat Image 1)
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -579,24 +618,24 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsScale = 1;
 
     // Smoothly map displayProgress:
-    // 0.68 -> 0.80: Newspaper page folds, 3-image spread, and FAKE NEWS stamp slam
-    // 0.80 -> 0.85: Fake news vacuum shrinks into center & Phone zooms out from 12x to settled scale
-    // 0.85 -> 0.88: Phone settled clean resting state
-    // 0.88 -> 0.91: App 1: Instagram
-    // 0.91 -> 0.94: App 2: YouTube
-    // 0.94 -> 0.97: App 3: Facebook
-    // 0.97 -> 1.00: App 4: WhatsApp
-    if (displayProgress < 0.80) {
-      newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.68) / 0.12));
+    // 0.62 -> 0.76: Newspaper page folds, 3-image spread, and FAKE NEWS stamp slam
+    // 0.76 -> 0.83: Fake news vacuum shrinks into center & Phone zooms out from 12x to settled scale
+    // 0.83 -> 0.86: Phone settled clean resting state
+    // 0.86 -> 0.90: App 1: Instagram
+    // 0.90 -> 0.93: App 2: YouTube
+    // 0.93 -> 0.96: App 3: Facebook
+    // 0.96 -> 1.00: App 4: WhatsApp
+    if (displayProgress < 0.76) {
+      newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.62) / 0.14));
       phoneZoomProgress = 0;
       newsOpacity = 1;
       activeAppIndex = null;
-    } else if (displayProgress < 0.85) {
-      phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.80) / 0.05));
+    } else if (displayProgress < 0.83) {
+      phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.76) / 0.07));
       // Drive fake news vacuum shrink towards 1.0
       newsReadingProgress = 0.91 + phoneZoomProgress * 0.09;
       // Fade out the news layer as phone settles
-      newsOpacity = displayProgress > 0.83 ? Math.max(0, 1 - (displayProgress - 0.83) / 0.02) : 1;
+      newsOpacity = displayProgress > 0.81 ? Math.max(0, 1 - (displayProgress - 0.81) / 0.02) : 1;
       activeAppIndex = null;
     } else {
       phoneZoomProgress = 1.0;
@@ -604,13 +643,13 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       newsOpacity = 0;
 
       // Apps appear one by one as the user scrolls down!
-      if (displayProgress >= 0.97) {
+      if (displayProgress >= 0.96) {
         activeAppIndex = 3; // WhatsApp
-      } else if (displayProgress >= 0.94) {
+      } else if (displayProgress >= 0.93) {
         activeAppIndex = 2; // Facebook
-      } else if (displayProgress >= 0.91) {
+      } else if (displayProgress >= 0.90) {
         activeAppIndex = 1; // YouTube
-      } else if (displayProgress >= 0.88) {
+      } else if (displayProgress >= 0.86) {
         activeAppIndex = 0; // Instagram
       } else {
         activeAppIndex = null; // Clean settled phone with title
@@ -749,6 +788,20 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
               }}
               className="relative inline-flex items-center justify-center px-1 sm:px-2 md:px-3 mx-1 shrink-0 z-10 overflow-visible"
             >
+              {/* Word: THE (Centered above the center intersection of the LOOP) */}
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '100%',
+                  left: '50%',
+                  transform: `translateX(-50%) translateY(${transY_The}px) scale(${scale_The})`,
+                  opacity: opacity_The,
+                  textShadow: loopChromaticShadow,
+                }}
+                className="pointer-events-none select-none overflow-visible text-xs sm:text-sm md:text-base lg:text-lg font-black tracking-[0.35em] sm:tracking-[0.45em] text-neutral-300 uppercase leading-none will-change-transform whitespace-nowrap z-20 mb-2 sm:mb-3 md:mb-4 drop-shadow-[0_0_12px_rgba(239,68,68,0.5)] pl-[0.35em] sm:pl-[0.45em]"
+              >
+                THE
+              </span>
               <svg
                 viewBox="0 0 240 120"
                 className="w-36 h-18 sm:w-48 sm:h-24 md:w-64 md:h-32 lg:w-80 lg:h-40 xl:w-[360px] xl:h-[180px] drop-shadow-[0_0_28px_rgba(239,68,68,0.85)] drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] overflow-visible transition-all duration-300"
@@ -835,7 +888,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
                 transformOrigin: 'center center',
                 textShadow: loopChromaticShadow,
               }}
-              className={`inline-block overflow-visible text-6xl sm:text-7xl md:text-8xl lg:text-[7.5rem] xl:text-[8.5rem] font-black tracking-normal text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-500 uppercase leading-none pl-1 sm:pl-2 pr-4 sm:pr-6 md:pr-8 py-1 will-change-transform ${
+              className={`inline-block overflow-visible text-6xl sm:text-7xl md:text-8xl lg:text-[7.5rem] xl:text-[8.5rem] font-black tracking-normal text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-500 uppercase leading-none pl-1 sm:pl-2 pr-2 sm:pr-3 py-1 will-change-transform ${
                 !isDocked && displayProgress > 0.05
                   ? 'drop-shadow-[0_0_30px_rgba(239,68,68,0.9)] drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]'
                   : ''
@@ -987,10 +1040,10 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       {/* then smoothly zooming out as Fake News shrinks into the phone glass */}
       {/* and presenting each app icon one-by-one as the user scrolls */}
       {/* =================================================================== */}
-      {displayProgress >= 0.79 && (
+      {displayProgress >= 0.75 && (
         <div
           style={{
-            opacity: Math.min(1, (displayProgress - 0.79) / 0.02),
+            opacity: Math.min(1, (displayProgress - 0.75) / 0.02),
             pointerEvents: 'none',
           }}
           className="absolute inset-0 z-20 overflow-hidden will-change-transform"
