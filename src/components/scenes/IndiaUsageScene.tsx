@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Smartphone, Clock, Users, Zap, ArrowDown, ChevronRight, Activity, Sparkles, Flame, Award, Globe } from 'lucide-react';
+import { Smartphone, ArrowDown, ChevronRight, Award } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
 import { InstagramLogo, YouTubeLogo, FacebookLogo, WhatsAppLogo } from './WorldUsageScene';
 import indiaStatesData from './indiaStatesData.json';
+import indiaOuterBorder from './indiaOuterBorder.json';
 
 export interface MetroHub {
   name: string;
@@ -20,7 +21,6 @@ export interface PlatformIndiaStage {
   logo: React.FC<{ className?: string }>;
   accentColor: string;
   textColor: string;
-  borderColor: string;
   glowColor: string;
   mapColor: string;
   totalIndiaUsers: string; // e.g. "550 Million"
@@ -28,16 +28,13 @@ export interface PlatformIndiaStage {
   percentageOfIndia: string; // "37.7%"
   ratioDescription: string;
   category: string;
-  topCities: string[];
-  keyIndiaFact: string;
+  highlightedStates: string[];
   metroHubs: MetroHub[];
   impactDetails?: {
     totalAudience: string;
     dailyActive: string;
     monthlyScreenTime: string;
     daysPerYear: string;
-    dailyAverage: string;
-    reelsEngagement: string;
   };
 }
 
@@ -51,16 +48,17 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
     logo: WhatsAppLogo,
     accentColor: 'from-emerald-500 via-green-500 to-teal-500',
     textColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/50',
     glowColor: 'rgba(37, 211, 102, 0.45)',
     mapColor: '#25D366',
     totalIndiaUsers: '550 Million',
     totalIndiaUsersNum: '550,000,000 Active Citizens',
     percentageOfIndia: '37.7%',
-    ratioDescription: 'Over 1 in every 3 Indian citizens uses WhatsApp monthly — India is WhatsApp’s #1 market worldwide.',
-    category: 'Messaging, Group Chats & Payments',
-    topCities: ['Mumbai (38M+)', 'Delhi NCR (35M+)', 'Bengaluru (22M+)', 'Hyderabad (18M+)', 'Kolkata (16M+)'],
-    keyIndiaFact: 'Functions as India’s default digital operating system — used across all 28 states & 8 UTs for family conversations, local merchant orders, and instant UPI payments.',
+    ratioDescription: 'Over 1 in every 3 Indian citizens uses WhatsApp monthly — India is WhatsApp’s #1 market on Earth.',
+    category: 'Messaging & Local Ecosystem',
+    highlightedStates: [
+      'Maharashtra', 'Delhi', 'Uttar Pradesh', 'Karnataka', 'Tamil Nadu', 'Gujarat',
+      'West Bengal', 'Kerala', 'Andhra Pradesh', 'Rajasthan', 'Punjab', 'Madhya Pradesh', 'Bihar', 'Haryana'
+    ],
     metroHubs: [
       { name: 'DELHI NCR (35M+)', x: 165, y: 181, count: '35M+', isPrimary: true },
       { name: 'MUMBAI (38M+)', x: 98, y: 354, count: '38M+' },
@@ -68,7 +66,6 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
       { name: 'KOLKATA (16M+)', x: 336, y: 290, count: '16M+' },
       { name: 'HYDERABAD (18M+)', x: 185, y: 385, count: '18M+' },
       { name: 'CHENNAI (15M+)', x: 212, y: 463, count: '15M+' },
-      { name: 'AHMEDABAD (14M+)', x: 94, y: 282, count: '14M+' },
     ],
   },
   {
@@ -78,23 +75,23 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
     logo: FacebookLogo,
     accentColor: 'from-blue-600 via-sky-500 to-indigo-600',
     textColor: 'text-blue-400',
-    borderColor: 'border-blue-500/50',
     glowColor: 'rgba(24, 119, 242, 0.45)',
     mapColor: '#1877F2',
     totalIndiaUsers: '350 Million',
     totalIndiaUsersNum: '350,000,000 Active Citizens',
     percentageOfIndia: '24.0%',
-    ratioDescription: 'Nearly 1 in every 4 Indian citizens uses Facebook for community groups, news, and marketplace commerce.',
-    category: 'Social Networking & Marketplace',
-    topCities: ['Delhi NCR (26M+)', 'Mumbai (24M+)', 'Kolkata (21M+)', 'Lucknow (14M+)', 'Jaipur (12M+)'],
-    keyIndiaFact: 'India has more registered Facebook accounts than any other country, penetrating deeply into Tier-2 and Tier-3 rural districts.',
+    ratioDescription: 'Nearly 1 in every 4 Indian citizens uses Facebook across rural heartlands and urban communities.',
+    category: 'Social Networking & Groups',
+    highlightedStates: [
+      'Uttar Pradesh', 'Bihar', 'West Bengal', 'Maharashtra', 'Madhya Pradesh',
+      'Rajasthan', 'Assam', 'Orissa', 'Jharkhand', 'Gujarat', 'Delhi', 'Punjab', 'Haryana'
+    ],
     metroHubs: [
       { name: 'DELHI NCR (26M+)', x: 165, y: 181, count: '26M+', isPrimary: true },
       { name: 'MUMBAI (24M+)', x: 98, y: 354, count: '24M+' },
       { name: 'KOLKATA (21M+)', x: 336, y: 290, count: '21M+' },
       { name: 'BENGALURU (16M+)', x: 171, y: 465, count: '16M+' },
       { name: 'LUCKNOW (14M+)', x: 235, y: 220, count: '14M+' },
-      { name: 'JAIPUR (12M+)', x: 140, y: 225, count: '12M+' },
     ],
   },
   {
@@ -104,16 +101,17 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
     logo: YouTubeLogo,
     accentColor: 'from-red-600 via-rose-600 to-amber-600',
     textColor: 'text-red-400',
-    borderColor: 'border-red-500/50',
     glowColor: 'rgba(255, 0, 0, 0.45)',
     mapColor: '#FF0000',
     totalIndiaUsers: '500 Million',
     totalIndiaUsersNum: '500,000,000 Active Citizens',
     percentageOfIndia: '34.2%',
-    ratioDescription: 'Over 1 in every 3 Indian citizens watches YouTube daily — India is YouTube’s single largest national audience on Earth.',
-    category: 'Streaming, Vernacular Video & Shorts',
-    topCities: ['Delhi NCR (42M+)', 'Mumbai (36M+)', 'Bengaluru (25M+)', 'Chennai (24M+)', 'Ahmedabad (18M+)'],
-    keyIndiaFact: 'Indian users consume an astounding average of 47 Hours every month. Vernacular regional content and YouTube Shorts generate billions of daily views.',
+    ratioDescription: 'Over 1 in every 3 Indian citizens watches YouTube daily — India is YouTube’s single largest national audience.',
+    category: 'Streaming & Vernacular Shorts',
+    highlightedStates: [
+      'Uttar Pradesh', 'Maharashtra', 'Delhi', 'Tamil Nadu', 'Karnataka', 'West Bengal',
+      'Gujarat', 'Kerala', 'Rajasthan', 'Punjab', 'Andhra Pradesh', 'Haryana', 'Bihar', 'Madhya Pradesh'
+    ],
     metroHubs: [
       { name: 'DELHI NCR (42M+)', x: 165, y: 181, count: '42M+', isPrimary: true },
       { name: 'MUMBAI (36M+)', x: 98, y: 354, count: '36M+' },
@@ -126,35 +124,33 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
   {
     id: 'instagram',
     name: 'Instagram',
-    badge: '#1 Visual Media & Time Consumer in India',
+    badge: '#1 Visual Media & Screen Time in India',
     logo: InstagramLogo,
     accentColor: 'from-pink-500 via-purple-600 to-amber-500',
     textColor: 'text-pink-400',
-    borderColor: 'border-pink-500/50',
     glowColor: 'rgba(225, 48, 108, 0.50)',
     mapColor: '#E1306C',
     totalIndiaUsers: '481 Million',
     totalIndiaUsersNum: '481,000,000 Active Citizens',
     percentageOfIndia: '33.0%',
-    ratioDescription: '1 in every 3 citizens in India scrolls Instagram — India is Instagram’s #1 market worldwide, accounting for over 16% of total global users.',
+    ratioDescription: '1 in every 3 citizens in India scrolls Instagram — India is Instagram’s #1 market worldwide.',
     category: 'Reels, Visual Posts & DM Network',
-    topCities: ['Mumbai (34M+)', 'Delhi NCR (38M+)', 'Bengaluru (26M+)', 'Hyderabad (19M+)', 'Kolkata (18M+)'],
-    keyIndiaFact: 'Short-form Reels drive over 70% of total in-app engagement in India, locking Indian youth into compulsive dopamine loops.',
+    highlightedStates: [
+      'Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Gujarat', 'Punjab',
+      'West Bengal', 'Kerala', 'Andhra Pradesh', 'Rajasthan', 'Uttar Pradesh'
+    ],
     metroHubs: [
       { name: 'DELHI NCR (38M+)', x: 165, y: 181, count: '38M+', isPrimary: true },
       { name: 'MUMBAI (34M+)', x: 98, y: 354, count: '34M+' },
       { name: 'BENGALURU (26M+)', x: 171, y: 465, count: '26M+' },
       { name: 'HYDERABAD (19M+)', x: 185, y: 385, count: '19M+' },
       { name: 'KOLKATA (18M+)', x: 336, y: 290, count: '18M+' },
-      { name: 'PUNE (15M+)', x: 110, y: 368, count: '15M+' },
     ],
     impactDetails: {
       totalAudience: '481 Million',
       dailyActive: '350+ Million Daily',
       monthlyScreenTime: '49 Hours / Month',
       daysPerYear: '24.5 Days / Year',
-      dailyAverage: '1.6+ Hours / Day',
-      reelsEngagement: 'Over 70% of total engagement from Reels',
     },
   },
 ];
@@ -167,20 +163,13 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [manualStageIndex, setManualStageIndex] = useState<number | null>(null);
-  const [manualShowImpact, setManualShowImpact] = useState<boolean>(false);
-  const lastActiveIndexRef = useRef<number>(0);
-  const lastImpactRef = useRef<boolean>(false);
+  const [manualInstaStep, setManualInstaStep] = useState<'map' | 'image' | null>(null);
 
   const displayProgressRef = useRef(0);
   const targetProgressRef = useRef(0);
-  const stageCooldownRef = useRef<{ key: string; lockUntil: number }>({ key: '0-false', lockUntil: 0 });
-  const lockedStageRef = useRef<{ activeIndex: number; isInstagramFullImpact: boolean; stageLocalProgress: number }>({
-    activeIndex: 0,
-    isInstagramFullImpact: false,
-    stageLocalProgress: 0.5,
-  });
+  const lastStateRef = useRef<{ index: number; step: 'map' | 'image' }>({ index: 0, step: 'map' });
 
-  // Track parent sticky scroll progress with smooth interpolation damping
+  // Track sticky scroll progress with smooth damping
   useEffect(() => {
     const handleScroll = () => {
       if (!containerRef.current) return;
@@ -205,7 +194,6 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     window.addEventListener('resize', handleScroll, { passive: true });
     handleScroll();
 
-    // Smooth Damped Animation Loop (Prevents rapid scroll skipping, adds gentle weight)
     let animId: number;
     const animate = () => {
       const current = displayProgressRef.current;
@@ -213,7 +201,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       const diff = target - current;
 
       if (Math.abs(diff) > 0.0001) {
-        const next = current + diff * 0.05;
+        const next = current + diff * 0.07;
         displayProgressRef.current = next;
         setScrollProgress(next);
       } else if (current !== target) {
@@ -232,136 +220,77 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     };
   }, []);
 
-  // Map 0.0 -> 1.0 scroll progress to 5 distinct sequential phases:
-  // Phase 0: WhatsApp (0.00 -> 0.20)
-  // Phase 1: Facebook (0.20 -> 0.40)
-  // Phase 2: YouTube  (0.40 -> 0.60)
-  // Phase 3: Instagram - Part 1: Standard % & Map (0.60 -> 0.80) [shown like others first!]
-  // Phase 4: Instagram - Part 2: Impact Numbers & Figures (0.80 -> 1.00) [shown on further scroll!]
+  // Sequential Platform & Instagram Sub-phase Progression:
+  // Phase 0: WhatsApp (0.00 -> 0.24) - India Map
+  // Phase 1: Facebook (0.24 -> 0.48) - India Map
+  // Phase 2: YouTube  (0.48 -> 0.70) - India Map
+  // Phase 3a: Instagram Step 1: India Map Distribution (0.70 -> 0.85)
+  // Phase 3b: Instagram Step 2: Screen Reality (0.85 -> 1.00) [Uploaded image swoops in and replaces India map]
   let rawActiveIndex = 0;
   let rawLocalProgress = 0;
-  let rawIsInstagramFullImpact = false;
+  let rawInstaStep: 'map' | 'image' = 'map';
 
   if (manualStageIndex !== null) {
-    rawActiveIndex = manualStageIndex;
-    if (rawActiveIndex === 3) {
-      rawIsInstagramFullImpact = manualShowImpact;
-      rawLocalProgress = manualShowImpact ? 0.9 : 0.45;
-    } else {
-      rawIsInstagramFullImpact = false;
-      rawLocalProgress = 0.45;
-    }
+    rawActiveIndex = Math.min(3, manualStageIndex);
+    rawLocalProgress = 0.5;
+    rawInstaStep = manualInstaStep || 'map';
   } else {
-    if (scrollProgress < 0.20) {
+    if (scrollProgress < 0.24) {
       rawActiveIndex = 0;
-      rawLocalProgress = scrollProgress / 0.20;
-      rawIsInstagramFullImpact = false;
-    } else if (scrollProgress < 0.40) {
+      rawLocalProgress = scrollProgress / 0.24;
+      rawInstaStep = 'map';
+    } else if (scrollProgress < 0.48) {
       rawActiveIndex = 1;
-      rawLocalProgress = (scrollProgress - 0.20) / 0.20;
-      rawIsInstagramFullImpact = false;
-    } else if (scrollProgress < 0.60) {
+      rawLocalProgress = (scrollProgress - 0.24) / 0.24;
+      rawInstaStep = 'map';
+    } else if (scrollProgress < 0.70) {
       rawActiveIndex = 2;
-      rawLocalProgress = (scrollProgress - 0.40) / 0.20;
-      rawIsInstagramFullImpact = false;
-    } else if (scrollProgress < 0.80) {
+      rawLocalProgress = (scrollProgress - 0.48) / 0.22;
+      rawInstaStep = 'map';
+    } else if (scrollProgress < 0.85) {
       rawActiveIndex = 3;
-      rawLocalProgress = (scrollProgress - 0.60) / 0.20;
-      rawIsInstagramFullImpact = false; // Part 1: Standard % view like others!
+      rawLocalProgress = (scrollProgress - 0.70) / 0.15;
+      rawInstaStep = 'map'; // First, the India map distribution is visible!
     } else {
       rawActiveIndex = 3;
-      rawLocalProgress = Math.min(1, (scrollProgress - 0.80) / 0.20);
-      rawIsInstagramFullImpact = true; // Part 2: Deep impact figures on further scroll!
+      rawLocalProgress = Math.min(1, (scrollProgress - 0.85) / 0.15);
+      rawInstaStep = 'image'; // On next scroll, uploaded image replaces India map!
     }
   }
 
-  // Slight delay & false scroll hold gate to hold on to each layout for certain time
-  let activeIndex = rawActiveIndex;
-  let stageLocalProgress = rawLocalProgress;
-  let isInstagramFullImpact = rawIsInstagramFullImpact;
+  const activeIndex = rawActiveIndex;
+  const stageLocalProgress = rawLocalProgress;
+  const currentInstaStep: 'map' | 'image' =
+    manualInstaStep && activeIndex === 3 ? manualInstaStep : rawInstaStep;
 
-  if (manualStageIndex === null) {
-    const stageKey = `${rawActiveIndex}-${rawIsInstagramFullImpact}`;
-    const now = Date.now();
-
-    if (stageKey !== stageCooldownRef.current.key) {
-      if (now < stageCooldownRef.current.lockUntil) {
-        // Enforce slight delay hold on the current layout
-        activeIndex = lockedStageRef.current.activeIndex;
-        isInstagramFullImpact = lockedStageRef.current.isInstagramFullImpact;
-        stageLocalProgress = 0.5; // Firmly centered on the holding plateau
-      } else {
-        // Cooldown elapsed: transition to new stage and set hold lock
-        stageCooldownRef.current = { key: stageKey, lockUntil: now + 700 };
-        lockedStageRef.current = { activeIndex: rawActiveIndex, isInstagramFullImpact: rawIsInstagramFullImpact, stageLocalProgress: rawLocalProgress };
-      }
-    } else {
-      lockedStageRef.current = { activeIndex: rawActiveIndex, isInstagramFullImpact: rawIsInstagramFullImpact, stageLocalProgress: rawLocalProgress };
-    }
-  }
-
-  // Audio tone on stage change & impact reveal
+  // Sound triggers
   useEffect(() => {
-    if (lastActiveIndexRef.current !== activeIndex) {
-      lastActiveIndexRef.current = activeIndex;
-      soundEngine.playClickTone();
+    const prev = lastStateRef.current;
+    if (prev.index !== activeIndex || prev.step !== currentInstaStep) {
+      lastStateRef.current = { index: activeIndex, step: currentInstaStep };
+      if (activeIndex === 3 && currentInstaStep === 'image' && prev.step !== 'image') {
+        soundEngine.playSubBassImpact();
+      } else {
+        soundEngine.playClickTone();
+      }
     }
-    if (isInstagramFullImpact && !lastImpactRef.current) {
-      soundEngine.playSubBassImpact();
-    }
-    lastImpactRef.current = isInstagramFullImpact;
-  }, [activeIndex, isInstagramFullImpact]);
+  }, [activeIndex, currentInstaStep]);
 
-  // False Scroll Holding Plateaus (88% of scroll range is held 100% steady with zero jitter)
+  // Holding plateau logic
   let stageOpacity = 1;
   let stageScale = 1;
 
   if (manualStageIndex === null) {
-    if (activeIndex < 3) {
-      // 0.00 -> 0.06: Smooth entry fade in
-      // 0.06 -> 0.94: MASSIVE FALSE SCROLL HOLDING PLATEAU (88% of scroll holds rock-solid)
-      // 0.94 -> 1.00: Gentle exit fade out ("slowly gone")
-      if (stageLocalProgress < 0.06) {
-        stageOpacity = Math.min(1, stageLocalProgress / 0.06);
-        stageScale = 0.98 + stageOpacity * 0.02;
-      } else if (stageLocalProgress > 0.94) {
-        const fadeOutT = (stageLocalProgress - 0.94) / 0.06;
-        stageOpacity = Math.max(0, 1 - fadeOutT);
-        stageScale = 1.0 - fadeOutT * 0.02;
-      } else {
-        stageOpacity = 1;
-        stageScale = 1;
-      }
+    if (stageLocalProgress < 0.05 && activeIndex > 0) {
+      stageOpacity = Math.min(1, stageLocalProgress / 0.05);
+      stageScale = 0.98 + stageOpacity * 0.02;
+    } else if (stageLocalProgress > 0.95 && activeIndex < 3) {
+      const fadeOutT = (stageLocalProgress - 0.95) / 0.05;
+      stageOpacity = Math.max(0, 1 - fadeOutT);
+      stageScale = 1.0 - fadeOutT * 0.02;
     } else {
-      // For Instagram:
-      if (!isInstagramFullImpact) {
-        // Part 1 (Standard % & Map View like others):
-        // 0.00 -> 0.06: Entry fade in
-        // 0.06 -> 0.94: ROCK-SOLID HOLDING PLATEAU FOR INSTAGRAM % NUMBERS LIKE OTHERS
-        // 0.94 -> 1.00: Smooth transition to Part 2 Impact Dashboard
-        if (stageLocalProgress < 0.06) {
-          stageOpacity = Math.min(1, stageLocalProgress / 0.06);
-          stageScale = 0.98 + stageOpacity * 0.02;
-        } else if (stageLocalProgress > 0.94) {
-          const fadeOutT = (stageLocalProgress - 0.94) / 0.06;
-          stageOpacity = Math.max(0, 1 - fadeOutT);
-          stageScale = 1.0 - fadeOutT * 0.02;
-        } else {
-          stageOpacity = 1;
-          stageScale = 1;
-        }
-      } else {
-        // Part 2 (Deep Impact Figures View):
-        // 0.00 -> 0.06: Fade in
-        // 0.06 -> 1.00: ROCK-SOLID HOLDING PLATEAU FOR FULL IMPACT DASHBOARD
-        if (stageLocalProgress < 0.06) {
-          stageOpacity = Math.min(1, stageLocalProgress / 0.06);
-          stageScale = 0.98 + stageOpacity * 0.02;
-        } else {
-          stageOpacity = 1;
-          stageScale = 1;
-        }
-      }
+      stageOpacity = 1;
+      stageScale = 1;
     }
   }
 
@@ -371,26 +300,31 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const handleSelectStage = (index: number) => {
     soundEngine.playClickTone();
     setManualStageIndex(index);
-
-    if (index === 3) {
-      if (activeIndex === 3 && !manualShowImpact) {
-        setManualShowImpact(true);
-      } else {
-        setManualShowImpact(false);
-      }
-    } else {
-      setManualShowImpact(false);
-    }
+    setManualInstaStep('map');
 
     const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
     if (stickyWrapper) {
       const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
       if (scrollableDistance > 0) {
-        // Target centers of each holding plateau: [0.08, 0.28, 0.48, 0.68, 0.88]
-        let targetFraction = [0.08, 0.28, 0.48, 0.68][index];
-        if (index === 3 && activeIndex === 3 && !isInstagramFullImpact) {
-          targetFraction = 0.88;
-        }
+        const targetFraction = [0.12, 0.36, 0.59, 0.77][index];
+        targetProgressRef.current = targetFraction;
+        const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
+        const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
+        scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleSwitchInstaStep = (step: 'map' | 'image') => {
+    soundEngine.playClickTone();
+    setManualInstaStep(step);
+    setManualStageIndex(null);
+
+    const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
+    if (stickyWrapper) {
+      const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
+      if (scrollableDistance > 0) {
+        const targetFraction = step === 'map' ? 0.77 : 0.93;
         targetProgressRef.current = targetFraction;
         const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
         const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
@@ -402,21 +336,9 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const handleNextStage = () => {
     if (activeIndex < 3) {
       handleSelectStage(activeIndex + 1);
-    } else if (!isInstagramFullImpact) {
-      soundEngine.playSubBassImpact();
-      setManualStageIndex(3);
-      setManualShowImpact(true);
-
-      const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
-      if (stickyWrapper) {
-        const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
-        if (scrollableDistance > 0) {
-          targetProgressRef.current = 0.88;
-          const targetScrollTop = stickyWrapper.offsetTop + 0.88 * scrollableDistance;
-          const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
-          scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-        }
-      }
+    } else if (activeIndex === 3 && currentInstaStep === 'map') {
+      // Advance to Instagram step 2 (Uploaded Image replaces India map)
+      handleSwitchInstaStep('image');
     } else if (onScrollToNext) {
       soundEngine.playSubBassImpact();
       onScrollToNext();
@@ -429,10 +351,10 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       className="relative h-screen w-full bg-black text-white flex flex-col justify-between overflow-hidden select-none"
     >
       {/* =================================================================== */}
-      {/* 1. AMBIENT BACKDROP LIGHTING & PROJECTION */}
+      {/* 1. SEAMLESS AMBIENT BACKDROP LIGHTING (NO BORDERS) */}
       {/* =================================================================== */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[#030611] opacity-95" />
+        <div className="absolute inset-0 bg-[#02050f]" />
         <div
           className="absolute inset-0 transition-opacity duration-1000 ease-out"
           style={{
@@ -440,31 +362,16 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
             opacity: 0.55,
           }}
         />
-
-        {/* Ambient India Background Vector Silhouette Projection */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-25">
-          <svg
-            className="w-full h-full max-w-[950px] max-h-[800px] object-contain transition-transform duration-1000 ease-out"
-            viewBox="-25 -10 560 610"
-            preserveAspectRatio="xMidYMid meet"
-            fill="none"
-          >
-            <g stroke={currentStage.mapColor} strokeWidth="0.8" strokeOpacity="0.45" strokeLinejoin="round">
-              {indiaStatesData.map((st, idx) => (
-                <path key={`bg-st-${idx}`} d={st.d} fill={currentStage.mapColor} fillOpacity="0.08" />
-              ))}
-            </g>
-          </svg>
-        </div>
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black via-black/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/80 to-transparent" />
       </div>
 
       {/* =================================================================== */}
-      {/* 2. TOP HEADER & INTERACTIVE PLATFORM TABS */}
+      {/* 2. TOP HEADER & INTERACTIVE STEPPER TABS (4 PLATFORMS) */}
       {/* =================================================================== */}
       <header className="relative z-20 max-w-6xl mx-auto w-full pt-3 sm:pt-4 px-4 text-center space-y-2">
-        {/* Main Title (Required removal: NATIONAL FOOTPRINT • 750+ MILLION INDIAN SMARTPHONE USERS is gone!) */}
         <div className="flex flex-col items-center space-y-0.5">
-          <div className="inline-flex items-center space-x-2 text-[11px] font-mono uppercase tracking-widest text-amber-400 bg-amber-950/70 border border-amber-500/40 px-3.5 py-0.5 rounded-full backdrop-blur-md shadow-lg">
+          <div className="inline-flex items-center space-x-2 text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-amber-400 bg-amber-950/60 px-3.5 py-0.5 rounded-full backdrop-blur-md shadow-lg">
             <Smartphone className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
             <span>INDIA POPULATION: {INDIA_POPULATION_STR} CITIZENS • #1 GLOBAL MARKET</span>
           </div>
@@ -474,8 +381,8 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
           </h2>
         </div>
 
-        {/* 4 Platform Stepper Tabs (WhatsApp → Facebook → YouTube → Instagram) */}
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 max-w-4xl mx-auto pt-0.5">
+        {/* 4 Platform Tabs */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-3xl mx-auto pt-0.5">
           {INDIA_STAGES.map((stage, idx) => {
             const isActive = activeIndex === idx;
             const Logo = stage.logo;
@@ -484,20 +391,27 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
               <button
                 key={stage.id}
                 onClick={() => handleSelectStage(idx)}
-                className={`relative flex items-center space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl border transition-all duration-300 text-left cursor-pointer ${
+                className={`relative flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition-all duration-300 text-left cursor-pointer border-0 shadow-lg ${
                   isActive
-                    ? `bg-neutral-900/95 ${stage.borderColor} shadow-2xl ring-2 ring-amber-400/30 scale-105 z-10 filter-none opacity-100`
-                    : 'bg-neutral-950/60 border-white/10 hover:border-white/25 hover:bg-neutral-900/60 opacity-30 hover:opacity-80 blur-[2.5px] hover:blur-none scale-95'
+                    ? 'bg-neutral-900/95 shadow-2xl scale-105 z-10 filter-none opacity-100 ring-1 ring-white/10'
+                    : 'bg-neutral-950/50 hover:bg-neutral-900/60 opacity-40 hover:opacity-80 scale-95'
                 }`}
               >
-                <Logo className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                <Logo className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0" />
                 <div className="flex flex-col text-left">
-                  <div className="text-[11px] sm:text-xs font-bold text-white font-sans leading-tight">{stage.name}</div>
-                  <div className="flex items-center space-x-1 sm:space-x-1.5 mt-0.5">
+                  <div className="text-[11px] sm:text-xs font-bold text-white font-sans leading-tight flex items-center gap-1">
+                    <span>{stage.name}</span>
+                    {idx === 3 && activeIndex === 3 && (
+                      <span className="text-[8px] font-mono font-black px-1.5 py-0.5 rounded bg-pink-500/30 text-pink-300 uppercase">
+                        {currentInstaStep === 'map' ? 'MAP' : 'REALITY'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1 mt-0.5">
                     <span className={`text-[10px] sm:text-[11px] font-mono font-black ${isActive ? stage.textColor : 'text-neutral-400'}`}>
                       {stage.percentageOfIndia}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] font-mono text-neutral-400 font-semibold">
+                    <span className="text-[9px] sm:text-[10px] font-mono text-neutral-400">
                       • {stage.totalIndiaUsers}
                     </span>
                   </div>
@@ -505,7 +419,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
 
                 {isActive && (
                   <motion.div
-                    layoutId="india-active-indicator"
+                    layoutId="india-active-bar"
                     className={`absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r ${stage.accentColor}`}
                   />
                 )}
@@ -513,10 +427,41 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
             );
           })}
         </div>
+
+        {/* Sub-stepper for Instagram section (Step 1: Map vs Step 2: Uploaded Image) */}
+        {activeIndex === 3 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center gap-2 pt-1"
+          >
+            <button
+              onClick={() => handleSwitchInstaStep('map')}
+              className={`px-3 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer border ${
+                currentInstaStep === 'map'
+                  ? 'bg-pink-600 text-white font-bold shadow-lg shadow-pink-600/30 border-pink-400/50 scale-105'
+                  : 'bg-neutral-900/80 text-neutral-400 hover:text-white border-white/5 hover:border-white/20'
+              }`}
+            >
+              <span>1. India Map Distribution</span>
+            </button>
+            <button
+              onClick={() => handleSwitchInstaStep('image')}
+              className={`px-3 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer border ${
+                currentInstaStep === 'image'
+                  ? 'bg-pink-600 text-white font-bold shadow-lg shadow-pink-600/30 border-pink-400/60 ring-1 ring-pink-400/50 scale-105'
+                  : 'bg-neutral-900/80 text-neutral-400 hover:text-white border-white/5 hover:border-white/20'
+              }`}
+            >
+              <Smartphone className="w-3 h-3 text-pink-400" />
+              <span>2. Screen Reality (Uploaded Image)</span>
+            </button>
+          </motion.div>
+        )}
       </header>
 
       {/* =================================================================== */}
-      {/* 3. CENTERPIECE: STAGE STATS + 100% UNCLIPPED PRISTINE INDIA MAP */}
+      {/* 3. CENTERPIECE: LEFT DATA PANEL + RIGHT (MAP OR UPLOADED IMAGE) */}
       {/* =================================================================== */}
       <div
         className="relative z-20 max-w-6xl mx-auto w-full px-4 my-auto transition-all duration-300 ease-out"
@@ -525,398 +470,459 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
           transform: `scale(${stageScale})`,
         }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
-          {/* =============================================================== */}
-          {/* LEFT COLUMN: DYNAMIC PLATFORM DATA OR INSTAGRAM IMPACT CARD     */}
-          {/* =============================================================== */}
-          <div className="lg:col-span-6 flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              {!isInstagramFullImpact ? (
-                /* ----------------------------------------------------------- */
-                /* CASE A: WHATSAPP, FACEBOOK, YOUTUBE & INSTAGRAM PART 1     */
-                /* Standard Percentage & Population Comparison (Like Others!)  */
-                /* ----------------------------------------------------------- */
-                <motion.div
-                  key={`screen-india-${currentStage.id}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.25 }}
-                  className="apple-card p-4 sm:p-6 rounded-3xl border border-white/15 bg-neutral-950/90 backdrop-blur-xl shadow-2xl space-y-3.5 text-left"
-                >
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                    <div className="flex items-center space-x-2.5">
-                      <StageLogo className="w-8 h-8 sm:w-9 sm:h-9" />
-                      <div>
-                        <h3 className="text-xl sm:text-2xl font-black text-white font-sans flex items-center gap-2">
-                          <span>{currentStage.name}</span>
-                          <span className="text-[10px] font-mono text-neutral-400 font-normal px-2 py-0.5 rounded-full bg-neutral-900 border border-white/10">
-                            {currentStage.category}
-                          </span>
-                        </h3>
-                        <p className="text-[11px] font-mono text-neutral-400">{currentStage.badge}</p>
-                      </div>
-                    </div>
-
-                    <span className={`text-[10px] font-mono font-extrabold px-2.5 py-1 rounded-full uppercase border ${currentStage.borderColor} ${currentStage.textColor} bg-neutral-900`}>
-                      National Share
-                    </span>
-                  </div>
-
-                  {/* Big Percentage Number */}
-                  <div className="space-y-1 text-left">
-                    <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold block">
-                      Share of India’s Population
-                    </span>
-
-                    <div className="flex items-baseline space-x-3">
-                      <span className={`text-4xl sm:text-6xl font-black font-mono tracking-tight ${currentStage.textColor} drop-shadow-lg`}>
-                        {currentStage.percentageOfIndia}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`screen-india-${currentStage.id}-${activeIndex === 3 ? currentInstaStep : 'default'}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center"
+          >
+            {/* LEFT COLUMN: Clean, Focused Data Panel */}
+            <div className="lg:col-span-5 bg-neutral-950/80 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-left border-0">
+              <div className="flex items-center justify-between pb-2">
+                <div className="flex items-center space-x-2.5">
+                  <StageLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white font-sans flex items-center gap-2">
+                      <span>{currentStage.name}</span>
+                      <span className="text-[10px] font-mono text-neutral-400 font-normal px-2 py-0.5 rounded-full bg-neutral-900">
+                        {activeIndex === 3 && currentInstaStep === 'image'
+                          ? 'The Human Reality'
+                          : currentStage.category}
                       </span>
-                      <span className="text-xs sm:text-sm font-sans font-bold text-neutral-300 leading-tight">
-                        OF ALL CITIZENS<br />ACROSS INDIA
-                      </span>
-                    </div>
-
-                    {/* Progress Bar vs 1.46B Population */}
-                    <div className="pt-1.5 pb-0.5">
-                      <div className="w-full bg-neutral-900 h-2 sm:h-2.5 rounded-full overflow-hidden border border-white/10 relative">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: currentStage.percentageOfIndia }}
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                          className={`h-full bg-gradient-to-r ${currentStage.accentColor} rounded-full`}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] font-mono text-neutral-400 mt-1">
-                        <span>0 Citizens</span>
-                        <span className="text-white font-bold">{currentStage.totalIndiaUsers} Active</span>
-                        <span>1.46B India Total</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-neutral-200 font-sans font-semibold pt-1 leading-relaxed">
-                      {currentStage.ratioDescription}
+                    </h3>
+                    <p className="text-[11px] font-mono text-neutral-400">
+                      {activeIndex === 3 && currentInstaStep === 'image'
+                        ? 'Every Generation Transfixed Across India'
+                        : currentStage.badge}
                     </p>
                   </div>
-
-                  {/* Fact Card */}
-                  <div className="p-3 rounded-2xl bg-neutral-900/90 border border-white/5 space-y-1">
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
-                      <Flame className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Indian Footprint Reality</span>
-                    </div>
-                    <p className="text-xs text-neutral-200 font-sans leading-relaxed">
-                      {currentStage.keyIndiaFact}
-                    </p>
-                  </div>
-
-                  {/* Scroll Guidance Helper */}
-                  <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-1">
-                    <span className="flex items-center gap-1 text-amber-400">
-                      <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
-                      <span>
-                        {activeIndex < 3
-                          ? `Scroll down for ${INDIA_STAGES[activeIndex + 1].name}`
-                          : "Scroll down to reveal Instagram India's screen time & Reels metrics"}
-                      </span>
-                    </span>
-                    <button
-                      onClick={handleNextStage}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs border border-white/20 transition-all cursor-pointer"
-                    >
-                      <span>{activeIndex < 3 ? 'Next Platform' : 'View Impact Figures'}</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                /* ----------------------------------------------------------- */
-                /* CASE B: INSTAGRAM FULL IMPACT ON INDIA (REQUESTED STATS)    */
-                /* Total Audience, Daily Active Users, Avg Monthly Screen Time */
-                /* ----------------------------------------------------------- */
-                <motion.div
-                  key="instagram-full-impact-india"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.3 }}
-                  className="apple-card p-4 sm:p-6 rounded-3xl border border-pink-500/50 bg-neutral-950/95 backdrop-blur-2xl shadow-2xl space-y-4 text-left"
-                >
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div className="flex items-center space-x-2.5">
-                      <InstagramLogo className="w-8 h-8 sm:w-9 sm:h-9" />
-                      <div>
-                        <h3 className="text-xl sm:text-2xl font-black text-white font-sans flex items-center gap-2">
-                          <span>Instagram India</span>
-                          <span className="text-[10px] font-mono text-pink-400 px-2 py-0.5 rounded-full bg-pink-950/60 border border-pink-500/30">
-                            #1 Market Globally
-                          </span>
-                        </h3>
-                        <p className="text-[11px] font-mono text-neutral-400">
-                          33.0% of India’s Total Population ({INDIA_STAGES[3].totalIndiaUsers} citizens)
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] font-mono text-neutral-300 bg-neutral-900 border border-white/10 px-2.5 py-1 rounded-xl flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Highest Time Spent</span>
-                    </div>
-                  </div>
-
-                  {/* The 3 Core Requested Numbers: Total Audience, DAU, Avg Screen Time */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="p-2.5 sm:p-3 rounded-2xl bg-neutral-900/90 border border-white/10 text-center flex flex-col justify-between">
-                      <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                        Total Audience
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-black font-mono text-pink-400">
-                        481M
-                      </div>
-                      <div className="text-[9px] font-mono text-neutral-300">
-                        Active in India
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 sm:p-3 rounded-2xl bg-neutral-900/90 border border-white/10 text-center flex flex-col justify-between">
-                      <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                        Daily Active
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-black font-mono text-amber-400">
-                        350M+
-                      </div>
-                      <div className="text-[9px] font-mono text-neutral-300">
-                        Active Daily
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 sm:p-3 rounded-2xl bg-neutral-900/90 border border-white/10 text-center flex flex-col justify-between">
-                      <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                        Monthly Time
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-black font-mono text-cyan-400">
-                        49 Hrs
-                      </div>
-                      <div className="text-[9px] font-mono text-pink-400 font-bold">
-                        24.5 Days / Yr!
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Impact facts */}
-                  <div className="space-y-2 pt-0.5">
-                    <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 text-xs">
-                      <span className="font-bold text-pink-400 font-mono text-[10px] uppercase block mb-0.5">
-                        ⚡ 70%+ Reels Engagement
-                      </span>
-                      <p className="text-neutral-200 text-xs leading-snug">
-                        Over 70% of total user engagement in India is consumed by short video Reels (~1.6+ hours daily per user).
-                      </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 text-xs">
-                      <span className="font-bold text-amber-400 font-mono text-[10px] uppercase block mb-0.5">
-                        ★ India is #1 Cohort Globally
-                      </span>
-                      <p className="text-neutral-200 text-xs leading-snug">
-                        India accounts for over 16% of total global Instagram users, larger than the USA, Brazil, and Indonesia combined.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Continue Button */}
-                  <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                    <button
-                      onClick={() => handleSelectStage(3)}
-                      className="text-[10px] font-mono text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                    >
-                      ← View % Map
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        soundEngine.playSubBassImpact();
-                        if (onScrollToNext) onScrollToNext();
-                      }}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs font-mono tracking-wide shadow-lg flex items-center gap-1.5 cursor-pointer transition-all"
-                    >
-                      <span>Continue to Feature Evolution</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* =============================================================== */}
-          {/* RIGHT COLUMN: 100% VISIBLE, UNCLIPPED PRISTINE INDIA MAP CARD    */}
-          {/* =============================================================== */}
-          <div className="lg:col-span-6 flex items-center justify-center">
-            <div className="apple-card p-3 sm:p-4 rounded-3xl border border-white/15 bg-neutral-950/85 backdrop-blur-xl shadow-2xl relative w-full h-[340px] sm:h-[410px] lg:h-[470px] max-h-[58vh] flex flex-col justify-between">
-              {/* Map Card Header */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-1.5 mb-1 shrink-0">
-                <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
-                  <Award className={`w-3.5 h-3.5 ${currentStage.textColor}`} />
-                  <span>India National Map • {currentStage.name} Footprint</span>
-                </span>
-                <span className="text-[10px] font-mono text-amber-400 bg-amber-950/80 border border-amber-500/30 px-2 py-0.5 rounded-full">
-                  #1 Market Globally
-                </span>
-              </div>
-
-              {/* The Vector Map - With generous padded viewBox (-25 -10 560 610) to completely prevent any edge clipping */}
-              <div className="relative w-full flex-1 flex items-center justify-center p-1 sm:p-2 min-h-0">
-                <svg
-                  className="w-full h-full max-h-[390px] object-contain transition-transform duration-700 ease-out drop-shadow-2xl"
-                  viewBox="-25 -10 560 610"
-                  preserveAspectRatio="xMidYMid meet"
-                  fill="none"
-                >
-                  {/* Subtle Grid Lines spanning full bounds */}
-                  <g stroke="#f59e0b" strokeOpacity="0.08" strokeWidth="0.8" strokeDasharray="3 4">
-                    <line x1="125" y1="-10" x2="125" y2="600" />
-                    <line x1="250" y1="-10" x2="250" y2="600" />
-                    <line x1="375" y1="-10" x2="375" y2="600" />
-                    <line x1="-25" y1="145" x2="535" y2="145" />
-                    <line x1="-25" y1="290" x2="535" y2="290" />
-                    <line x1="-25" y1="435" x2="535" y2="435" />
-                  </g>
-
-                  {/* All 28 Indian States & 8 UTs Glowing with Active Platform Theme */}
-                  <g stroke="#090e17" strokeWidth="0.8" strokeLinejoin="round" strokeLinecap="round">
-                    {indiaStatesData.map((st, idx) => (
-                      <path
-                        key={idx}
-                        d={st.d}
-                        fill={currentStage.mapColor}
-                        fillOpacity={0.45}
-                        stroke={currentStage.mapColor}
-                        strokeWidth="1.0"
-                        strokeOpacity={0.85}
-                        className="transition-all duration-700 ease-out hover:fill-opacity-80 cursor-pointer"
-                      >
-                        <title>{st.name}</title>
-                      </path>
-                    ))}
-                  </g>
-
-                  {/* State Name Labels */}
-                  <g pointerEvents="none" opacity="0.65">
-                    {indiaStatesData.map((st, idx) => {
-                      if (!st.label || !st.labelPos || st.labelPos[0] <= 0) return null;
-                      return (
-                        <text
-                          key={`label-${idx}`}
-                          x={st.labelPos[0]}
-                          y={st.labelPos[1]}
-                          fill="#ffffff"
-                          fontSize="7"
-                          fontWeight="700"
-                          textAnchor="middle"
-                          fontFamily="sans-serif"
-                          opacity="0.85"
-                        >
-                          {st.label}
-                        </text>
-                      );
-                    })}
-                  </g>
-
-                  {/* Intercity High-Speed Digital Traffic Stream Lines */}
-                  <g className="transition-opacity duration-700" style={{ opacity: stageOpacity * 0.85 }}>
-                    <path d="M 165 181 L 98 354" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                    <path d="M 98 354 L 171 465" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                    <path d="M 165 181 L 336 290" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                    <path d="M 171 465 L 185 385" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                    <path d="M 98 354 L 94 282" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                    <path d="M 165 181 L 235 220" stroke={currentStage.mapColor} strokeWidth="1.8" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                  </g>
-
-                  {/* Metro Epicenter Hubs with Ripple Pings */}
-                  <g className="transition-opacity duration-500" style={{ opacity: stageOpacity }}>
-                    {currentStage.metroHubs.map((hub, idx) => (
-                      <g key={`hub-${currentStage.id}-${idx}`}>
-                        <circle
-                          cx={hub.x}
-                          cy={hub.y}
-                          r={hub.isPrimary ? 20 : 13}
-                          stroke={currentStage.mapColor}
-                          strokeWidth={hub.isPrimary ? 2 : 1.2}
-                          fill="none"
-                          className="animate-ping opacity-85"
-                        />
-                        <circle
-                          cx={hub.x}
-                          cy={hub.y}
-                          r={hub.isPrimary ? 6 : 4}
-                          fill={currentStage.mapColor}
-                          className="animate-pulse"
-                        />
-                        <text
-                          x={hub.x}
-                          y={hub.y - (hub.isPrimary ? 12 : 8)}
-                          fill="#ffffff"
-                          stroke="#000000"
-                          strokeWidth="3.2"
-                          paintOrder="stroke"
-                          fontSize={hub.isPrimary ? '9.5' : '7.5'}
-                          fontWeight="900"
-                          textAnchor="middle"
-                          fontFamily="sans-serif"
-                          letterSpacing="0.04em"
-                        >
-                          {hub.name}
-                        </text>
-                      </g>
-                    ))}
-                  </g>
-                </svg>
-              </div>
-
-              {/* Bottom Metro Pills */}
-              <div className="pt-1 border-t border-white/10 flex items-center justify-between text-[9px] font-mono text-neutral-300 shrink-0">
-                <span className="text-amber-400 font-bold">Top Metros:</span>
-                <div className="flex items-center space-x-1 overflow-x-auto">
-                  {currentStage.topCities.map((city, idx) => (
-                    <span key={idx} className="bg-neutral-900 border border-white/10 px-1.5 py-0.5 rounded text-white font-bold whitespace-nowrap">
-                      {city}
-                    </span>
-                  ))}
                 </div>
+
+                <span className={`text-[10px] font-mono font-extrabold px-2.5 py-1 rounded-full uppercase ${currentStage.textColor} bg-neutral-900/80`}>
+                  {activeIndex === 3 && currentInstaStep === 'image' ? 'Lived Reality' : 'India Share'}
+                </span>
+              </div>
+
+              {/* Big Metric Display */}
+              <div className="space-y-1.5 text-left">
+                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold block">
+                  {activeIndex === 3 && currentInstaStep === 'image'
+                    ? 'Total Population Glued To Screens'
+                    : 'Share of India’s Population'}
+                </span>
+
+                <div className="flex items-baseline space-x-3">
+                  <span className={`text-5xl sm:text-6xl lg:text-7xl font-black font-mono tracking-tight ${currentStage.textColor} drop-shadow-lg`}>
+                    {activeIndex === 3 && currentInstaStep === 'image' ? '481M' : currentStage.percentageOfIndia}
+                  </span>
+                  <span className="text-xs sm:text-sm font-sans font-bold text-neutral-300 leading-tight">
+                    {activeIndex === 3 && currentInstaStep === 'image' ? (
+                      <>CITIZENS GLUED<br />TO PHONES DAILY</>
+                    ) : (
+                      <>OF ALL CITIZENS<br />ACROSS INDIA</>
+                    )}
+                  </span>
+                </div>
+
+                {/* Progress Bar or Impact Metric Cards */}
+                {activeIndex === 3 && currentInstaStep === 'image' ? (
+                  <div className="grid grid-cols-3 gap-2 pt-2 pb-1">
+                    <div className="p-2 rounded-xl bg-neutral-900/80 border border-white/5 text-center">
+                      <div className="text-[10px] font-mono text-neutral-400">Daily Active</div>
+                      <div className="text-sm font-mono font-bold text-pink-400">350M+</div>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-900/80 border border-white/5 text-center">
+                      <div className="text-[10px] font-mono text-neutral-400">Screen Time</div>
+                      <div className="text-sm font-mono font-bold text-amber-400">49h / mo</div>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-900/80 border border-white/5 text-center">
+                      <div className="text-[10px] font-mono text-neutral-400">Per Year</div>
+                      <div className="text-sm font-mono font-bold text-emerald-400">24.5 Days</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pt-2 pb-1">
+                    <div className="w-full bg-neutral-900 h-2.5 rounded-full overflow-hidden relative">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: currentStage.percentageOfIndia }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        className={`h-full bg-gradient-to-r ${currentStage.accentColor} rounded-full`}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] font-mono text-neutral-400 mt-1.5">
+                      <span>0 Citizens</span>
+                      <span className="text-white font-bold">{currentStage.totalIndiaUsers} Active</span>
+                      <span>1.46B India Total</span>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-xs sm:text-sm text-neutral-200 font-sans font-semibold pt-1 leading-relaxed">
+                  {activeIndex === 3 && currentInstaStep === 'image'
+                    ? 'The map is not abstract data. Across every metro and rural district in India, every generation—children, parents, and grandparents—is transfixed by the endless feed.'
+                    : currentStage.ratioDescription}
+                </p>
+              </div>
+
+              {/* Subtitle count banner */}
+              <div className="p-3 rounded-2xl bg-neutral-900/80 flex items-center justify-between text-xs font-mono border-0">
+                <span className="text-neutral-400">
+                  {activeIndex === 3 && currentInstaStep === 'image' ? 'National Reality:' : 'Total Active Citizens:'}
+                </span>
+                <span className="text-white font-extrabold text-sm">
+                  {activeIndex === 3 && currentInstaStep === 'image'
+                    ? '481,000,000 Transfixed Users'
+                    : currentStage.totalIndiaUsersNum}
+                </span>
+              </div>
+
+              {/* Scroll Guidance Helper */}
+              <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-1">
+                <span className="flex items-center gap-1 text-amber-400">
+                  <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
+                  <span>
+                    {activeIndex < 3
+                      ? `Scroll down for ${INDIA_STAGES[activeIndex + 1].name}`
+                      : currentInstaStep === 'map'
+                      ? 'Scroll down to replace map with reality image'
+                      : 'Scroll down for The Instagram Trap'}
+                  </span>
+                </span>
+                <button
+                  onClick={handleNextStage}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs transition-all cursor-pointer border-0"
+                >
+                  <span>
+                    {activeIndex < 3
+                      ? 'Next App'
+                      : currentInstaStep === 'map'
+                      ? 'Reveal Reality'
+                      : 'The Trap'}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
-          </div>
-        </div>
+
+            {/* RIGHT COLUMN: INDIA MAP (WHATSAPP, FB, YT, INSTAGRAM STEP 1) OR UPLOADED IMAGE (INSTAGRAM STEP 2) */}
+            <div className="lg:col-span-7 bg-neutral-950/70 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 shadow-2xl flex flex-col justify-between h-[360px] sm:h-[420px] lg:h-[485px] max-h-[60vh] border-0 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {activeIndex === 3 && currentInstaStep === 'image' ? (
+                  /* INSTAGRAM STEP 2: UPLOADED IMAGE SWOOPS IN FROM SOMEWHERE AND REPLACES INDIA MAP */
+                  <motion.div
+                    key="insta-uploaded-reality-image"
+                    initial={{
+                      opacity: 0,
+                      scale: 0.65,
+                      y: 120,
+                      x: 60,
+                      rotate: 5,
+                      filter: 'blur(8px)',
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                      x: 0,
+                      rotate: 0,
+                      filter: 'blur(0px)',
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.65,
+                      y: 120,
+                      x: 60,
+                      rotate: 5,
+                      filter: 'blur(8px)',
+                      transition: { duration: 0.25 },
+                    }}
+                    transition={{
+                      type: 'spring',
+                      damping: 22,
+                      stiffness: 130,
+                      mass: 0.8,
+                    }}
+                    className="relative w-full h-full flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between pb-1.5 shrink-0">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-pink-300 flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
+                        <span>Digital Screen Reality • 481M Citizens Glued To Phones</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono text-pink-300 bg-pink-950/80 px-2.5 py-0.5 rounded-full font-bold border border-pink-500/30">
+                          Reality Revealed
+                        </span>
+                        <button
+                          onClick={() => handleSwitchInstaStep('map')}
+                          className="text-[9px] font-mono text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-900 hover:bg-neutral-800 transition-colors cursor-pointer border border-white/10"
+                          title="Back to India Map"
+                        >
+                          ← View Map
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Uploaded Image Container */}
+                    <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center bg-black/60 ring-1 ring-pink-500/25 group">
+                      <img
+                        src="/image.png"
+                        alt="Indian Family Glued to Screens"
+                        className="w-full h-full object-cover sm:object-contain rounded-2xl shadow-2xl transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[10px] font-mono text-white/90 drop-shadow-md pointer-events-none">
+                        <span className="flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-full border border-pink-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping" />
+                          <span className="text-pink-300 font-bold">Lived Reality:</span>
+                          <span className="text-white">Every Generation Transfixed</span>
+                        </span>
+                        <span className="bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-full text-neutral-300 border border-white/10 hidden sm:inline">
+                          Replaces India Map
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-400 shrink-0">
+                      <span className="text-pink-400 font-bold">National Ground Reality:</span>
+                      <span className="text-neutral-300">Every generation transfixed by smartphone screens</span>
+                    </div>
+                  </motion.div>
+                ) : (
+                  /* WHATSAPP, FB, YOUTUBE, AND INSTAGRAM STEP 1: INDIA MAP (NO STATE BORDERS, ONLY MAIN BORDER HIGHLIGHTED) */
+                  <motion.div
+                    key={`map-container-${currentStage.id}`}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.92,
+                      y: -20,
+                      filter: 'blur(6px)',
+                      transition: { duration: 0.3 },
+                    }}
+                    transition={{ duration: 0.35 }}
+                    className="relative w-full h-full flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between pb-1 shrink-0">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                        <Award className={`w-3.5 h-3.5 ${currentStage.textColor}`} />
+                        <span>India Map • {currentStage.name} Adoption</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full">
+                          Main Border Highlighted
+                        </span>
+                        {activeIndex === 3 && (
+                          <button
+                            onClick={() => handleSwitchInstaStep('image')}
+                            className="text-[9px] font-mono font-bold text-pink-300 hover:text-white bg-pink-950/70 hover:bg-pink-900 border border-pink-500/30 px-2 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <span>Reveal Reality</span>
+                            <ChevronRight className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Vector India Map with ONLY Main Border Highlighted & NO State Borders */}
+                    <div className="relative w-full flex-1 flex items-center justify-center min-h-0 p-1">
+                      <svg
+                        className="w-full h-full max-h-[395px] object-contain drop-shadow-2xl transition-transform duration-700 ease-out"
+                        viewBox="0 0 495 570"
+                        preserveAspectRatio="xMidYMid meet"
+                        fill="none"
+                      >
+                        <defs>
+                          <filter id="state-blur" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="1.5" />
+                          </filter>
+                          <filter id="state-glow" x="-30%" y="-30%" width="160%" height="160%">
+                            <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={currentStage.mapColor} floodOpacity="0.95" />
+                          </filter>
+                          <filter id="india-border-glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#ffffff" floodOpacity="0.85" />
+                          </filter>
+                        </defs>
+
+                        {/* Coordinate Grid */}
+                        <g stroke="#f59e0b" strokeOpacity="0.04" strokeWidth="0.8" strokeDasharray="3 4">
+                          <line x1="125" y1="0" x2="125" y2="570" />
+                          <line x1="250" y1="0" x2="250" y2="570" />
+                          <line x1="375" y1="0" x2="375" y2="570" />
+                          <line x1="0" y1="285" x2="495" y2="285" />
+                        </g>
+
+                        {/* 1. Base dark fill of all states (NO STATE BORDERS: stroke="none") */}
+                        <g fill="#081026" stroke="none">
+                          {indiaStatesData.map((st, idx) => (
+                            <path
+                              key={`base-fill-${idx}`}
+                              d={st.d}
+                              fill="#081026"
+                              stroke="none"
+                            />
+                          ))}
+                        </g>
+
+                        {/* 2. Non-selected states (soft blur, NO STATE BORDERS: stroke="none") */}
+                        <g filter="url(#state-blur)" stroke="none" opacity="0.65">
+                          {indiaStatesData
+                            .filter((st) => !currentStage.highlightedStates.includes(st.name))
+                            .map((st, idx) => (
+                              <path
+                                key={`blurred-state-${idx}`}
+                                d={st.d}
+                                fill="#060d1f"
+                                stroke="none"
+                              >
+                                <title>{st.name}</title>
+                              </path>
+                            ))}
+                        </g>
+
+                        {/* 3. Highlighted states (vibrant platform color, NO STATE BORDERS: stroke="none") */}
+                        <g filter="url(#state-glow)" stroke="none">
+                          {indiaStatesData
+                            .filter((st) => currentStage.highlightedStates.includes(st.name))
+                            .map((st, idx) => (
+                              <path
+                                key={`highlighted-state-${idx}`}
+                                d={st.d}
+                                fill={currentStage.mapColor}
+                                fillOpacity={0.94}
+                                stroke="none"
+                                className="transition-all duration-500 ease-out cursor-pointer hover:fill-opacity-100"
+                              >
+                                <title>{st.name} (High {currentStage.name} Adoption)</title>
+                              </path>
+                            ))}
+                        </g>
+
+                        {/* 4. ONLY THE MAIN INDIA BORDER IS HIGHLIGHTED (Continuous national perimeter) */}
+                        <g filter="url(#india-border-glow)" strokeLinejoin="round" strokeLinecap="round" pointerEvents="none">
+                          <path
+                            d={indiaOuterBorder.d}
+                            fill="none"
+                            stroke="#ffffff"
+                            strokeWidth={2.6}
+                            strokeOpacity={0.96}
+                            className="transition-all duration-300"
+                          />
+                        </g>
+                        <path
+                          d={indiaOuterBorder.d}
+                          fill="none"
+                          stroke="#f8fafc"
+                          strokeWidth={1.5}
+                          strokeOpacity={0.9}
+                          strokeLinejoin="round"
+                          strokeLinecap="round"
+                          pointerEvents="none"
+                        />
+
+                        {/* Metro Hubs with Ripple Pings */}
+                        <g className="transition-opacity duration-500" style={{ opacity: stageOpacity }}>
+                          {currentStage.metroHubs.map((hub, idx) => (
+                            <g key={`hub-${currentStage.id}-${idx}`}>
+                              <circle
+                                cx={hub.x}
+                                cy={hub.y}
+                                r={hub.isPrimary ? 20 : 13}
+                                stroke={currentStage.mapColor}
+                                strokeWidth={hub.isPrimary ? 2 : 1.2}
+                                fill="none"
+                                className="animate-ping opacity-80"
+                              />
+                              <circle
+                                cx={hub.x}
+                                cy={hub.y}
+                                r={hub.isPrimary ? 6 : 4}
+                                fill={currentStage.mapColor}
+                                className="animate-pulse"
+                              />
+                              <text
+                                x={hub.x}
+                                y={hub.y - (hub.isPrimary ? 12 : 8)}
+                                fill="#ffffff"
+                                stroke="#000000"
+                                strokeWidth="3.2"
+                                paintOrder="stroke"
+                                fontSize={hub.isPrimary ? '9.5' : '7.5'}
+                                fontWeight="900"
+                                textAnchor="middle"
+                                fontFamily="sans-serif"
+                                letterSpacing="0.04em"
+                              >
+                                {hub.name}
+                              </text>
+                            </g>
+                          ))}
+                        </g>
+                      </svg>
+                    </div>
+
+                    {/* Bottom Highlight Summary */}
+                    <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0">
+                      <span className={`${currentStage.textColor} font-bold`}>High Adoption States:</span>
+                      <div className="flex items-center space-x-1.5 overflow-x-auto text-[9px]">
+                        {currentStage.highlightedStates.slice(0, 5).map((st, i) => (
+                          <span key={i} className="bg-neutral-900/90 px-2 py-0.5 rounded-full text-white whitespace-nowrap">
+                            {st}
+                          </span>
+                        ))}
+                        <span className="text-neutral-500">+{currentStage.highlightedStates.length - 5} more</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* =================================================================== */}
-      {/* 4. FOOTER STATUS BAR & PROGRESS */}
+      {/* 4. FOOTER STATUS BAR (4 PLATFORMS & INSTAGRAM PROGRESSION) */}
       {/* =================================================================== */}
-      <footer className="relative z-20 max-w-6xl mx-auto w-full pb-3 px-4 flex items-center justify-between text-[11px] font-mono text-neutral-400 border-t border-white/10 pt-2">
+      <footer className="relative z-20 max-w-6xl mx-auto w-full pb-3 px-4 flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-2 border-0">
         <div className="flex items-center space-x-2">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           <span>
-            {isInstagramFullImpact
-              ? 'STAGE 4 OF 4 • INSTAGRAM INDIA IMPACT NUMBERS'
+            {activeIndex === 3
+              ? currentInstaStep === 'map'
+                ? 'STAGE 4 OF 4 • INSTAGRAM INDIA DISTRIBUTION (STEP 1 OF 2)'
+                : 'STAGE 4 OF 4 • INSTAGRAM SCREEN REALITY (STEP 2 OF 2)'
               : `STAGE ${activeIndex + 1} OF 4 • ${currentStage.name.toUpperCase()} INDIA FOOTPRINT`}
           </span>
         </div>
 
         <div className="flex items-center space-x-3">
           <span className="hidden sm:inline text-neutral-400">
-            Scroll drives platform progression
+            {activeIndex === 3 && currentInstaStep === 'map'
+              ? 'Scroll down to replace map with reality image'
+              : 'Scroll drives platform progression'}
           </span>
           <div className="flex items-center space-x-1">
-            {INDIA_STAGES.map((_, i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeIndex === i ? 'w-6 bg-amber-400' : 'w-2 bg-neutral-700'
-                }`}
-              />
-            ))}
+            {[0, 1, 2, 3].map((i) => {
+              const isCurrent = activeIndex === i;
+              return (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    isCurrent
+                      ? i === 3 && currentInstaStep === 'image'
+                        ? 'w-7 bg-gradient-to-r from-pink-500 to-amber-400 animate-pulse'
+                        : 'w-6 bg-pink-400'
+                      : 'w-2 bg-neutral-700'
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
       </footer>
