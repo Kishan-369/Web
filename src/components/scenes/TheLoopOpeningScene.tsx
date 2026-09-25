@@ -4,14 +4,21 @@ import { X, ExternalLink, QrCode } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
 import { MENTIMETER_CONFIG } from './QuizTimeScene';
 import { Carousel3DScene } from './Carousel3DScene';
+import { AppEcosystemScene } from './AppEcosystemScene';
 
 interface Props {
   onScrollToNext: () => void;
   onScrollToQuiz?: () => void;
   onScrollToNews?: () => void;
+  onScrollToPhone?: () => void;
 }
 
-export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollToQuiz, onScrollToNews }) => {
+export const TheLoopOpeningScene: React.FC<Props> = ({
+  onScrollToNext,
+  onScrollToQuiz,
+  onScrollToNews,
+  onScrollToPhone,
+}) => {
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [isHovered, setIsHovered] = useState(false);
   const [showLargeQr, setShowLargeQr] = useState(false);
@@ -49,6 +56,12 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
   const hasPage1TurnSoundPlayedRef = useRef(false);
   const hasPage2TurnSoundPlayedRef = useRef(false);
   const hasFakeNewsStampSoundPlayedRef = useRef(false);
+  const hasZoomOutSoundPlayedRef = useRef(false);
+  const hasPhoneSettledSoundPlayedRef = useRef(false);
+  const hasInstagramSoundPlayedRef = useRef(false);
+  const hasYouTubeSoundPlayedRef = useRef(false);
+  const hasFacebookSoundPlayedRef = useRef(false);
+  const hasWhatsAppSoundPlayedRef = useRef(false);
 
   // Measure untransformed docking positions
   const updateMeasurements = useCallback(() => {
@@ -165,27 +178,75 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
         }
 
         // Newspaper page 1 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.82 && !hasPage1TurnSoundPlayedRef.current) {
+        if (next >= 0.72 && !hasPage1TurnSoundPlayedRef.current) {
           hasPage1TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.79) {
+        } else if (next < 0.69) {
           hasPage1TurnSoundPlayedRef.current = false;
         }
 
         // Newspaper page 2 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.89 && !hasPage2TurnSoundPlayedRef.current) {
+        if (next >= 0.75 && !hasPage2TurnSoundPlayedRef.current) {
           hasPage2TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.86) {
+        } else if (next < 0.72) {
           hasPage2TurnSoundPlayedRef.current = false;
         }
 
         // Official government rubber stamp impact sound (Slam down across ALL 3 images)
-        if (next >= 0.98 && !hasFakeNewsStampSoundPlayedRef.current) {
+        if (next >= 0.78 && !hasFakeNewsStampSoundPlayedRef.current) {
           hasFakeNewsStampSoundPlayedRef.current = true;
           soundEngine.playRubberStampSound();
-        } else if (next < 0.95) {
+        } else if (next < 0.76) {
           hasFakeNewsStampSoundPlayedRef.current = false;
+        }
+
+        // Cinematic Zoom-out vacuum suck sound (Fake news shrinks into mobile phone)
+        if (next >= 0.80 && !hasZoomOutSoundPlayedRef.current) {
+          hasZoomOutSoundPlayedRef.current = true;
+          soundEngine.playZoomOutSuckSound();
+        } else if (next < 0.78) {
+          hasZoomOutSoundPlayedRef.current = false;
+        }
+
+        // Phone settled impact tone
+        if (next >= 0.85 && !hasPhoneSettledSoundPlayedRef.current) {
+          hasPhoneSettledSoundPlayedRef.current = true;
+          soundEngine.playClickTone();
+        } else if (next < 0.83) {
+          hasPhoneSettledSoundPlayedRef.current = false;
+        }
+
+        // Instagram notification ping on scroll
+        if (next >= 0.88 && !hasInstagramSoundPlayedRef.current) {
+          hasInstagramSoundPlayedRef.current = true;
+          soundEngine.playNotificationPing();
+        } else if (next < 0.86) {
+          hasInstagramSoundPlayedRef.current = false;
+        }
+
+        // YouTube notification ping on scroll
+        if (next >= 0.91 && !hasYouTubeSoundPlayedRef.current) {
+          hasYouTubeSoundPlayedRef.current = true;
+          soundEngine.playNotificationPing();
+        } else if (next < 0.89) {
+          hasYouTubeSoundPlayedRef.current = false;
+        }
+
+        // Facebook notification ping on scroll
+        if (next >= 0.94 && !hasFacebookSoundPlayedRef.current) {
+          hasFacebookSoundPlayedRef.current = true;
+          soundEngine.playNotificationPing();
+        } else if (next < 0.92) {
+          hasFacebookSoundPlayedRef.current = false;
+        }
+
+        // WhatsApp notification ping on scroll
+        if (next >= 0.97 && !hasWhatsAppSoundPlayedRef.current) {
+          hasWhatsAppSoundPlayedRef.current = true;
+          soundEngine.playNotificationPing();
+        } else if (next < 0.95) {
+          hasWhatsAppSoundPlayedRef.current = false;
         }
       } else if (Math.abs(diff) <= 0.0002 && current !== target) {
         displayProgressRef.current = target;
@@ -214,7 +275,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (showLargeQr) return;
-    if (displayProgress < 0.50) {
+    if (displayProgress < 0.44) {
       if (onScrollToQuiz) {
         onScrollToQuiz();
       } else {
@@ -223,6 +284,12 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
     } else if (displayProgress < 0.70) {
       if (onScrollToNews) {
         onScrollToNews();
+      } else {
+        onScrollToNext();
+      }
+    } else if (displayProgress < 0.90) {
+      if (onScrollToPhone) {
+        onScrollToPhone();
       } else {
         onScrollToNext();
       }
@@ -305,6 +372,8 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
   let newsScale = 1;
   let newsOpacity = 0;
   let newsReadingProgress = 0;
+  let phoneZoomProgress = 0;
+  let activeAppIndex: number | null = null;
 
   if (displayProgress <= 0.02) {
     // 1. Initial State: Only ∞ loop visible, L and P disappeared
@@ -477,9 +546,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
     newsScale = 0.65 + effectiveT * 0.35;
     newsOpacity = Math.min(1, bT * 2.4);
     newsReadingProgress = 0;
-  } else if (displayProgress < 0.80) {
+  } else if (displayProgress < 0.68) {
     // 8. STABLE ZONE 2: FIRST NEWS IS 100% STABLE & RESTED!
-    // (10% wide rock-solid resting zone! Zero movement, no folding yet)
+    // (Rock-solid resting zone! Zero movement, no folding yet)
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -492,10 +561,11 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
     newsRotate = 0;
     newsScale = 1;
     newsOpacity = 1;
-    newsReadingProgress = 0.0; // Completely flat, motionless & stable!
+    newsReadingProgress = 0.0;
+    phoneZoomProgress = 0.0;
+    activeAppIndex = null;
   } else {
-    // 9. 3D NEWSPAPER MIDDLE-FOLD READING SCROLL EXPERIENCE
-    // (One-by-one page turns & Fake News stamp reveal)
+    // 9. 3D NEWSPAPER READING, FAKE NEWS, GRAND PHONE ZOOM-OUT & SCROLL-DRIVEN APPS
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -507,17 +577,45 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
     newsY = 0;
     newsRotate = 0;
     newsScale = 1;
-    newsOpacity = 1;
 
-    // Smoothly map displayProgress (0.80 -> 1.00) to newsReadingProgress (0.00 -> 1.00):
-    // 0.80 -> 0.82: Sheet 1 is flat, uncut, resting stable
-    // 0.82 -> 0.87: Sheet 1 middle-fold turn
-    // 0.87 -> 0.89: Sheet 2 is flat, uncut, resting stable
-    // 0.89 -> 0.94: Sheet 2 middle-fold turn
-    // 0.94 -> 0.96: Sheet 3 is flat, uncut, resting stable
-    // 0.96 -> 0.98: All 3 images smoothly spread out across the screen
-    // 0.98 -> 1.00: "FAKE NEWS" stamps slam down onto ALL 3 images!
-    newsReadingProgress = Math.max(0, Math.min(1, (displayProgress - 0.80) / 0.20));
+    // Smoothly map displayProgress:
+    // 0.68 -> 0.80: Newspaper page folds, 3-image spread, and FAKE NEWS stamp slam
+    // 0.80 -> 0.85: Fake news vacuum shrinks into center & Phone zooms out from 12x to settled scale
+    // 0.85 -> 0.88: Phone settled clean resting state
+    // 0.88 -> 0.91: App 1: Instagram
+    // 0.91 -> 0.94: App 2: YouTube
+    // 0.94 -> 0.97: App 3: Facebook
+    // 0.97 -> 1.00: App 4: WhatsApp
+    if (displayProgress < 0.80) {
+      newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.68) / 0.12));
+      phoneZoomProgress = 0;
+      newsOpacity = 1;
+      activeAppIndex = null;
+    } else if (displayProgress < 0.85) {
+      phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.80) / 0.05));
+      // Drive fake news vacuum shrink towards 1.0
+      newsReadingProgress = 0.91 + phoneZoomProgress * 0.09;
+      // Fade out the news layer as phone settles
+      newsOpacity = displayProgress > 0.83 ? Math.max(0, 1 - (displayProgress - 0.83) / 0.02) : 1;
+      activeAppIndex = null;
+    } else {
+      phoneZoomProgress = 1.0;
+      newsReadingProgress = 1.0;
+      newsOpacity = 0;
+
+      // Apps appear one by one as the user scrolls down!
+      if (displayProgress >= 0.97) {
+        activeAppIndex = 3; // WhatsApp
+      } else if (displayProgress >= 0.94) {
+        activeAppIndex = 2; // Facebook
+      } else if (displayProgress >= 0.91) {
+        activeAppIndex = 1; // YouTube
+      } else if (displayProgress >= 0.88) {
+        activeAppIndex = 0; // Instagram
+      } else {
+        activeAppIndex = null; // Clean settled phone with title
+      }
+    }
   }
 
   // Chromatic text shadow strings for glitch effects
@@ -880,6 +978,29 @@ export const TheLoopOpeningScene: React.FC<Props> = ({ onScrollToNext, onScrollT
           className="absolute inset-0 z-30 flex items-center justify-center overflow-hidden will-change-transform"
         >
           <Carousel3DScene isEmbedded={true} scrollProgress={newsReadingProgress} />
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* LAYER 4: PHONE ZOOM-OUT & APP ECOSYSTEM SCENE */}
+      {/* Starting super zoomed-in (only center glass visible, zero outline) */}
+      {/* then smoothly zooming out as Fake News shrinks into the phone glass */}
+      {/* and presenting each app icon one-by-one as the user scrolls */}
+      {/* =================================================================== */}
+      {displayProgress >= 0.79 && (
+        <div
+          style={{
+            opacity: Math.min(1, (displayProgress - 0.79) / 0.02),
+            pointerEvents: 'none',
+          }}
+          className="absolute inset-0 z-20 overflow-hidden will-change-transform"
+        >
+          <AppEcosystemScene
+            isEmbedded={true}
+            phoneZoomProgress={phoneZoomProgress}
+            activeAppIndex={activeAppIndex}
+            onNextScene={onScrollToNext}
+          />
         </div>
       )}
 

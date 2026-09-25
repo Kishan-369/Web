@@ -5,6 +5,10 @@ interface Props {
   exploded?: boolean;
   selectedAppIndex: number | null;
   phoneVisible?: boolean;
+  zoomScale?: number;
+  offsetX?: number;
+  offsetY?: number;
+  outlineOpacity?: number;
 }
 
 const createRoundedRectShape = (width: number, height: number, radius: number) => {
@@ -21,19 +25,35 @@ const createRoundedRectShape = (width: number, height: number, radius: number) =
   return shape;
 };
 
-export const AppEcosystemCanvas: React.FC<Props> = ({ exploded = true, selectedAppIndex, phoneVisible = true }) => {
+export const AppEcosystemCanvas: React.FC<Props> = ({
+  exploded = true,
+  selectedAppIndex,
+  phoneVisible = true,
+  zoomScale,
+  offsetX,
+  offsetY,
+  outlineOpacity,
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   // Use refs for props so we don't recreate the scene on change
   const explodedRef = useRef(exploded);
   const selectedAppIndexRef = useRef(selectedAppIndex);
   const phoneVisibleRef = useRef(phoneVisible);
+  const zoomScaleRef = useRef(zoomScale ?? 1.12);
+  const offsetXRef = useRef(offsetX ?? -1.6);
+  const offsetYRef = useRef(offsetY ?? -1.15);
+  const outlineOpacityRef = useRef(outlineOpacity ?? 0.9);
 
   useEffect(() => {
     explodedRef.current = exploded;
     selectedAppIndexRef.current = selectedAppIndex;
     phoneVisibleRef.current = phoneVisible;
-  }, [exploded, selectedAppIndex, phoneVisible]);
+    if (zoomScale !== undefined) zoomScaleRef.current = zoomScale;
+    if (offsetX !== undefined) offsetXRef.current = offsetX;
+    if (offsetY !== undefined) offsetYRef.current = offsetY;
+    if (outlineOpacity !== undefined) outlineOpacityRef.current = outlineOpacity;
+  }, [exploded, selectedAppIndex, phoneVisible, zoomScale, offsetX, offsetY, outlineOpacity]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -55,11 +75,13 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded = true, selectedA
 
     // 1. Central Phone Mesh (iPhone Style)
     const phoneGroup = new THREE.Group();
-    // Position phone slightly left (-1.5) and lowered further (-2.3) so it stays well clear of the header text
-    phoneGroup.position.set(-1.5, -2.3, 0);
+    // Position phone according to dynamic initial offsets
+    phoneGroup.position.set(offsetXRef.current, offsetYRef.current, 0);
     if (!phoneVisibleRef.current) {
       phoneGroup.scale.set(0.0001, 0.0001, 0.0001);
       phoneGroup.visible = false;
+    } else {
+      phoneGroup.scale.setScalar(zoomScaleRef.current);
     }
     
     const phoneWidth = 4.2;
@@ -300,12 +322,20 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded = true, selectedA
       const selAppIndex = selectedAppIndexRef.current;
       const isPhoneVisible = phoneVisibleRef.current;
 
-      // Animate phone appearance/disappearance
-      const targetPhoneScale = isPhoneVisible ? 1.0 : 0.0001;
-      phoneGroup.scale.x = THREE.MathUtils.lerp(phoneGroup.scale.x, targetPhoneScale, 0.08);
-      phoneGroup.scale.y = THREE.MathUtils.lerp(phoneGroup.scale.y, targetPhoneScale, 0.08);
-      phoneGroup.scale.z = THREE.MathUtils.lerp(phoneGroup.scale.z, targetPhoneScale, 0.08);
+      // Animate phone appearance/disappearance with dynamic zoomScale
+      const targetPhoneScale = isPhoneVisible ? zoomScaleRef.current : 0.0001;
+      phoneGroup.scale.x = THREE.MathUtils.lerp(phoneGroup.scale.x, targetPhoneScale, 0.12);
+      phoneGroup.scale.y = THREE.MathUtils.lerp(phoneGroup.scale.y, targetPhoneScale, 0.12);
+      phoneGroup.scale.z = THREE.MathUtils.lerp(phoneGroup.scale.z, targetPhoneScale, 0.12);
       phoneGroup.visible = phoneGroup.scale.x > 0.02;
+
+      // Position lerp (transitions from screen center to docked left)
+      phoneGroup.position.x = THREE.MathUtils.lerp(phoneGroup.position.x, offsetXRef.current, 0.12);
+      phoneGroup.position.y = THREE.MathUtils.lerp(phoneGroup.position.y, offsetYRef.current, 0.12);
+
+      // Outline and island rim opacity lerp (invisible when zoomed in, fades in as phone zooms out)
+      outlineMat.opacity = THREE.MathUtils.lerp(outlineMat.opacity, outlineOpacityRef.current, 0.15);
+      islandRimMat.opacity = THREE.MathUtils.lerp(islandRimMat.opacity, outlineOpacityRef.current * 0.8, 0.15);
 
       // Update screen color based on selection
       const targetScreenColor = new THREE.Color(
@@ -357,9 +387,10 @@ export const AppEcosystemCanvas: React.FC<Props> = ({ exploded = true, selectedA
         }
       });
 
-      // Phone Rotation - follow mouse slightly and slowly rotate
-      phoneGroup.rotation.y = Math.sin(elapsedTime * 0.2) * 0.15 + mouseX * 0.4;
-      phoneGroup.rotation.x = Math.sin(elapsedTime * 0.3) * 0.1 + mouseY * 0.2;
+      // Phone Rotation - follow mouse slightly and slowly rotate, damped when zoomed in
+      const rotDamp = THREE.MathUtils.clamp(1 - (zoomScaleRef.current - 1.12) / 4.0, 0, 1);
+      phoneGroup.rotation.y = (Math.sin(elapsedTime * 0.2) * 0.15 + mouseX * 0.4) * rotDamp;
+      phoneGroup.rotation.x = (Math.sin(elapsedTime * 0.3) * 0.1 + mouseY * 0.2) * rotDamp;
 
       dustPoints.rotation.y = elapsedTime * 0.02;
 

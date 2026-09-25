@@ -97,14 +97,14 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
 
   // Spread calculation for the finale (All 3 images appear side by side)
   let spreadT = 0;
-  if (p >= 0.78) {
-    const raw = Math.min(1, (p - 0.78) / 0.12); // 0.78 to 0.90
+  if (p >= 0.72) {
+    const raw = Math.min(1, (p - 0.72) / 0.10); // 0.72 to 0.82
     spreadT = raw * raw * (3 - 2 * raw);
   }
 
   // Unified Fake News stamp slam calculation (Applied ONE single stamp across ALL 3 images)
-  const isStampVisible = p >= 0.88;
-  const stampProgress = isStampVisible ? Math.min(1, (p - 0.88) / 0.12) : 0;
+  const isStampVisible = p >= 0.82;
+  const stampProgress = isStampVisible ? Math.min(1, (p - 0.82) / 0.06) : 0;
   const stampScale = Math.max(1, 3.0 - stampProgress * 2.0);
   const stampOpacity = Math.min(1, stampProgress * 3.5);
 
@@ -113,6 +113,16 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
   if (stampProgress >= 0.65 && stampProgress <= 0.90) {
     const st = (stampProgress - 0.65) / 0.25;
     stampImpactShake = Math.sin(st * Math.PI * 5) * (1 - st) * 7;
+  }
+
+  // Zoom out / vacuum shrink into the phone screen when scrolling past Fake News
+  let fakeNewsZoomOutScale = 1.0;
+  let fakeNewsZoomOutOpacity = 1.0;
+  if (p >= 0.91) {
+    const zp = Math.min(1, (p - 0.91) / 0.08); // 0.91 -> 0.99
+    const easeZoomIn = zp * zp;
+    fakeNewsZoomOutScale = Math.max(0.12, 1.0 - easeZoomIn * 0.88);
+    fakeNewsZoomOutOpacity = Math.max(0, 1.0 - zp * 1.15);
   }
 
   const isDesktop = viewportWidth >= 768;
@@ -147,7 +157,14 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
             perspective: 2000,
           }}
         >
-          <div className="relative w-full max-w-[1440px] h-[82vh] flex items-center justify-center">
+          <div
+            style={{
+              transform: `scale(${fakeNewsZoomOutScale})`,
+              opacity: fakeNewsZoomOutOpacity,
+              transformOrigin: 'center center',
+            }}
+            className="relative w-full max-w-[1440px] h-[82vh] flex items-center justify-center will-change-transform transition-transform duration-75"
+          >
             {/* The 3 Clean, Uncut News Images Spread Side-By-Side */}
             {NEWS_DATA.map((item, index) => {
               let transX = 0;

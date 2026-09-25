@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { AppEcosystemCanvas } from '../3d/AppEcosystemCanvas';
 import { motion, AnimatePresence } from 'motion/react';
 import { soundEngine } from '../../utils/soundEngine';
-import { Radio } from 'lucide-react';
 
 interface AppItem {
   name: string;
@@ -13,13 +12,47 @@ interface AppItem {
   iconIndex: number;
 }
 
-export const AppEcosystemScene: React.FC = () => {
-  // step: 0 = Initial (Only header text, phone & app names hidden)
-  // step: 1 = Phone + Instagram only
-  // step: 2 = Phone + YouTube only
-  // step: 3 = Phone + Facebook only
-  // step: 4 = Phone + WhatsApp only
-  const [step, setStep] = useState<number>(0);
+interface AppEcosystemSceneProps {
+  isEmbedded?: boolean;
+  phoneZoomProgress?: number; // 0.0 = super zoomed in (12x, no outline), 1.0 = normal settled size
+  activeAppIndex?: number | null; // null = no app, 0 = Instagram, 1 = YouTube, 2 = Facebook, 3 = WhatsApp
+  onNextScene?: () => void;
+}
+
+export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
+  isEmbedded = false,
+  phoneZoomProgress,
+  activeAppIndex,
+  onNextScene,
+}) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Dynamic phone zoom-out calculation from scroll progress
+  const zoomP = phoneZoomProgress !== undefined ? Math.max(0, Math.min(1, phoneZoomProgress)) : 1.0;
+  // Smooth cubic ease out
+  const easeZoom = 1 - Math.pow(1 - zoomP, 3);
+
+  // Settled target dimensions: perfectly proportioned phone with clean breathing room
+  const settledScale = isMobile ? 0.95 : 1.12;
+  const settledOffsetX = isMobile ? 0 : -1.6;
+  const settledOffsetY = isMobile ? -0.8 : -1.15;
+
+  // Starting at 12.0x (huge screen glass only, 0 outline) and zooming out to settled dimensions
+  const currentZoomScale = phoneZoomProgress !== undefined ? 12.0 - easeZoom * (12.0 - settledScale) : settledScale;
+  const currentOffsetX = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetX : settledOffsetX;
+  const currentOffsetY = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetY : settledOffsetY;
+  const currentOutlineOpacity = phoneZoomProgress !== undefined ? Math.max(0, (zoomP - 0.25) / 0.75) * 0.9 : 0.9;
+  const headerOpacity = phoneZoomProgress !== undefined ? Math.max(0, (zoomP - 0.30) / 0.70) : 1.0;
+  const headerTranslateY = phoneZoomProgress !== undefined ? (1 - headerOpacity) * -30 : 0;
 
   const apps: AppItem[] = [
     {
@@ -56,94 +89,69 @@ export const AppEcosystemScene: React.FC = () => {
     },
   ];
 
-  const handleNext = () => {
-    if (step === 0) {
-      soundEngine.playSubBassImpact();
-      soundEngine.playNotificationPing();
-      setStep(1);
-    } else {
-      soundEngine.playNotificationPing();
-      setStep((prev) => (prev < 4 ? prev + 1 : 1));
-    }
-  };
-
-  const handlePrev = () => {
-    soundEngine.playNotificationPing();
-    setStep((prev) => {
-      if (prev <= 1) return 0;
-      return prev - 1;
-    });
-  };
-
-  // Keyboard navigation support for presentation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'Space') {
-        e.preventDefault();
-        handleNext();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handlePrev();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [step]);
-
-  // Current active app (only when step >= 1 and step <= 4)
-  const currentApp = step >= 1 && step <= 4 ? apps[step - 1] : null;
+  // Pure scroll-driven app selection (removes click requirement)
+  const currentApp =
+    activeAppIndex !== undefined && activeAppIndex !== null && activeAppIndex >= 0 && activeAppIndex < apps.length
+      ? apps[activeAppIndex]
+      : null;
 
   return (
     <section
-      onClick={handleNext}
-      className="h-screen w-full bg-black text-white relative flex flex-col justify-between py-6 sm:py-8 px-4 overflow-hidden snap-start snap-always shrink-0 select-none cursor-pointer group"
+      className={`w-full text-white relative flex flex-col justify-between py-6 sm:py-8 px-4 overflow-hidden select-none pointer-events-none group ${
+        isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black snap-start snap-always shrink-0'
+      }`}
     >
-      {/* 3D Canvas: Phone is hidden when step === 0, visible when step >= 1 */}
+      {/* 3D Canvas: Dynamic phone zoom-out from center glass to left docked */}
       <AppEcosystemCanvas
         exploded={true}
-        phoneVisible={step > 0}
+        phoneVisible={true}
+        zoomScale={currentZoomScale}
+        offsetX={currentOffsetX}
+        offsetY={currentOffsetY}
+        outlineOpacity={currentOutlineOpacity}
         selectedAppIndex={currentApp ? currentApp.iconIndex : null}
       />
 
-      {/* Header - Visible at top */}
-      <div className="relative z-20 max-w-4xl mx-auto text-center space-y-2 pt-2 sm:pt-4 pointer-events-none">
-        <div className="inline-flex items-center space-x-2 text-xs font-mono uppercase tracking-widest text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 px-3.5 py-1.5 rounded-full backdrop-blur-md">
-          <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-          <span>The App Ecosystem Explosion</span>
-        </div>
+      {/* Header - Visible at top, slides and fades in smoothly as phone zooms out */}
+      <div
+        style={{
+          opacity: headerOpacity,
+          transform: `translateY(${headerTranslateY}px)`,
+        }}
+        className="relative z-20 max-w-4xl mx-auto text-center pt-2 sm:pt-4 pointer-events-none transition-all duration-150"
+      >
         <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-snug">
           Designed to capture every second of your attention.
         </h2>
-        <p className="text-sm sm:text-base text-neutral-300 font-sans max-w-2xl mx-auto">
-          Engineered by world-class behavioral scientists to maximize time-on-screen.
-        </p>
       </div>
 
       {/* Right Side App Name Only - Positioned comfortably to the right without overlapping phone */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto flex justify-end items-center flex-1 pr-6 sm:pr-14 md:pr-24 pointer-events-none my-auto">
-        <AnimatePresence mode="wait">
-          {currentApp && (
-            <motion.div
-              key={currentApp.name}
-              initial={{ opacity: 0, x: 40, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -25, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-auto"
-            >
-              <div
-                className={`px-8 py-5 sm:px-10 sm:py-6 rounded-3xl border-2 ${currentApp.borderColor} bg-neutral-950/90 backdrop-blur-2xl shadow-2xl ${currentApp.glowClass} flex items-center justify-center`}
+      {zoomP >= 0.75 && (
+        <div className="relative z-20 w-full max-w-6xl mx-auto flex justify-end items-center flex-1 pr-6 sm:pr-14 md:pr-24 pointer-events-none my-auto">
+          <AnimatePresence mode="wait">
+            {currentApp && (
+              <motion.div
+                key={currentApp.name}
+                initial={{ opacity: 0, x: 40, scale: 0.92 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -30, scale: 0.92 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="pointer-events-auto"
               >
-                <span
-                  className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-wide ${currentApp.color}`}
+                <div
+                  className={`px-8 py-5 sm:px-10 sm:py-6 rounded-3xl border-2 ${currentApp.borderColor} bg-neutral-950/90 backdrop-blur-2xl shadow-2xl ${currentApp.glowClass} flex items-center justify-center`}
                 >
-                  {currentApp.name}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                  <span
+                    className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-wide ${currentApp.color}`}
+                  >
+                    {currentApp.name}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Bottom spacer for balance */}
       <div className="h-6 pointer-events-none" />
