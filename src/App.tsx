@@ -128,13 +128,25 @@ export default function App() {
         </div>
 
         {/* Scene 5: World's Digital Screen Reality */}
-        <div ref={(el) => (sceneRefs.current[4] = el)} data-scene-id="5" className="h-screen w-full snap-start snap-always">
-          <WorldUsageScene />
+        <div
+          ref={(el) => (sceneRefs.current[4] = el)}
+          data-scene-id="5"
+          className="h-[1000vh] w-full snap-start relative sticky-scene-container"
+        >
+          <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <WorldUsageScene onScrollToNext={() => scrollToScene(6)} />
+          </div>
         </div>
 
         {/* Scene 6: India's Digital Screen Reality */}
-        <div ref={(el) => (sceneRefs.current[5] = el)} data-scene-id="6" className="h-screen w-full snap-start snap-always">
-          <IndiaUsageScene />
+        <div
+          ref={(el) => (sceneRefs.current[5] = el)}
+          data-scene-id="6"
+          className="h-[1000vh] w-full snap-start relative sticky-scene-container"
+        >
+          <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <IndiaUsageScene onScrollToNext={() => scrollToScene(7)} />
+          </div>
         </div>
 
         {/* Scene 7: The Instagram Trap — Feature Evolution & Psychology (How Every Feature Was Engineered To Glue Users In) */}
