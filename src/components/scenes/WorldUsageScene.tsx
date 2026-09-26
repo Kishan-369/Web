@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Globe, Clock, Users, Zap, ArrowDown, ChevronRight, Activity, Sparkles, Award } from 'lucide-react';
+import { Clock, Users, Zap, ArrowDown, ChevronRight, Activity, Sparkles, Award } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
-import worldMapCountries from './worldMapData.json';
+import { GoogleEarth3DCanvas } from '../3d/GoogleEarth3DCanvas';
 
 export const InstagramLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={`${className} shrink-0`} viewBox="0 0 24 24" fill="none">
@@ -412,20 +412,13 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       {/* =================================================================== */}
       {/* 2. TOP HEADER & INTERACTIVE STEPPER TABS (NO BORDERS) */}
       {/* =================================================================== */}
-      <header className="relative z-20 max-w-6xl mx-auto w-full pt-3 sm:pt-4 px-4 text-center space-y-2">
-        <div className="flex flex-col items-center space-y-0.5">
-          <div className="inline-flex items-center space-x-2 text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3.5 py-0.5 rounded-full backdrop-blur-md shadow-lg">
-            <Globe className="w-3.5 h-3.5 text-cyan-400 animate-spin" style={{ animationDuration: '14s' }} />
-            <span>GLOBAL POPULATION: {GLOBAL_POPULATION_STR} HUMANS</span>
-          </div>
+      <header className="relative z-20 max-w-6xl mx-auto w-full pt-4 sm:pt-6 px-4 text-center">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-sans drop-shadow-md">
+          World’s Digital Screen Reality
+        </h2>
 
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-sans drop-shadow-md">
-            World’s Digital Screen Reality
-          </h2>
-        </div>
-
-        {/* 4 App Tabs (No Borders) */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-3xl mx-auto pt-0.5">
+        {/* 4 App Tabs (No Borders) - Pushed down for generous breathing room */}
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-3xl mx-auto mt-4 sm:mt-6">
           {WORLD_STAGES.map((stage, idx) => {
             const isActive = activeIndex === idx;
             const Logo = stage.logo;
@@ -572,117 +565,28 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: The World Map with Highlighted Countries (NO BORDERS) */}
-              <div className="lg:col-span-7 bg-neutral-950/70 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 shadow-2xl flex flex-col justify-between h-[340px] sm:h-[410px] lg:h-[470px] max-h-[58vh] border-0">
-                <div className="flex items-center justify-between pb-1 shrink-0">
+              {/* RIGHT COLUMN: 3D Google Earth Globe with Highlighted Countries (NO BORDERS) */}
+              <div className="lg:col-span-7 bg-neutral-950/70 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 shadow-2xl flex flex-col justify-between h-[360px] sm:h-[430px] lg:h-[490px] max-h-[60vh] border-0 relative overflow-hidden group">
+                <div className="flex items-center justify-between pb-1 shrink-0 z-10">
                   <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
                     <Activity className={`w-3.5 h-3.5 ${currentStage.textColor}`} />
-                    <span>World Map • {currentStage.name} Highlighted Territories</span>
+                    <span>3D Google Earth • {currentStage.name} Global Penetration</span>
                   </span>
-                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full backdrop-blur-md">
                     Active Territories Glowing
                   </span>
                 </div>
 
-                {/* The SVG World Map with Highlighted Countries */}
-                <div className="relative w-full flex-1 flex items-center justify-center min-h-0 p-1">
-                  <svg
-                    className="w-full h-full max-h-[390px] object-contain drop-shadow-2xl transition-transform duration-700 ease-out"
-                    viewBox="0 0 1000 500"
-                    fill="none"
-                  >
-                    {/* Subtle Coordinate Grid Lines */}
-                    <g stroke="#38bdf8" strokeOpacity="0.06" strokeWidth="0.75" strokeDasharray="3 4">
-                      <line x1="250" y1="0" x2="250" y2="500" />
-                      <line x1="500" y1="0" x2="500" y2="500" />
-                      <line x1="750" y1="0" x2="750" y2="500" />
-                      <line x1="0" y1="250" x2="1000" y2="250" strokeOpacity="0.12" strokeWidth="1" />
-                    </g>
-
-                    {/* Country Outlines & Highlights */}
-                    <g strokeLinejoin="round">
-                      {worldMapCountries.map((country, idx) => {
-                        const isHighlighted = currentStage.highlightedCountryNames.includes(country.name);
-                        const fillColor = isHighlighted
-                          ? currentStage.mapColor
-                          : '#0f172a';
-
-                        return (
-                          <path
-                            key={idx}
-                            d={country.d}
-                            fill={fillColor}
-                            fillOpacity={isHighlighted ? 0.88 : 0.25}
-                            stroke={isHighlighted ? currentStage.mapColor : '#1e293b'}
-                            strokeWidth={isHighlighted ? 1.0 : 0.35}
-                            strokeOpacity={isHighlighted ? 0.95 : 0.2}
-                            className="transition-all duration-700 ease-out cursor-pointer hover:fill-opacity-95"
-                          >
-                            <title>{country.name} {isHighlighted ? `(High ${currentStage.name} Penetration)` : ''}</title>
-                          </path>
-                        );
-                      })}
-                    </g>
-
-                    {/* Intercontinental Pulse Arcs */}
-                    <g className="transition-opacity duration-700" style={{ opacity: stageOpacity * 0.8 }}>
-                      {currentStage.arcs.map((arc, idx) => (
-                        <path
-                          key={`arc-${currentStage.id}-${idx}`}
-                          d={`M ${arc.from[0]} ${arc.from[1]} Q ${arc.control[0]} ${arc.control[1]}, ${arc.to[0]} ${arc.to[1]}`}
-                          stroke={currentStage.mapColor}
-                          strokeWidth="1.6"
-                          strokeDasharray="4 4"
-                          strokeOpacity="0.8"
-                          fill="none"
-                          className="animate-pulse"
-                        />
-                      ))}
-                    </g>
-
-                    {/* Epicenter Hubs with Ripple Pings */}
-                    <g className="transition-opacity duration-500" style={{ opacity: stageOpacity }}>
-                      {currentStage.hubs.map((hub, idx) => (
-                        <g key={`hub-${currentStage.id}-${idx}`}>
-                          <circle
-                            cx={hub.x}
-                            cy={hub.y}
-                            r={hub.isPrimary ? 22 : 13}
-                            stroke={currentStage.mapColor}
-                            strokeWidth={hub.isPrimary ? 2 : 1.2}
-                            fill="none"
-                            className="animate-ping opacity-75"
-                          />
-                          <circle
-                            cx={hub.x}
-                            cy={hub.y}
-                            r={hub.isPrimary ? 7 : 4}
-                            fill={currentStage.mapColor}
-                            className="animate-pulse"
-                          />
-                          <text
-                            x={hub.x}
-                            y={hub.y - (hub.isPrimary ? 13 : 9)}
-                            fill="#ffffff"
-                            stroke="#000000"
-                            strokeWidth="3.2"
-                            paintOrder="stroke"
-                            fontSize={hub.isPrimary ? '10.5' : '8'}
-                            fontWeight="900"
-                            textAnchor="middle"
-                            fontFamily="sans-serif"
-                            letterSpacing="0.04em"
-                          >
-                            {hub.name}
-                          </text>
-                        </g>
-                      ))}
-                    </g>
-                  </svg>
+                {/* The 3D Google Earth Interactive Model */}
+                <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden my-1 bg-black/40">
+                  <GoogleEarth3DCanvas
+                    activeStage={currentStage}
+                    scrollProgress={scrollProgress}
+                  />
                 </div>
 
                 {/* Bottom Highlight Summary (No borders) */}
-                <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0">
+                <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0 z-10">
                   <span className={`${currentStage.textColor} font-bold`}>High Penetration:</span>
                   <div className="flex items-center space-x-1.5 overflow-x-auto text-[9px]">
                     {currentStage.highlightedCountryNames.slice(0, 6).map((c, i) => (
