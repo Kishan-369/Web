@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppEcosystemCanvas } from '../3d/AppEcosystemCanvas';
 import { motion, AnimatePresence } from 'motion/react';
 import { soundEngine } from '../../utils/soundEngine';
+import crowdBgImage from '../../assets/images/crowd_phones_glow_1790433753662.jpg';
 
 interface AppItem {
   name: string;
@@ -101,6 +102,19 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
         isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black snap-start snap-always shrink-0'
       }`}
     >
+      {/* Background Atmosphere: Real world crowd absorbed in social media screens, smoothly blurred */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img
+          src={crowdBgImage}
+          alt="People transfixed by smartphones in daily life"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover filter blur-[4.5px] scale-105 opacity-80"
+        />
+        {/* Subtle vignette overlay so background details stay visible while text & 3D phone remain punchy */}
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/65" />
+      </div>
+
       {/* 3D Canvas: Dynamic phone zoom-out from center glass to left docked */}
       <AppEcosystemCanvas
         exploded={true}

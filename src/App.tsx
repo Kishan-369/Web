@@ -142,7 +142,7 @@ export default function App() {
         <div
           ref={(el) => (sceneRefs.current[5] = el)}
           data-scene-id="6"
-          className="h-[1000vh] w-full snap-start relative sticky-scene-container"
+          className="h-[450vh] w-full snap-start relative sticky-scene-container"
         >
           <div className="sticky top-0 h-screen w-full overflow-hidden">
             <IndiaUsageScene onScrollToNext={() => scrollToScene(7)} />

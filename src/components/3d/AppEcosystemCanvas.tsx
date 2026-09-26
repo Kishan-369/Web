@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { createAllAppScreenTextures } from './appScreenTextures';
 
 interface Props {
   exploded?: boolean;
@@ -71,6 +72,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
     // 1. Central Phone Mesh (iPhone Style)
@@ -127,18 +129,48 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
     const screenRadius = phoneRadius - 0.15;
     const screenShape = createRoundedRectShape(screenWidth, screenHeight, screenRadius);
     const screenGeo = new THREE.ShapeGeometry(screenShape);
+
+    // Normalize screenGeo UV coordinates so app UI canvas textures map accurately across phone screen (0..1)
+    const pos = screenGeo.attributes.position;
+    const uvs = screenGeo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const u = (x + screenWidth / 2) / screenWidth;
+      const v = (y + screenHeight / 2) / screenHeight;
+      uvs.setXY(i, u, v);
+    }
+    uvs.needsUpdate = true;
+
     const screenMat = new THREE.MeshBasicMaterial({
       color: 0x080808, // Dark OLED screen
       transparent: true,
       opacity: 0.95,
     });
     const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-    screenMesh.position.z = 0.16; // Just above the body
+    screenMesh.position.z = 0.202; // Mounted on front face of phone body (z = 0.20)
     phoneGroup.add(screenMesh);
+
+    // App-specific UI Screen Layers (frosted/blurred app interface visible behind the icon)
+    const appScreenTextures = createAllAppScreenTextures();
+    const uiScreenMeshes: THREE.Mesh[] = [];
+
+    for (let i = 0; i < 4; i++) {
+      const uiMat = new THREE.MeshBasicMaterial({
+        map: appScreenTextures[i],
+        transparent: true,
+        opacity: i === 0 ? 0.88 : 0.0, // Default Instagram visible so phone is never blank
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(screenGeo, uiMat);
+      mesh.position.z = 0.206; // Layered cleanly on front of screen glass
+      phoneGroup.add(mesh);
+      uiScreenMeshes.push(mesh);
+    }
     
     // Dynamic Island
     const islandGroup = new THREE.Group();
-    islandGroup.position.set(0, screenHeight / 2 - 0.35, 0.2); // Moved slightly down and more forward to prevent z-fighting
+    islandGroup.position.set(0, screenHeight / 2 - 0.35, 0.212); // Above the screen and UI layers
 
     // Main pill
     const islandBaseWidth = 1.3;
@@ -226,10 +258,10 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       const mesh = new THREE.Mesh(particleGeos, mat);
 
       // Initial position (hidden inside/behind the phone screen)
-      const initialPos = new THREE.Vector3(0, 0, 0.16);
+      const initialPos = new THREE.Vector3(0, 0, 0.22);
       
       // Target position when selected (popping out of the screen)
-      const targetPos = new THREE.Vector3(0, 0, 2.0);
+      const targetPos = new THREE.Vector3(0, 0, 1.8);
 
       mesh.position.copy(initialPos);
       phoneGroup.add(mesh); // Added to phone group so it rotates WITH the phone
@@ -343,6 +375,15 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       );
       screenMat.color.lerp(targetScreenColor, 0.08);
 
+      // Update UI screen opacity based on selected app (frosted/blurred app interface)
+      uiScreenMeshes.forEach((mesh, idx) => {
+        // If an app is selected, show that app's UI; if none selected, show Instagram UI as default so phone is never blank
+        const isTarget = selAppIndex === idx || (selAppIndex === null && idx === 0);
+        const targetOpacity = isTarget ? (selAppIndex === null ? 0.75 : 0.90) : 0.0;
+        const mat = mesh.material as THREE.MeshBasicMaterial;
+        mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, 0.12);
+      });
+
       // Update phone outline color based on selection
       const targetOutlineColor = new THREE.Color(
         selAppIndex !== null ? appOutlineColors[selAppIndex] : 0x555555
@@ -406,6 +447,8 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
+      appScreenTextures.forEach(t => t.dispose());
+      uiScreenMeshes.forEach(m => (m.material as THREE.Material).dispose());
       materials.forEach(m => m.dispose());
       textures.forEach(t => t.dispose());
       screenMat.dispose();

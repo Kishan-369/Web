@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Smartphone, ArrowDown, ChevronRight, Award } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
@@ -201,7 +201,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       const diff = target - current;
 
       if (Math.abs(diff) > 0.0001) {
-        const next = current + diff * 0.07;
+        const next = current + diff * 0.18;
         displayProgressRef.current = next;
         setScrollProgress(next);
       } else if (current !== target) {
@@ -232,7 +232,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
 
   if (manualStageIndex !== null) {
     rawActiveIndex = Math.min(3, manualStageIndex);
-    rawLocalProgress = 0.5;
+    rawLocalProgress = 0.05;
     rawInstaStep = manualInstaStep || 'map';
   } else {
     if (scrollProgress < 0.24) {
@@ -297,6 +297,51 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const currentStage = INDIA_STAGES[activeIndex];
   const StageLogo = currentStage.logo;
 
+  // Natural Scroll-Driven 3D Extrusion & Color Emergence for ALL 4 APPS:
+  // 1. Initial Blank Buffer (stageLocalProgress 0.00 to 0.18):
+  //    ALL 4 apps (WhatsApp, Facebook, YouTube, Instagram) start on an identical 100% BLANK map (ZERO color).
+  // 2. Extrusion & Emergence (0.18 to 0.52):
+  //    As the user scrolls 2-3 times, the platform color illuminates and smoothly extrudes up & out in 3D!
+  // 3. Peak Plateau (0.52 to 0.84):
+  //    Full 3D extrusion (1.0), glowing perimeter outline, and elevated metro pins.
+  // 4. Clean Recede (0.84 to 0.98):
+  //    Color recedes back into the base map so the next platform begins on a pristine blank slate.
+  let emergenceProgress = 0;
+  if (stageLocalProgress <= 0.18) {
+    emergenceProgress = 0;
+  } else if (stageLocalProgress < 0.52) {
+    emergenceProgress = (stageLocalProgress - 0.18) / 0.34;
+  } else if (stageLocalProgress <= 0.84) {
+    emergenceProgress = 1.0;
+  } else if (stageLocalProgress < 0.98 && (activeIndex < 3 || currentInstaStep === 'map')) {
+    emergenceProgress = Math.max(0, 1.0 - (stageLocalProgress - 0.84) / 0.14);
+  } else {
+    emergenceProgress = activeIndex === 3 && currentInstaStep === 'image' ? 1.0 : 0;
+  }
+
+  const extrudeFactor = emergenceProgress;
+  const colorOpacity = emergenceProgress;
+  const maxExtrudePx = 20;
+  const currentExtrudePx = maxExtrudePx * extrudeFactor;
+  // Extrude vector: upward and to the left in isometric relief projection
+  const offsetX = currentExtrudePx * 0.65;
+  const offsetY = currentExtrudePx * 0.95;
+
+  const highlightedStatesList = useMemo(() => {
+    return indiaStatesData.filter((st) => currentStage.highlightedStates.includes(st.name));
+  }, [currentStage.highlightedStates]);
+
+  const [mouseTilt, setMouseTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const handleMapMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    setMouseTilt({ x: nx * 5, y: -ny * 5 });
+  };
+  const handleMapMouseLeave = () => {
+    setMouseTilt({ x: 0, y: 0 });
+  };
+
   const handleSelectStage = (index: number) => {
     soundEngine.playClickTone();
     setManualStageIndex(index);
@@ -306,11 +351,15 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     if (stickyWrapper) {
       const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
       if (scrollableDistance > 0) {
-        const targetFraction = [0.12, 0.36, 0.59, 0.77][index];
+        // Start within the blank buffer zone of each platform stage (100% blank map!)
+        const targetFraction = [0.02, 0.25, 0.49, 0.715][index];
         targetProgressRef.current = targetFraction;
         const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
         const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
         scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+        setTimeout(() => {
+          setManualStageIndex(null);
+        }, 500);
       }
     }
   };
@@ -369,20 +418,13 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       {/* =================================================================== */}
       {/* 2. TOP HEADER & INTERACTIVE STEPPER TABS (4 PLATFORMS) */}
       {/* =================================================================== */}
-      <header className="relative z-20 max-w-6xl mx-auto w-full pt-3 sm:pt-4 px-4 text-center space-y-2">
-        <div className="flex flex-col items-center space-y-0.5">
-          <div className="inline-flex items-center space-x-2 text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-amber-400 bg-amber-950/60 px-3.5 py-0.5 rounded-full backdrop-blur-md shadow-lg">
-            <Smartphone className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>INDIA POPULATION: {INDIA_POPULATION_STR} CITIZENS • #1 GLOBAL MARKET</span>
-          </div>
-
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-sans drop-shadow-md">
-            India’s Digital Screen Reality
-          </h2>
-        </div>
+      <header className="relative z-20 max-w-6xl mx-auto w-full pt-4 sm:pt-6 px-4 text-center">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-sans drop-shadow-md">
+          India’s Digital Screen Reality
+        </h2>
 
         {/* 4 Platform Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-3xl mx-auto pt-0.5">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-3xl mx-auto mt-4 sm:mt-6">
           {INDIA_STAGES.map((stage, idx) => {
             const isActive = activeIndex === idx;
             const Logo = stage.logo;
@@ -714,8 +756,13 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                         <span>India Map • {currentStage.name} Adoption</span>
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full">
-                          Main Border Highlighted
+                        <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/70 border border-cyan-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                          <span>
+                            {emergenceProgress < 0.05
+                              ? 'Scroll to Reveal 3D Map'
+                              : `3D Extrusion (${Math.round(emergenceProgress * 100)}% Raised)`}
+                          </span>
                         </span>
                         {activeIndex === 3 && (
                           <button
@@ -729,146 +776,287 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                       </div>
                     </div>
 
-                    {/* Vector India Map with ONLY Main Border Highlighted & NO State Borders */}
-                    <div className="relative w-full flex-1 flex items-center justify-center min-h-0 p-1">
-                      <svg
-                        className="w-full h-full max-h-[395px] object-contain drop-shadow-2xl transition-transform duration-700 ease-out"
-                        viewBox="0 0 495 570"
-                        preserveAspectRatio="xMidYMid meet"
-                        fill="none"
+                    {/* Vector India Map with 3D Isometric Tilt & Scroll-Driven Extrusion Pop-Out */}
+                    <div
+                      className="relative w-full flex-1 flex items-center justify-center min-h-0 p-1 select-none"
+                      style={{ perspective: '1100px' }}
+                      onMouseMove={handleMapMouseMove}
+                      onMouseLeave={handleMapMouseLeave}
+                    >
+                      <div
+                        className="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out"
+                        style={{
+                          transform: `rotateX(${11 + extrudeFactor * 8 + mouseTilt.y}deg) rotateY(${-7 - extrudeFactor * 6 + mouseTilt.x}deg) rotateZ(1.2deg)`,
+                          transformStyle: 'preserve-3d',
+                        }}
                       >
-                        <defs>
-                          <filter id="state-blur" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="1.5" />
-                          </filter>
-                          <filter id="state-glow" x="-30%" y="-30%" width="160%" height="160%">
-                            <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={currentStage.mapColor} floodOpacity="0.95" />
-                          </filter>
-                          <filter id="india-border-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#ffffff" floodOpacity="0.85" />
-                          </filter>
-                        </defs>
+                        <svg
+                          className="w-full h-full max-h-[400px] object-contain drop-shadow-2xl transition-transform duration-100 ease-out"
+                          viewBox="-25 -25 545 615"
+                          preserveAspectRatio="xMidYMid meet"
+                          fill="none"
+                        >
+                          <defs>
+                            <filter id="state-blur" x="-20%" y="-20%" width="140%" height="140%">
+                              <feGaussianBlur stdDeviation="1.5" />
+                            </filter>
 
-                        {/* Coordinate Grid */}
-                        <g stroke="#f59e0b" strokeOpacity="0.04" strokeWidth="0.8" strokeDasharray="3 4">
-                          <line x1="125" y1="0" x2="125" y2="570" />
-                          <line x1="250" y1="0" x2="250" y2="570" />
-                          <line x1="375" y1="0" x2="375" y2="570" />
-                          <line x1="0" y1="285" x2="495" y2="285" />
-                        </g>
+                            {/* Dynamic 3D Cast Drop Shadow under Elevated Territory */}
+                            <filter id="extrude-cast-shadow" x="-60%" y="-60%" width="220%" height="220%">
+                              <feDropShadow
+                                dx={offsetX * 1.25}
+                                dy={offsetY * 1.55}
+                                stdDeviation={4 + currentExtrudePx * 0.55}
+                                floodColor="#000000"
+                                floodOpacity={0.82 + extrudeFactor * 0.16}
+                              />
+                              <feDropShadow
+                                dx={offsetX * 0.4}
+                                dy={offsetY * 0.5}
+                                stdDeviation={2}
+                                floodColor="#000000"
+                                floodOpacity={0.65}
+                              />
+                            </filter>
 
-                        {/* 1. Base dark fill of all states (NO STATE BORDERS: stroke="none") */}
-                        <g fill="#081026" stroke="none">
-                          {indiaStatesData.map((st, idx) => (
+                            {/* Pure Outer Perimeter Outline Filter (NO internal state borders) */}
+                            <filter id="top-face-perimeter-glow" x="-30%" y="-30%" width="160%" height="160%">
+                              <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="dilated" />
+                              <feComposite in="dilated" in2="SourceAlpha" operator="out" result="perimeterOnly" />
+                              <feFlood floodColor="#ffffff" floodOpacity="0.95" result="whiteFlood" />
+                              <feComposite in="whiteFlood" in2="perimeterOnly" operator="in" result="whitePerimeter" />
+                              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={currentStage.mapColor} floodOpacity="0.95" result="neonAura" />
+                              <feMerge>
+                                <feMergeNode in="neonAura" />
+                                <feMergeNode in="SourceGraphic" />
+                                <feMergeNode in="whitePerimeter" />
+                              </feMerge>
+                            </filter>
+
+                            {/* Main Outer Border Glow */}
+                            <filter id="india-border-glow" x="-20%" y="-20%" width="140%" height="140%">
+                              <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#ffffff" floodOpacity="0.85" />
+                            </filter>
+
+                            {/* Ultra-Bright Top Face Shading Gradient */}
+                            <linearGradient id={`top-gradient-${currentStage.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#ffffff" stopOpacity={0.55} />
+                              <stop offset="22%" stopColor="#ffffff" stopOpacity={0.25} />
+                              <stop offset="45%" stopColor={currentStage.mapColor} stopOpacity={1} />
+                              <stop offset="100%" stopColor={currentStage.mapColor} stopOpacity={0.96} />
+                            </linearGradient>
+                          </defs>
+
+                          {/* Coordinate Grid */}
+                          <g stroke="#f59e0b" strokeOpacity="0.04" strokeWidth="0.8" strokeDasharray="3 4">
+                            <line x1="125" y1="0" x2="125" y2="570" />
+                            <line x1="250" y1="0" x2="250" y2="570" />
+                            <line x1="375" y1="0" x2="375" y2="570" />
+                            <line x1="0" y1="285" x2="495" y2="285" />
+                          </g>
+
+                          {/* 1. Base dark fill of all states (NO STATE BORDERS) */}
+                          <g fill="#081026" stroke="none">
+                            {indiaStatesData.map((st, idx) => (
+                              <path
+                                key={`base-fill-${idx}`}
+                                d={st.d}
+                                fill="#081026"
+                                stroke="none"
+                              />
+                            ))}
+                          </g>
+
+                          {/* 2. Non-selected states (soft blur, dark tone, NO STATE BORDERS) */}
+                          <g filter="url(#state-blur)" stroke="none" opacity="0.65">
+                            {indiaStatesData
+                              .filter((st) => !currentStage.highlightedStates.includes(st.name))
+                              .map((st, idx) => (
+                                <path
+                                  key={`blurred-state-${idx}`}
+                                  d={st.d}
+                                  fill="#060d1f"
+                                  stroke="none"
+                                >
+                                  <title>{st.name}</title>
+                                </path>
+                              ))}
+                          </g>
+
+                          {/* =================================================================== */}
+                          {/* 3. 3D EXTRUDED POP-OUT HIGHLIGHTED TERRITORY (SCROLL-EMERGED)      */}
+                          {/* =================================================================== */}
+
+                          {/* A) Dynamic 3D Cast Drop Shadow directly on the base map (stroke="none") */}
+                          <g
+                            filter="url(#extrude-cast-shadow)"
+                            stroke="none"
+                            pointerEvents="none"
+                            style={{ opacity: colorOpacity }}
+                            className="transition-opacity duration-150 ease-out"
+                          >
+                            {highlightedStatesList.map((st, idx) => (
+                              <path
+                                key={`shadow-state-${idx}`}
+                                d={st.d}
+                                fill="#000000"
+                                fillOpacity={0.96}
+                                stroke="none"
+                              />
+                            ))}
+                          </g>
+
+                          {/* B) 3D Extrusion Side Wall Slices (Physical thickness & depth, NO internal state borders) */}
+                          <g
+                            style={{ opacity: colorOpacity }}
+                            pointerEvents="none"
+                            className="transition-opacity duration-150 ease-out"
+                          >
+                            {Array.from({ length: 8 }).map((_, sliceIdx) => {
+                              const t = (sliceIdx + 1) / 9; // from 0.11 to 0.89
+                              const sx = -offsetX * t;
+                              const sy = -offsetY * t;
+                              const brightness = 0.50 + t * 0.45;
+                              return (
+                                <g
+                                  key={`wall-slice-${sliceIdx}`}
+                                  transform={`translate(${sx}, ${sy})`}
+                                  style={{ filter: `brightness(${brightness})` }}
+                                  stroke="none"
+                                >
+                                  {highlightedStatesList.map((st, idx) => (
+                                    <path
+                                      key={`wall-slice-${sliceIdx}-${idx}`}
+                                      d={st.d}
+                                      fill={currentStage.mapColor}
+                                      fillOpacity={0.98}
+                                      stroke="none"
+                                    />
+                                  ))}
+                                </g>
+                              );
+                            })}
+                          </g>
+
+                          {/* C) Top Elevated 3D Face (Unified solid landmass with pure exterior outline, NO internal state borders) */}
+                          <g
+                            transform={`translate(${-offsetX}, ${-offsetY})`}
+                            filter="url(#top-face-perimeter-glow)"
+                            stroke="none"
+                            style={{ opacity: colorOpacity }}
+                            className="transition-transform duration-75 ease-out transition-opacity duration-150"
+                          >
+                            {highlightedStatesList.map((st, idx) => (
+                              <path
+                                key={`top-state-${idx}`}
+                                d={st.d}
+                                fill={`url(#top-gradient-${currentStage.id})`}
+                                fillOpacity={1.0}
+                                stroke="none"
+                                className="transition-all duration-150 ease-out cursor-pointer hover:fill-opacity-100"
+                              >
+                                <title>{st.name} (High {currentStage.name} Adoption • 3D Raised)</title>
+                              </path>
+                            ))}
+                          </g>
+
+                          {/* 4. MAIN CONTINUOUS NATIONAL OUTER BORDER (Illuminated Guide) */}
+                          <g filter="url(#india-border-glow)" strokeLinejoin="round" strokeLinecap="round" pointerEvents="none">
                             <path
-                              key={`base-fill-${idx}`}
-                              d={st.d}
-                              fill="#081026"
-                              stroke="none"
+                              d={indiaOuterBorder.d}
+                              fill="none"
+                              stroke="#ffffff"
+                              strokeWidth={2.6}
+                              strokeOpacity={0.96}
+                              className="transition-all duration-300"
                             />
-                          ))}
-                        </g>
-
-                        {/* 2. Non-selected states (soft blur, NO STATE BORDERS: stroke="none") */}
-                        <g filter="url(#state-blur)" stroke="none" opacity="0.65">
-                          {indiaStatesData
-                            .filter((st) => !currentStage.highlightedStates.includes(st.name))
-                            .map((st, idx) => (
-                              <path
-                                key={`blurred-state-${idx}`}
-                                d={st.d}
-                                fill="#060d1f"
-                                stroke="none"
-                              >
-                                <title>{st.name}</title>
-                              </path>
-                            ))}
-                        </g>
-
-                        {/* 3. Highlighted states (vibrant platform color, NO STATE BORDERS: stroke="none") */}
-                        <g filter="url(#state-glow)" stroke="none">
-                          {indiaStatesData
-                            .filter((st) => currentStage.highlightedStates.includes(st.name))
-                            .map((st, idx) => (
-                              <path
-                                key={`highlighted-state-${idx}`}
-                                d={st.d}
-                                fill={currentStage.mapColor}
-                                fillOpacity={0.94}
-                                stroke="none"
-                                className="transition-all duration-500 ease-out cursor-pointer hover:fill-opacity-100"
-                              >
-                                <title>{st.name} (High {currentStage.name} Adoption)</title>
-                              </path>
-                            ))}
-                        </g>
-
-                        {/* 4. ONLY THE MAIN INDIA BORDER IS HIGHLIGHTED (Continuous national perimeter) */}
-                        <g filter="url(#india-border-glow)" strokeLinejoin="round" strokeLinecap="round" pointerEvents="none">
+                          </g>
                           <path
                             d={indiaOuterBorder.d}
                             fill="none"
-                            stroke="#ffffff"
-                            strokeWidth={2.6}
-                            strokeOpacity={0.96}
-                            className="transition-all duration-300"
+                            stroke="#f8fafc"
+                            strokeWidth={1.5}
+                            strokeOpacity={0.9}
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                            pointerEvents="none"
                           />
-                        </g>
-                        <path
-                          d={indiaOuterBorder.d}
-                          fill="none"
-                          stroke="#f8fafc"
-                          strokeWidth={1.5}
-                          strokeOpacity={0.9}
-                          strokeLinejoin="round"
-                          strokeLinecap="round"
-                          pointerEvents="none"
-                        />
 
-                        {/* Metro Hubs with Ripple Pings */}
-                        <g className="transition-opacity duration-500" style={{ opacity: stageOpacity }}>
-                          {currentStage.metroHubs.map((hub, idx) => (
-                            <g key={`hub-${currentStage.id}-${idx}`}>
-                              <circle
-                                cx={hub.x}
-                                cy={hub.y}
-                                r={hub.isPrimary ? 20 : 13}
-                                stroke={currentStage.mapColor}
-                                strokeWidth={hub.isPrimary ? 2 : 1.2}
-                                fill="none"
-                                className="animate-ping opacity-80"
-                              />
-                              <circle
-                                cx={hub.x}
-                                cy={hub.y}
-                                r={hub.isPrimary ? 6 : 4}
-                                fill={currentStage.mapColor}
-                                className="animate-pulse"
-                              />
-                              <text
-                                x={hub.x}
-                                y={hub.y - (hub.isPrimary ? 12 : 8)}
-                                fill="#ffffff"
-                                stroke="#000000"
-                                strokeWidth="3.2"
-                                paintOrder="stroke"
-                                fontSize={hub.isPrimary ? '9.5' : '7.5'}
-                                fontWeight="900"
-                                textAnchor="middle"
-                                fontFamily="sans-serif"
-                                letterSpacing="0.04em"
-                              >
-                                {hub.name}
-                              </text>
-                            </g>
-                          ))}
-                        </g>
-                      </svg>
+                          {/* 5. Metro Hubs Floating in 3D with Vertical Laser Ground Anchors */}
+                          <g
+                            className="transition-opacity duration-300 ease-out"
+                            style={{ opacity: stageOpacity * colorOpacity }}
+                          >
+                            {currentStage.metroHubs.map((hub, idx) => {
+                              const elevatedX = hub.x - offsetX;
+                              const elevatedY = hub.y - offsetY;
+                              return (
+                                <g key={`hub-${currentStage.id}-${idx}`}>
+                                  {/* 3D Vertical Laser Anchor Line connecting elevated pin to base ground */}
+                                  <line
+                                    x1={elevatedX}
+                                    y1={elevatedY}
+                                    x2={hub.x}
+                                    y2={hub.y}
+                                    stroke={currentStage.mapColor}
+                                    strokeWidth={1.4}
+                                    strokeDasharray="2.5 2.5"
+                                    strokeOpacity={0.7}
+                                  />
+                                  {/* Ground Anchor Dot */}
+                                  <circle cx={hub.x} cy={hub.y} r={2.5} fill="#000000" fillOpacity={0.7} />
+
+                                  {/* Floating Ripple Pings on Top 3D Face */}
+                                  <circle
+                                    cx={elevatedX}
+                                    cy={elevatedY}
+                                    r={hub.isPrimary ? 20 : 13}
+                                    stroke={currentStage.mapColor}
+                                    strokeWidth={hub.isPrimary ? 2 : 1.2}
+                                    fill="none"
+                                    className="animate-ping opacity-80"
+                                  />
+                                  <circle
+                                    cx={elevatedX}
+                                    cy={elevatedY}
+                                    r={hub.isPrimary ? 6.5 : 4.5}
+                                    fill={currentStage.mapColor}
+                                    stroke="#ffffff"
+                                    strokeWidth={1.2}
+                                    className="animate-pulse"
+                                  />
+                                  <text
+                                    x={elevatedX}
+                                    y={elevatedY - (hub.isPrimary ? 13 : 9)}
+                                    fill="#ffffff"
+                                    stroke="#000000"
+                                    strokeWidth="3.2"
+                                    paintOrder="stroke"
+                                    fontSize={hub.isPrimary ? '9.5' : '7.5'}
+                                    fontWeight="900"
+                                    textAnchor="middle"
+                                    fontFamily="sans-serif"
+                                    letterSpacing="0.04em"
+                                  >
+                                    {hub.name}
+                                  </text>
+                                </g>
+                              );
+                            })}
+                          </g>
+                        </svg>
+                      </div>
                     </div>
 
                     {/* Bottom Highlight Summary */}
                     <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0">
-                      <span className={`${currentStage.textColor} font-bold`}>High Adoption States:</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`${currentStage.textColor} font-bold`}>High Adoption States:</span>
+                        <span className="text-cyan-400 bg-cyan-950/50 border border-cyan-500/20 px-2 py-0.5 rounded-full text-[9px] hidden sm:inline-flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-cyan-400 animate-ping" />
+                          <span>{emergenceProgress < 0.05 ? 'Blank Base Map • Scroll to Extrude' : `3D Pop-Out: ${Math.round(emergenceProgress * 100)}%`}</span>
+                        </span>
+                      </div>
                       <div className="flex items-center space-x-1.5 overflow-x-auto text-[9px]">
                         {currentStage.highlightedStates.slice(0, 5).map((st, i) => (
                           <span key={i} className="bg-neutral-900/90 px-2 py-0.5 rounded-full text-white whitespace-nowrap">
@@ -885,47 +1073,6 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {/* =================================================================== */}
-      {/* 4. FOOTER STATUS BAR (4 PLATFORMS & INSTAGRAM PROGRESSION) */}
-      {/* =================================================================== */}
-      <footer className="relative z-20 max-w-6xl mx-auto w-full pb-3 px-4 flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-2 border-0">
-        <div className="flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span>
-            {activeIndex === 3
-              ? currentInstaStep === 'map'
-                ? 'STAGE 4 OF 4 • INSTAGRAM INDIA DISTRIBUTION (STEP 1 OF 2)'
-                : 'STAGE 4 OF 4 • INSTAGRAM SCREEN REALITY (STEP 2 OF 2)'
-              : `STAGE ${activeIndex + 1} OF 4 • ${currentStage.name.toUpperCase()} INDIA FOOTPRINT`}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <span className="hidden sm:inline text-neutral-400">
-            {activeIndex === 3 && currentInstaStep === 'map'
-              ? 'Scroll down to replace map with reality image'
-              : 'Scroll drives platform progression'}
-          </span>
-          <div className="flex items-center space-x-1">
-            {[0, 1, 2, 3].map((i) => {
-              const isCurrent = activeIndex === i;
-              return (
-                <span
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    isCurrent
-                      ? i === 3 && currentInstaStep === 'image'
-                        ? 'w-7 bg-gradient-to-r from-pink-500 to-amber-400 animate-pulse'
-                        : 'w-6 bg-pink-400'
-                      : 'w-2 bg-neutral-700'
-                  }`}
-                />
-              );
-            })}
-          </div>
-        </div>
-      </footer>
     </section>
   );
 };

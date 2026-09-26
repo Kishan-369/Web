@@ -229,34 +229,34 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         }
 
         // Instagram notification ping on scroll
-        if (next >= 0.86 && !hasInstagramSoundPlayedRef.current) {
+        if (next >= 0.83 && !hasInstagramSoundPlayedRef.current) {
           hasInstagramSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.84) {
+        } else if (next < 0.81) {
           hasInstagramSoundPlayedRef.current = false;
         }
 
         // YouTube notification ping on scroll
-        if (next >= 0.90 && !hasYouTubeSoundPlayedRef.current) {
+        if (next >= 0.87 && !hasYouTubeSoundPlayedRef.current) {
           hasYouTubeSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.88) {
+        } else if (next < 0.85) {
           hasYouTubeSoundPlayedRef.current = false;
         }
 
         // Facebook notification ping on scroll
-        if (next >= 0.94 && !hasFacebookSoundPlayedRef.current) {
+        if (next >= 0.91 && !hasFacebookSoundPlayedRef.current) {
           hasFacebookSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.92) {
+        } else if (next < 0.89) {
           hasFacebookSoundPlayedRef.current = false;
         }
 
         // WhatsApp notification ping on scroll
-        if (next >= 0.97 && !hasWhatsAppSoundPlayedRef.current) {
+        if (next >= 0.95 && !hasWhatsAppSoundPlayedRef.current) {
           hasWhatsAppSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.95) {
+        } else if (next < 0.93) {
           hasWhatsAppSoundPlayedRef.current = false;
         }
       } else if (Math.abs(diff) <= 0.0002 && current !== target) {
@@ -643,16 +643,14 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       newsOpacity = 0;
 
       // Apps appear one by one as the user scrolls down!
-      if (displayProgress >= 0.96) {
+      if (displayProgress >= 0.95) {
         activeAppIndex = 3; // WhatsApp
-      } else if (displayProgress >= 0.93) {
+      } else if (displayProgress >= 0.91) {
         activeAppIndex = 2; // Facebook
-      } else if (displayProgress >= 0.90) {
+      } else if (displayProgress >= 0.87) {
         activeAppIndex = 1; // YouTube
-      } else if (displayProgress >= 0.86) {
-        activeAppIndex = 0; // Instagram
       } else {
-        activeAppIndex = null; // Clean settled phone with title
+        activeAppIndex = 0; // Instagram is immediately active when phone settles!
       }
     }
   }
