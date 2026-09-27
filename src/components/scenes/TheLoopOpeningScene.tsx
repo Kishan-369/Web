@@ -5,12 +5,16 @@ import { soundEngine } from '../../utils/soundEngine';
 import { MENTIMETER_CONFIG } from './QuizTimeScene';
 import { Carousel3DScene } from './Carousel3DScene';
 import { AppEcosystemScene } from './AppEcosystemScene';
+import { WorldUsageScene, WhatsAppLogo } from './WorldUsageScene';
 
 interface Props {
   onScrollToNext: () => void;
   onScrollToQuiz?: () => void;
   onScrollToNews?: () => void;
   onScrollToPhone?: () => void;
+  onScrollToWorld?: () => void;
+  onLaunchWhatsAppToWorld?: () => void;
+  isWhatsAppFlying?: boolean;
 }
 
 export const TheLoopOpeningScene: React.FC<Props> = ({
@@ -18,6 +22,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   onScrollToQuiz,
   onScrollToNews,
   onScrollToPhone,
+  onScrollToWorld,
+  onLaunchWhatsAppToWorld,
+  isWhatsAppFlying = false,
 }) => {
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [isHovered, setIsHovered] = useState(false);
@@ -64,6 +71,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   const hasYouTubeSoundPlayedRef = useRef(false);
   const hasFacebookSoundPlayedRef = useRef(false);
   const hasWhatsAppSoundPlayedRef = useRef(false);
+  const hasWhooshSoundPlayedRef = useRef(false);
+  const hasWhatsAppDockedSoundPlayedRef = useRef(false);
+  const hasAutoNextTriggeredRef = useRef(false);
 
   // Measure untransformed docking positions
   const updateMeasurements = useCallback(() => {
@@ -149,115 +159,141 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         setDisplayProgress(next);
 
         // Audio cue on letter docking
-        if (next >= 0.28 && !hasDockedSoundPlayedRef.current) {
+        if (next >= 0.19 && !hasDockedSoundPlayedRef.current) {
           hasDockedSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.20) {
+        } else if (next < 0.14) {
           hasDockedSoundPlayedRef.current = false;
         }
 
         // Cyber Glitch audio cue on entering the glitch transition phase
-        if (next >= 0.36 && !hasGlitchSoundPlayedRef.current) {
+        if (next >= 0.25 && !hasGlitchSoundPlayedRef.current) {
           hasGlitchSoundPlayedRef.current = true;
           soundEngine.playGlitchSound();
-        } else if (next < 0.30) {
+        } else if (next < 0.21) {
           hasGlitchSoundPlayedRef.current = false;
         }
 
         // Bounce Transition audio cue as QR screen launches towards bottom-right
-        if (next >= 0.49 && !hasBounceSoundPlayedRef.current) {
+        if (next >= 0.33 && !hasBounceSoundPlayedRef.current) {
           hasBounceSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.45) {
+        } else if (next < 0.30) {
           hasBounceSoundPlayedRef.current = false;
         }
 
         // First News bounce landing impact audio cue as it settles at center
-        if (next >= 0.56 && !hasNewsLandedSoundPlayedRef.current) {
+        if (next >= 0.38 && !hasNewsLandedSoundPlayedRef.current) {
           hasNewsLandedSoundPlayedRef.current = true;
           soundEngine.playSubBassImpact();
-        } else if (next < 0.51) {
+        } else if (next < 0.35) {
           hasNewsLandedSoundPlayedRef.current = false;
         }
 
         // Newspaper page 1 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.65 && !hasPage1TurnSoundPlayedRef.current) {
+        if (next >= 0.44 && !hasPage1TurnSoundPlayedRef.current) {
           hasPage1TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.62) {
+        } else if (next < 0.42) {
           hasPage1TurnSoundPlayedRef.current = false;
         }
 
         // Newspaper page 2 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.69 && !hasPage2TurnSoundPlayedRef.current) {
+        if (next >= 0.47 && !hasPage2TurnSoundPlayedRef.current) {
           hasPage2TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.66) {
+        } else if (next < 0.45) {
           hasPage2TurnSoundPlayedRef.current = false;
         }
 
         // Newspaper page 3 turn rustle sound (Middle-fold page turn)
-        if (next >= 0.72 && !hasPage3TurnSoundPlayedRef.current) {
+        if (next >= 0.50 && !hasPage3TurnSoundPlayedRef.current) {
           hasPage3TurnSoundPlayedRef.current = true;
           soundEngine.playPaperTurnSound();
-        } else if (next < 0.70) {
+        } else if (next < 0.48) {
           hasPage3TurnSoundPlayedRef.current = false;
         }
 
         // Official government rubber stamp impact sound (Slam down across ALL 3 images)
-        if (next >= 0.75 && !hasFakeNewsStampSoundPlayedRef.current) {
+        if (next >= 0.52 && !hasFakeNewsStampSoundPlayedRef.current) {
           hasFakeNewsStampSoundPlayedRef.current = true;
           soundEngine.playRubberStampSound();
-        } else if (next < 0.73) {
+        } else if (next < 0.505) {
           hasFakeNewsStampSoundPlayedRef.current = false;
         }
 
         // Cinematic Zoom-out vacuum suck sound (Fake news shrinks into mobile phone)
-        if (next >= 0.76 && !hasZoomOutSoundPlayedRef.current) {
+        if (next >= 0.535 && !hasZoomOutSoundPlayedRef.current) {
           hasZoomOutSoundPlayedRef.current = true;
           soundEngine.playZoomOutSuckSound();
-        } else if (next < 0.74) {
+        } else if (next < 0.52) {
           hasZoomOutSoundPlayedRef.current = false;
         }
 
         // Phone settled impact tone
-        if (next >= 0.83 && !hasPhoneSettledSoundPlayedRef.current) {
+        if (next >= 0.58 && !hasPhoneSettledSoundPlayedRef.current) {
           hasPhoneSettledSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.81) {
+        } else if (next < 0.56) {
           hasPhoneSettledSoundPlayedRef.current = false;
         }
 
         // Instagram notification ping on scroll
-        if (next >= 0.83 && !hasInstagramSoundPlayedRef.current) {
+        if (next >= 0.61 && !hasInstagramSoundPlayedRef.current) {
           hasInstagramSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.81) {
+        } else if (next < 0.59) {
           hasInstagramSoundPlayedRef.current = false;
         }
 
         // YouTube notification ping on scroll
-        if (next >= 0.87 && !hasYouTubeSoundPlayedRef.current) {
+        if (next >= 0.63 && !hasYouTubeSoundPlayedRef.current) {
           hasYouTubeSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.85) {
+        } else if (next < 0.615) {
           hasYouTubeSoundPlayedRef.current = false;
         }
 
         // Facebook notification ping on scroll
-        if (next >= 0.91 && !hasFacebookSoundPlayedRef.current) {
+        if (next >= 0.65 && !hasFacebookSoundPlayedRef.current) {
           hasFacebookSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.89) {
+        } else if (next < 0.635) {
           hasFacebookSoundPlayedRef.current = false;
         }
 
         // WhatsApp notification ping on scroll
-        if (next >= 0.95 && !hasWhatsAppSoundPlayedRef.current) {
+        if (next >= 0.68 && !hasWhatsAppSoundPlayedRef.current) {
           hasWhatsAppSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.93) {
+        } else if (next < 0.665) {
           hasWhatsAppSoundPlayedRef.current = false;
+        }
+
+        // WhatsApp launch whoosh sound as it lifts towards next scene
+        if (next >= 0.705 && !hasWhooshSoundPlayedRef.current) {
+          hasWhooshSoundPlayedRef.current = true;
+          soundEngine.playWhooshSound();
+        } else if (next < 0.695) {
+          hasWhooshSoundPlayedRef.current = false;
+        }
+
+        // WhatsApp dock into Scene 5 impact tone & emerald ripple cue
+        if (next >= 0.735 && !hasWhatsAppDockedSoundPlayedRef.current) {
+          hasWhatsAppDockedSoundPlayedRef.current = true;
+          soundEngine.playClickTone();
+        } else if (next < 0.71) {
+          hasWhatsAppDockedSoundPlayedRef.current = false;
+        }
+
+        // Trigger next scene (India Reality, Scene 6) when reaching completion of World Reality
+        if (next >= 0.996 && !hasAutoNextTriggeredRef.current) {
+          hasAutoNextTriggeredRef.current = true;
+          if (onScrollToNext) {
+            onScrollToNext();
+          }
+        } else if (next < 0.985) {
+          hasAutoNextTriggeredRef.current = false;
         }
       } else if (Math.abs(diff) <= 0.0002 && current !== target) {
         displayProgressRef.current = target;
@@ -286,21 +322,27 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (showLargeQr) return;
-    if (displayProgress < 0.43) {
+    if (displayProgress < 0.29) {
       if (onScrollToQuiz) {
         onScrollToQuiz();
       } else {
         onScrollToNext();
       }
-    } else if (displayProgress < 0.58) {
+    } else if (displayProgress < 0.42) {
       if (onScrollToNews) {
         onScrollToNews();
       } else {
         onScrollToNext();
       }
-    } else if (displayProgress < 0.83) {
+    } else if (displayProgress < 0.58) {
       if (onScrollToPhone) {
         onScrollToPhone();
+      } else {
+        onScrollToNext();
+      }
+    } else if (displayProgress < 0.74) {
+      if (onScrollToWorld) {
+        onScrollToWorld();
       } else {
         onScrollToNext();
       }
@@ -387,6 +429,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   let newsReadingProgress = 0;
   let phoneZoomProgress = 0;
   let activeAppIndex: number | null = null;
+  let whatsappLaunchProgress = 0;
 
   if (displayProgress <= 0.02) {
     // 1. Initial State: Only ∞ loop visible, L and P disappeared
@@ -399,9 +442,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     transY_The = -14;
     loopOpacity = 1;
     quizOpacity = 0;
-  } else if (displayProgress < 0.22) {
+  } else if (displayProgress < 0.15) {
     // 2. Grand Screen-Wide Infinity Orbit Phase
-    const orbitProgress = (displayProgress - 0.02) / 0.20; // 0 to 1
+    const orbitProgress = (displayProgress - 0.02) / 0.13; // 0 to 1
     const alpha = Math.min(1, orbitProgress * 3.5);
     opacity_L = alpha;
     opacity_P = alpha;
@@ -445,9 +488,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         { x: ampX * Math.sin(trail2_P), y: ampY * Math.sin(2 * trail2_P), opacity: alpha * 0.3, size: 3.5 }
       );
     }
-  } else if (displayProgress < 0.30) {
+  } else if (displayProgress < 0.20) {
     // 3. Smooth Docking Transition into LOOP & Reveal of "THE" above
-    const dockRaw = (displayProgress - 0.22) / 0.08;
+    const dockRaw = (displayProgress - 0.15) / 0.05;
     const dockEase = dockRaw * dockRaw * (3 - 2 * dockRaw);
 
     opacity_L = 1;
@@ -469,8 +512,8 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     tilt_P = (1 - dockEase) * 8;
 
     // As letters finish docking to form LOOP, "THE" appears smoothly above LOOP
-    if (displayProgress >= 0.24) {
-      const theRaw = (displayProgress - 0.24) / 0.06;
+    if (displayProgress >= 0.16) {
+      const theRaw = (displayProgress - 0.16) / 0.04;
       const theEase = theRaw * theRaw * (3 - 2 * theRaw);
       opacity_The = theEase;
       scale_The = 0.85 + theEase * 0.15;
@@ -480,7 +523,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       scale_The = 0.85;
       transY_The = -14;
     }
-  } else if (displayProgress < 0.35) {
+  } else if (displayProgress < 0.24) {
     // 4. Fully Docked "LOOP" with "THE" above
     opacity_L = 1;
     opacity_P = 1;
@@ -498,12 +541,12 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     isDocked = true;
     loopOpacity = 1;
     quizOpacity = 0;
-  } else if (displayProgress < 0.43) {
+  } else if (displayProgress < 0.29) {
     // 5. THE APPLE-GRADE GLITCH TRANSITION:
     // LOOP & THE dissolve with chromatic digital glitch, while Quiz materializes gracefully!
     isDocked = true;
-    const transPhase = Math.max(0, Math.min(1, (displayProgress - 0.35) / 0.08));
-    const smoothEase = transPhase * transPhase * (3 - 2 * transPhase); // hermite smooth cubic
+    const transPhase = Math.max(0, Math.min(1, (displayProgress - 0.24) / 0.05));
+    const smoothEase = transPhase * transPhase * (3 - 2 * transPhase);
 
     loopGlitchIntensity = Math.sin(transPhase * Math.PI);
     quizGlitchIntensity = Math.sin(transPhase * Math.PI);
@@ -524,7 +567,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     quizOpacity = smoothEase;
     quizScale = 0.88 + smoothEase * 0.12;
     quizJitterX = quizGlitchIntensity > 0.04 ? Math.sin(displayProgress * 100) * 6 * quizGlitchIntensity : 0;
-  } else if (displayProgress < 0.49) {
+  } else if (displayProgress < 0.33) {
     // 6. STABLE ZONE 1: LIVE QUIZ STAGE (Balanced resting zone for QR code)
     isDocked = true;
     loopOpacity = 0;
@@ -539,10 +582,8 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     quizExitY = 0;
     quizExitRotate = 0;
     quizExitScale = 1;
-  } else if (displayProgress < 0.56) {
+  } else if (displayProgress < 0.38) {
     // 7. SMOOTH BOUNCE TRANSITION (2-3 SCROLLS FROM QR TO NEWS):
-    // QR code screen exits with bounce towards bottom-right corner!
-    // First news appears with bounce from left-upper corner!
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -551,7 +592,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     quizScale = 1;
     quizGlitchIntensity = 0;
 
-    const bT = Math.max(0, Math.min(1, (displayProgress - 0.49) / 0.07));
+    const bT = Math.max(0, Math.min(1, (displayProgress - 0.33) / 0.05));
 
     // A) QR Screen Elastic Bounce Exit to Bottom-Right Corner
     const elasticExitFactor = Math.pow(bT, 1.45);
@@ -585,9 +626,8 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsScale = 0.65 + effectiveT * 0.35;
     newsOpacity = Math.min(1, bT * 2.4);
     newsReadingProgress = 0;
-  } else if (displayProgress < 0.62) {
+  } else if (displayProgress < 0.42) {
     // 8. STABLE ZONE 2: FIRST NEWS IS 100% STABLE & RESTED!
-    // (Rock-solid resting zone! Zero movement, flat Image 1)
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -603,8 +643,25 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsReadingProgress = 0.0;
     phoneZoomProgress = 0.0;
     activeAppIndex = null;
-  } else {
-    // 9. 3D NEWSPAPER READING, FAKE NEWS, GRAND PHONE ZOOM-OUT & SCROLL-DRIVEN APPS
+  } else if (displayProgress < 0.52) {
+    // 9. 3D NEWSPAPER READING, PAGE TURNS & FAKE NEWS RUBBER STAMP
+    isDocked = true;
+    loopOpacity = 0;
+    opacity_L = 0;
+    opacity_P = 0;
+    quizOpacity = 0;
+    quizExitOpacity = 0;
+
+    newsX = 0;
+    newsY = 0;
+    newsRotate = 0;
+    newsScale = 1;
+    newsOpacity = 1;
+    newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.42) / 0.10));
+    phoneZoomProgress = 0;
+    activeAppIndex = null;
+  } else if (displayProgress < 0.58) {
+    // 10. FAKE NEWS VACUUM SHRINK INTO CENTER & PHONE ZOOM OUT
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -617,42 +674,93 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsRotate = 0;
     newsScale = 1;
 
-    // Smoothly map displayProgress:
-    // 0.62 -> 0.76: Newspaper page folds, 3-image spread, and FAKE NEWS stamp slam
-    // 0.76 -> 0.83: Fake news vacuum shrinks into center & Phone zooms out from 12x to settled scale
-    // 0.83 -> 0.86: Phone settled clean resting state
-    // 0.86 -> 0.90: App 1: Instagram
-    // 0.90 -> 0.93: App 2: YouTube
-    // 0.93 -> 0.96: App 3: Facebook
-    // 0.96 -> 1.00: App 4: WhatsApp
-    if (displayProgress < 0.76) {
-      newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.62) / 0.14));
-      phoneZoomProgress = 0;
-      newsOpacity = 1;
-      activeAppIndex = null;
-    } else if (displayProgress < 0.83) {
-      phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.76) / 0.07));
-      // Drive fake news vacuum shrink towards 1.0
-      newsReadingProgress = 0.91 + phoneZoomProgress * 0.09;
-      // Fade out the news layer as phone settles
-      newsOpacity = displayProgress > 0.81 ? Math.max(0, 1 - (displayProgress - 0.81) / 0.02) : 1;
-      activeAppIndex = null;
-    } else {
-      phoneZoomProgress = 1.0;
-      newsReadingProgress = 1.0;
-      newsOpacity = 0;
+    phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.52) / 0.06));
+    newsReadingProgress = 0.91 + phoneZoomProgress * 0.09;
+    newsOpacity = displayProgress > 0.56 ? Math.max(0, 1 - (displayProgress - 0.56) / 0.02) : 1;
+    activeAppIndex = null;
+  } else {
+    // 11. PHONE SETTLED, APP ECOSYSTEM, & WHATSAPP LAUNCH TRANSITION
+    isDocked = true;
+    loopOpacity = 0;
+    opacity_L = 0;
+    opacity_P = 0;
+    quizOpacity = 0;
+    quizExitOpacity = 0;
 
-      // Apps appear one by one as the user scrolls down!
-      if (displayProgress >= 0.95) {
-        activeAppIndex = 3; // WhatsApp
-      } else if (displayProgress >= 0.91) {
-        activeAppIndex = 2; // Facebook
-      } else if (displayProgress >= 0.87) {
-        activeAppIndex = 1; // YouTube
-      } else {
-        activeAppIndex = 0; // Instagram is immediately active when phone settles!
+    newsX = 0;
+    newsY = 0;
+    newsRotate = 0;
+    newsScale = 1;
+    phoneZoomProgress = 1.0;
+    newsReadingProgress = 1.0;
+    newsOpacity = 0;
+
+    // Apps appear one by one as the user scrolls down!
+    if (displayProgress >= 0.67) {
+      activeAppIndex = 3; // WhatsApp
+    } else if (displayProgress >= 0.64) {
+      activeAppIndex = 2; // Facebook
+    } else if (displayProgress >= 0.61) {
+      activeAppIndex = 1; // YouTube
+    } else if (displayProgress >= 0.59) {
+      activeAppIndex = 0; // Instagram appears on scroll!
+    } else {
+      activeAppIndex = null; // Clean blank phone with title!
+    }
+
+    // WhatsApp Launch Transition Progress (0.0 -> 1.0) on scroll
+    if (displayProgress >= 0.70) {
+      whatsappLaunchProgress = Math.min(1, Math.max(0, (displayProgress - 0.70) / 0.04));
+    } else {
+      whatsappLaunchProgress = 0;
+    }
+  }
+
+  // Layer 5 (World Usage Scene) & WhatsApp Docking Calculation
+  let scene5Opacity = 0;
+  let scene5ScrollProgress = 0;
+  const hasJustDocked = whatsappLaunchProgress >= 0.88;
+
+  if (displayProgress >= 0.70) {
+    scene5Opacity = Math.min(1, Math.max(0, (displayProgress - 0.705) / 0.032));
+    if (displayProgress >= 0.74) {
+      scene5ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.74) / 0.26));
+    }
+  }
+
+  // Flying WhatsApp Icon directly driven by scroll progress
+  const isFlying = displayProgress >= 0.70 && displayProgress < 0.74;
+  let flyX = 0;
+  let flyY = 0;
+  let flySize = 56;
+
+  if (isFlying) {
+    const isMobile = viewport.w < 768;
+    const t = Math.min(1, Math.max(0, (displayProgress - 0.70) / 0.04));
+    // Smooth ease-in-out
+    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+    const startX = isMobile ? viewport.w * 0.50 : viewport.w * 0.28;
+    const startY = isMobile ? viewport.h * 0.46 : viewport.h * 0.48;
+    const startSize = isMobile ? 48 : 56;
+
+    let endX = isMobile ? viewport.w * 0.20 : Math.max(viewport.w * 0.165, (viewport.w - 1152) / 2 + 56);
+    let endY = isMobile ? viewport.h * 0.28 : viewport.h * 0.32;
+    let endSize = isMobile ? 32 : 36;
+
+    const targetLogo = document.getElementById('world-usage-left-whatsapp-logo');
+    if (targetLogo) {
+      const rect = targetLogo.getBoundingClientRect();
+      if (rect.width > 0 && rect.top >= 0 && rect.top <= viewport.h) {
+        endX = rect.left + rect.width / 2;
+        endY = rect.top + rect.height / 2;
+        endSize = rect.width;
       }
     }
+
+    flyX = startX + (endX - startX) * ease;
+    flyY = startY + (endY - startY) * ease;
+    flySize = startSize + (endSize - startSize) * ease;
   }
 
   // Chromatic text shadow strings for glitch effects
@@ -1038,10 +1146,10 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       {/* then smoothly zooming out as Fake News shrinks into the phone glass */}
       {/* and presenting each app icon one-by-one as the user scrolls */}
       {/* =================================================================== */}
-      {displayProgress >= 0.75 && (
+      {displayProgress >= 0.52 && displayProgress < 0.75 && (
         <div
           style={{
-            opacity: Math.min(1, (displayProgress - 0.75) / 0.02),
+            opacity: Math.min(1, (displayProgress - 0.52) / 0.02),
             pointerEvents: 'none',
           }}
           className="absolute inset-0 z-20 overflow-hidden will-change-transform"
@@ -1050,8 +1158,57 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             isEmbedded={true}
             phoneZoomProgress={phoneZoomProgress}
             activeAppIndex={activeAppIndex}
+            whatsappLaunchProgress={whatsappLaunchProgress}
             onNextScene={onScrollToNext}
+            onLaunchWhatsAppToWorldScene={onLaunchWhatsAppToWorld}
+            isWhatsAppFlying={isFlying}
           />
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* LAYER 5: WORLD USAGE SCENE (SCENE 5 - NO EXTRA SLIDE) */}
+      {/* Smoothly fades in on scroll as WhatsApp launches & docks */}
+      {/* =================================================================== */}
+      {displayProgress >= 0.70 && (
+        <div
+          style={{
+            opacity: scene5Opacity,
+            pointerEvents: scene5Opacity > 0.85 ? 'auto' : 'none',
+          }}
+          className="absolute inset-0 z-40 overflow-hidden will-change-transform"
+        >
+          <WorldUsageScene
+            isEmbedded={true}
+            externalScrollProgress={scene5ScrollProgress}
+            hasJustDocked={hasJustDocked}
+            onScrollToNext={onScrollToNext}
+          />
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* FLYING WHATSAPP ICON (Smoothly driven directly by user scroll) */}
+      {/* Seamlessly bridges phone WhatsApp on left to Scene 5 WhatsApp Logo */}
+      {/* =================================================================== */}
+      {isFlying && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${flyX}px`,
+            top: `${flyY}px`,
+            width: `${flySize}px`,
+            height: `${flySize}px`,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 60,
+            pointerEvents: 'none',
+          }}
+          className="will-change-transform"
+        >
+          <div className="relative w-full h-full flex items-center justify-center">
+            <WhatsAppLogo className="w-full h-full drop-shadow-[0_0_30px_rgba(37,211,102,0.95)]" />
+            <div className="absolute inset-0 rounded-full bg-emerald-400/40 blur-md animate-pulse" />
+          </div>
         </div>
       )}
 

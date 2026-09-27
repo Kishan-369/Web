@@ -267,6 +267,41 @@ class SoundEngine {
     this.triggerHaptic([20, 60]);
   }
 
+  // Cinematic whoosh transition sweep
+  public playWhooshSound() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.7);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, now);
+    filter.frequency.exponentialRampToValueAtTime(2400, now + 0.35);
+    filter.frequency.exponentialRampToValueAtTime(200, now + 0.7);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(this.volume * 0.45, now + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.75);
+
+    this.triggerHaptic([30, 80]);
+  }
+
   // Dopamine Slot Machine Chime
   public playDopamineTrigger() {
     if (this.isMuted) return;

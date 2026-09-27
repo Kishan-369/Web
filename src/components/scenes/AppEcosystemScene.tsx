@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppEcosystemCanvas } from '../3d/AppEcosystemCanvas';
 import { motion, AnimatePresence } from 'motion/react';
-import { soundEngine } from '../../utils/soundEngine';
 import crowdBgImage from '../../assets/images/crowd_phones_glow_1790433753662.jpg';
 
 interface AppItem {
@@ -17,14 +16,20 @@ interface AppEcosystemSceneProps {
   isEmbedded?: boolean;
   phoneZoomProgress?: number; // 0.0 = super zoomed in (12x, no outline), 1.0 = normal settled size
   activeAppIndex?: number | null; // null = no app, 0 = Instagram, 1 = YouTube, 2 = Facebook, 3 = WhatsApp
+  whatsappLaunchProgress?: number;
   onNextScene?: () => void;
+  onLaunchWhatsAppToWorldScene?: () => void;
+  isWhatsAppFlying?: boolean;
 }
 
 export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
   isEmbedded = false,
   phoneZoomProgress,
   activeAppIndex,
+  whatsappLaunchProgress = 0,
   onNextScene,
+  onLaunchWhatsAppToWorldScene,
+  isWhatsAppFlying = false,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -37,17 +42,24 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Effective progress from scroll or active flight
+  const effectiveProgress = isWhatsAppFlying
+    ? 1.0
+    : Math.max(0, Math.min(1, whatsappLaunchProgress));
+
   // Dynamic phone zoom-out calculation from scroll progress
   const zoomP = phoneZoomProgress !== undefined ? Math.max(0, Math.min(1, phoneZoomProgress)) : 1.0;
-  // Smooth cubic ease out
   const easeZoom = 1 - Math.pow(1 - zoomP, 3);
 
-  // Settled target dimensions: perfectly proportioned phone with clean breathing room
+  // Settled target dimensions: phone docked on the left
   const settledScale = isMobile ? 0.95 : 1.12;
   const settledOffsetX = isMobile ? 0 : -1.6;
   const settledOffsetY = isMobile ? -0.8 : -1.15;
 
-  // Starting at 12.0x (huge screen glass only, 0 outline) and zooming out to settled dimensions
+  // Phone visibility: fades out smoothly as the WhatsApp launch transition begins on scroll
+  const phoneFade = isWhatsAppFlying ? 0 : Math.max(0, 1 - effectiveProgress * 2.5);
+  const isPhoneVisible = phoneFade > 0.02 && !isWhatsAppFlying;
+
   const currentZoomScale = phoneZoomProgress !== undefined ? 12.0 - easeZoom * (12.0 - settledScale) : settledScale;
   const currentOffsetX = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetX : settledOffsetX;
   const currentOffsetY = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetY : settledOffsetY;
@@ -90,11 +102,19 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
     },
   ];
 
-  // Pure scroll-driven app selection (removes click requirement)
   const currentApp =
     activeAppIndex !== undefined && activeAppIndex !== null && activeAppIndex >= 0 && activeAppIndex < apps.length
       ? apps[activeAppIndex]
       : null;
+
+  // Handle launch transition directly into the next scene (Scene 5) without any intermediate duplicate slide
+  const handleTriggerTransition = () => {
+    if (onLaunchWhatsAppToWorldScene) {
+      onLaunchWhatsAppToWorldScene();
+    } else if (onNextScene) {
+      onNextScene();
+    }
+  };
 
   return (
     <section
@@ -102,34 +122,45 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
         isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black snap-start snap-always shrink-0'
       }`}
     >
-      {/* Background Atmosphere: Real world crowd absorbed in social media screens, smoothly blurred */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      {/* =================================================================== */}
+      {/* 1. INITIAL PHONE STAGE BACKGROUND ATMOSPHERE */}
+      {/* =================================================================== */}
+      <div
+        style={{ opacity: 0.8 * phoneFade }}
+        className="absolute inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-200"
+      >
         <img
           src={crowdBgImage}
           alt="People transfixed by smartphones in daily life"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover filter blur-[4.5px] scale-105 opacity-80"
         />
-        {/* Subtle vignette overlay so background details stay visible while text & 3D phone remain punchy */}
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/65" />
       </div>
 
-      {/* 3D Canvas: Dynamic phone zoom-out from center glass to left docked */}
-      <AppEcosystemCanvas
-        exploded={true}
-        phoneVisible={true}
-        zoomScale={currentZoomScale}
-        offsetX={currentOffsetX}
-        offsetY={currentOffsetY}
-        outlineOpacity={currentOutlineOpacity}
-        selectedAppIndex={currentApp ? currentApp.iconIndex : null}
-      />
+      {/* =================================================================== */}
+      {/* 2. 3D PHONE CANVAS (DISAPPEARS COMPLETELY WHEN TRANSITION STARTS) */}
+      {/* =================================================================== */}
+      <div style={{ opacity: phoneFade }} className="absolute inset-0 z-10 transition-opacity duration-200">
+        <AppEcosystemCanvas
+          exploded={true}
+          phoneVisible={isPhoneVisible}
+          zoomScale={currentZoomScale}
+          offsetX={currentOffsetX}
+          offsetY={currentOffsetY}
+          outlineOpacity={currentOutlineOpacity}
+          selectedAppIndex={currentApp ? currentApp.iconIndex : null}
+          whatsappLaunchProgress={effectiveProgress}
+        />
+      </div>
 
-      {/* Header - Visible at top, slides and fades in smoothly as phone zooms out */}
+      {/* =================================================================== */}
+      {/* 3. INITIAL PHONE HEADER (FADES OUT WITH PHONE) */}
+      {/* =================================================================== */}
       <div
         style={{
-          opacity: headerOpacity,
+          opacity: headerOpacity * phoneFade,
           transform: `translateY(${headerTranslateY}px)`,
         }}
         className="relative z-20 max-w-4xl mx-auto text-center pt-2 sm:pt-4 pointer-events-none transition-all duration-150"
@@ -139,9 +170,14 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
         </h2>
       </div>
 
-      {/* Right Side App Name Only - Positioned comfortably to the right without overlapping phone */}
+      {/* =================================================================== */}
+      {/* 4. INITIAL PHONE RIGHT-SIDE APP NAME (FADES OUT WITH PHONE) */}
+      {/* =================================================================== */}
       {zoomP >= 0.75 && (
-        <div className="relative z-20 w-full max-w-6xl mx-auto flex justify-end items-center flex-1 pr-6 sm:pr-14 md:pr-24 pointer-events-none my-auto">
+        <div
+          style={{ opacity: phoneFade }}
+          className="relative z-20 w-full max-w-6xl mx-auto flex justify-end items-center flex-1 pr-6 sm:pr-14 md:pr-24 pointer-events-none my-auto transition-opacity duration-200"
+        >
           <AnimatePresence mode="wait">
             {currentApp && (
               <motion.div
@@ -153,7 +189,8 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
                 className="pointer-events-auto"
               >
                 <div
-                  className={`px-8 py-5 sm:px-10 sm:py-6 rounded-3xl border-2 ${currentApp.borderColor} bg-neutral-950/90 backdrop-blur-2xl shadow-2xl ${currentApp.glowClass} flex items-center justify-center`}
+                  className={`px-8 py-5 sm:px-10 sm:py-6 rounded-3xl border-2 ${currentApp.borderColor} bg-neutral-950/90 backdrop-blur-2xl shadow-2xl ${currentApp.glowClass} flex items-center justify-center cursor-pointer`}
+                  onClick={currentApp.iconIndex === 3 ? handleTriggerTransition : undefined}
                 >
                   <span
                     className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-wide ${currentApp.color}`}
@@ -168,8 +205,7 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
       )}
 
       {/* Bottom spacer for balance */}
-      <div className="h-6 pointer-events-none" />
+      <div className="h-4 pointer-events-none" />
     </section>
   );
 };
-

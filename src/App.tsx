@@ -8,7 +8,6 @@ import { TheLoopOpeningScene } from './components/scenes/TheLoopOpeningScene';
 import { QuizTimeScene } from './components/scenes/QuizTimeScene';
 import { FakeNewsScene } from './components/scenes/FakeNewsScene';
 import { Carousel3DScene } from './components/scenes/Carousel3DScene';
-import { WorldUsageScene } from './components/scenes/WorldUsageScene';
 import { IndiaUsageScene } from './components/scenes/IndiaUsageScene';
 import { InstagramEvolutionScene } from './components/scenes/InstagramEvolutionScene';
 import { DefinitionScene } from './components/scenes/DefinitionScene';
@@ -91,51 +90,47 @@ export default function App() {
 
       {/* Sequential Full-Page Snap Scenes */}
       <main className="w-full relative z-10">
-        {/* Unified Scene 1, 2, 3 & 4: The Loop Opening, Live Quiz, 3D Newspaper, & App Ecosystem Phone Zoom Out */}
+        {/* Unified Scene 1, 2, 3, 4 & 5: The Loop Opening, Live Quiz, 3D Newspaper, App Ecosystem, & World Reality */}
         <div
           ref={(el) => (sceneRefs.current[0] = el)}
           data-scene-id="1"
-          className="h-[1850vh] w-full snap-start relative sticky-scene-container"
+          className="h-[2850vh] w-full snap-start relative sticky-scene-container"
         >
           <div className="sticky top-0 h-screen w-full overflow-hidden">
             <TheLoopOpeningScene
-              onScrollToNext={() => scrollToScene(5)}
+              onScrollToNext={() => scrollToScene(6)}
               onScrollToQuiz={() => scrollToScene(2)}
               onScrollToNews={() => scrollToScene(3)}
               onScrollToPhone={() => scrollToScene(4)}
+              onScrollToWorld={() => scrollToScene(5)}
             />
           </div>
           {/* Subtle progressive scroll snap guides */}
-          <div className="absolute top-[16%] h-px w-full snap-start pointer-events-none" />
+          <div className="absolute top-[8%] h-px w-full snap-start pointer-events-none" />
           {/* Scene 2 Anchor: Live Quiz Stage (QR Code) */}
           <div
             ref={(el) => (sceneRefs.current[1] = el)}
             data-scene-id="2"
-            className="absolute top-[46%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[31%] h-px w-full snap-start pointer-events-none"
           />
           {/* Scene 3 Anchor: First News Broadsheet */}
           <div
             ref={(el) => (sceneRefs.current[2] = el)}
             data-scene-id="3"
-            className="absolute top-[56%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[40%] h-px w-full snap-start pointer-events-none"
           />
           {/* Scene 4 Anchor: App Ecosystem Phone Settled Stage */}
           <div
             ref={(el) => (sceneRefs.current[3] = el)}
             data-scene-id="4"
-            className="absolute top-[84%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[57%] h-px w-full snap-start pointer-events-none"
           />
-        </div>
-
-        {/* Scene 5: World's Digital Screen Reality */}
-        <div
-          ref={(el) => (sceneRefs.current[4] = el)}
-          data-scene-id="5"
-          className="h-[1000vh] w-full snap-start relative sticky-scene-container"
-        >
-          <div className="sticky top-0 h-screen w-full overflow-hidden">
-            <WorldUsageScene onScrollToNext={() => scrollToScene(6)} />
-          </div>
+          {/* Scene 5 Anchor: World Reality Settled Stage */}
+          <div
+            ref={(el) => (sceneRefs.current[4] = el)}
+            data-scene-id="5"
+            className="absolute top-[74%] h-px w-full snap-start pointer-events-none"
+          />
         </div>
 
         {/* Scene 6: India's Digital Screen Reality */}

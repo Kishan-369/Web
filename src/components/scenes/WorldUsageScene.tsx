@@ -222,9 +222,17 @@ export const WORLD_STAGES: PlatformStage[] = [
 
 interface Props {
   onScrollToNext?: () => void;
+  hasJustDocked?: boolean;
+  externalScrollProgress?: number;
+  isEmbedded?: boolean;
 }
 
-export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
+export const WorldUsageScene: React.FC<Props> = ({
+  onScrollToNext,
+  hasJustDocked = false,
+  externalScrollProgress,
+  isEmbedded = false,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [manualStageIndex, setManualStageIndex] = useState<number | null>(null);
@@ -238,8 +246,17 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     stageLocalProgress: 0.5,
   });
 
-  // Track sticky scroll progress with gentle inertia damping
+  // If externalScrollProgress is passed, drive progress directly from parent
   useEffect(() => {
+    if (externalScrollProgress !== undefined) {
+      setScrollProgress(externalScrollProgress);
+    }
+  }, [externalScrollProgress]);
+
+  // Track sticky scroll progress with gentle inertia damping (when not embedded)
+  useEffect(() => {
+    if (isEmbedded || externalScrollProgress !== undefined) return;
+
     const handleScroll = () => {
       if (!containerRef.current) return;
       const stickyWrapper =
@@ -350,7 +367,7 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   let stageScale = 1;
 
   if (manualStageIndex === null) {
-    if (stageLocalProgress < 0.05) {
+    if (stageLocalProgress < 0.05 && activeIndex > 0) {
       stageOpacity = Math.min(1, stageLocalProgress / 0.05);
       stageScale = 0.98 + stageOpacity * 0.02;
     } else if (stageLocalProgress > 0.95 && activeIndex < 3) {
@@ -395,7 +412,7 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   return (
     <section
       ref={containerRef}
-      className="relative h-screen w-full bg-black text-white flex flex-col justify-between overflow-hidden select-none"
+      className={`relative ${isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black'} w-full text-white flex flex-col justify-between overflow-hidden select-none`}
     >
       {/* =================================================================== */}
       {/* 1. SEAMLESS AMBIENT BACKDROP LIGHTING (NO BORDERS) */}
@@ -490,7 +507,17 @@ export const WorldUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2">
                   <div className="flex items-center space-x-2.5">
-                    <StageLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+                    <div id="world-usage-left-whatsapp-logo" className="relative shrink-0 flex items-center justify-center">
+                      <StageLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+                      {hasJustDocked && currentStage.id === 'whatsapp' && (
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 1 }}
+                          animate={{ scale: 2.3, opacity: 0 }}
+                          transition={{ duration: 0.9, ease: 'easeOut' }}
+                          className="absolute inset-0 rounded-full border-2 border-emerald-400 pointer-events-none"
+                        />
+                      )}
+                    </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-black text-white font-sans flex items-center gap-2">
                         <span>{currentStage.name}</span>

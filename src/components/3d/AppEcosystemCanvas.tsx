@@ -10,6 +10,7 @@ interface Props {
   offsetX?: number;
   offsetY?: number;
   outlineOpacity?: number;
+  whatsappLaunchProgress?: number;
 }
 
 const createRoundedRectShape = (width: number, height: number, radius: number) => {
@@ -34,6 +35,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
   offsetX,
   offsetY,
   outlineOpacity,
+  whatsappLaunchProgress = 0,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +47,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
   const offsetXRef = useRef(offsetX ?? -1.6);
   const offsetYRef = useRef(offsetY ?? -1.15);
   const outlineOpacityRef = useRef(outlineOpacity ?? 0.9);
+  const whatsappLaunchProgressRef = useRef(whatsappLaunchProgress);
 
   useEffect(() => {
     explodedRef.current = exploded;
@@ -54,7 +57,8 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
     if (offsetX !== undefined) offsetXRef.current = offsetX;
     if (offsetY !== undefined) offsetYRef.current = offsetY;
     if (outlineOpacity !== undefined) outlineOpacityRef.current = outlineOpacity;
-  }, [exploded, selectedAppIndex, phoneVisible, zoomScale, offsetX, offsetY, outlineOpacity]);
+    whatsappLaunchProgressRef.current = whatsappLaunchProgress;
+  }, [exploded, selectedAppIndex, phoneVisible, zoomScale, offsetX, offsetY, outlineOpacity, whatsappLaunchProgress]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -159,7 +163,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       const uiMat = new THREE.MeshBasicMaterial({
         map: appScreenTextures[i],
         transparent: true,
-        opacity: i === 0 ? 0.88 : 0.0, // Default Instagram visible so phone is never blank
+        opacity: 0.0, // All start invisible so phone is clean and blank initially
         depthWrite: false,
       });
       const mesh = new THREE.Mesh(screenGeo, uiMat);
@@ -377,9 +381,9 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
 
       // Update UI screen opacity based on selected app (frosted/blurred app interface)
       uiScreenMeshes.forEach((mesh, idx) => {
-        // If an app is selected, show that app's UI; if none selected, show Instagram UI as default so phone is never blank
-        const isTarget = selAppIndex === idx || (selAppIndex === null && idx === 0);
-        const targetOpacity = isTarget ? (selAppIndex === null ? 0.75 : 0.90) : 0.0;
+        // Only the actively selected app gets opacity; when selAppIndex is null, phone stays completely blank
+        const isTarget = selAppIndex === idx;
+        const targetOpacity = isTarget ? 0.90 : 0.0;
         const mat = mesh.material as THREE.MeshBasicMaterial;
         mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, 0.12);
       });
@@ -410,21 +414,42 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       const targetDotX = isAppSelected ? -0.7 : -0.45;
       dotMesh.position.x = THREE.MathUtils.lerp(dotMesh.position.x, targetDotX, 0.1);
 
+      // WhatsApp Launch Transition
+      const launchP = whatsappLaunchProgressRef.current;
+      const shouldShowPhone = isPhoneVisible;
+
+      phoneGroup.visible = shouldShowPhone && phoneGroup.scale.x > 0.02;
+      phoneMesh.visible = shouldShowPhone;
+      phoneOutline.visible = shouldShowPhone;
+      screenMesh.visible = shouldShowPhone;
+      islandGroup.visible = shouldShowPhone;
+      uiScreenMeshes.forEach((mesh) => {
+        mesh.visible = shouldShowPhone;
+      });
+
       // Update material opacities and positions
       appParticles.forEach((item) => {
         const isSelected = selAppIndex === item.iconIndex;
-        
-        // Opacity lerp (fade in if selected, fade out if not)
-        const targetOpacity = isSelected ? 1.0 : 0.0;
-        item.material.opacity = THREE.MathUtils.lerp(item.material.opacity, targetOpacity, 0.1);
+        // When launching WhatsApp (index 3), smoothly hand off to the 2D icon
+        const isLaunchingThisApp = isSelected && item.iconIndex === 3 && launchP > 0.02;
 
-        // Position lerp (pop out if selected, hide inside if not)
-        const dest = isSelected ? item.targetPos : item.initialPos;
-        item.mesh.position.lerp(dest, item.speed);
-        
-        // Add a slight hover animation when selected
-        if (isSelected) {
-           item.mesh.position.y = dest.y + Math.sin(elapsedTime * 2) * 0.15;
+        if (!shouldShowPhone || isLaunchingThisApp) {
+          item.mesh.visible = false;
+        } else {
+          item.mesh.visible = true;
+          // Opacity lerp (fade in if selected, fade out if not)
+          const targetOpacity = isSelected ? 1.0 : 0.0;
+          item.material.opacity = THREE.MathUtils.lerp(item.material.opacity, targetOpacity, 0.1);
+
+          // Position lerp (pop out if selected, hide inside if not)
+          const dest = isSelected ? item.targetPos : item.initialPos;
+          item.mesh.position.lerp(dest, item.speed);
+          
+          // Add a slight hover animation when selected
+          if (isSelected) {
+             item.mesh.position.y = dest.y + Math.sin(elapsedTime * 2) * 0.15;
+          }
+          item.mesh.scale.setScalar(1.0);
         }
       });
 
