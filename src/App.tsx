@@ -59,6 +59,13 @@ export default function App() {
     }
   };
 
+  const scrollToDriverStage = (driverIndex: number) => {
+    const el = document.getElementById(`scene-8-driver-${driverIndex + 1}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const toggleSound = () => {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
@@ -103,6 +110,7 @@ export default function App() {
               onScrollToNews={() => scrollToScene(3)}
               onScrollToPhone={() => scrollToScene(4)}
               onScrollToWorld={() => scrollToScene(5)}
+              onLaunchWhatsAppToWorld={() => scrollToScene(5)}
             />
           </div>
           {/* Subtle progressive scroll snap guides */}
@@ -129,7 +137,7 @@ export default function App() {
           <div
             ref={(el) => (sceneRefs.current[4] = el)}
             data-scene-id="5"
-            className="absolute top-[74%] h-px w-full snap-start pointer-events-none"
+            className="absolute top-[78%] h-px w-full snap-start pointer-events-none"
           />
         </div>
 
@@ -145,13 +153,69 @@ export default function App() {
         </div>
 
         {/* Scene 7: The Instagram Trap — Feature Evolution & Psychology (How Every Feature Was Engineered To Glue Users In) */}
-        <div ref={(el) => (sceneRefs.current[6] = el)} data-scene-id="7" className="h-screen w-full snap-start snap-always">
-          <InstagramEvolutionScene />
+        <div
+          ref={(el) => (sceneRefs.current[6] = el)}
+          data-scene-id="7"
+          className="h-[550vh] w-full snap-start relative sticky-scene-container"
+        >
+          <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <InstagramEvolutionScene onScrollToNext={() => scrollToScene(8)} />
+          </div>
         </div>
 
-        {/* Scene 8: Behavioral Definition */}
-        <div ref={(el) => (sceneRefs.current[7] = el)} data-scene-id="8" className="h-screen w-full snap-start snap-always">
-          <DefinitionScene />
+        {/* Scene 8: Behavioral Definition (4 Progressive Driver Stages) */}
+        {/* Driver 1: Compulsion to Refresh */}
+        <div
+          ref={(el) => (sceneRefs.current[7] = el)}
+          id="scene-8-driver-1"
+          data-scene-id="8"
+          className="h-screen w-full snap-start snap-always relative overflow-hidden"
+        >
+          <DefinitionScene
+            activeDriverIndex={0}
+            onSelectDriver={(idx) => scrollToDriverStage(idx)}
+            onScrollToNext={() => scrollToScene(9)}
+            onScrollToPrev={() => scrollToScene(7)}
+          />
+        </div>
+
+        {/* Driver 2: Receptor Burnout & Tolerance */}
+        <div
+          id="scene-8-driver-2"
+          className="h-screen w-full snap-start snap-always relative overflow-hidden"
+        >
+          <DefinitionScene
+            activeDriverIndex={1}
+            onSelectDriver={(idx) => scrollToDriverStage(idx)}
+            onScrollToNext={() => scrollToScene(9)}
+            onScrollToPrev={() => scrollToScene(7)}
+          />
+        </div>
+
+        {/* Driver 3: Phantom Vibrations */}
+        <div
+          id="scene-8-driver-3"
+          className="h-screen w-full snap-start snap-always relative overflow-hidden"
+        >
+          <DefinitionScene
+            activeDriverIndex={2}
+            onSelectDriver={(idx) => scrollToDriverStage(idx)}
+            onScrollToNext={() => scrollToScene(9)}
+            onScrollToPrev={() => scrollToScene(7)}
+          />
+        </div>
+
+        {/* Driver 4: Separation Distress & Cortisol */}
+        <div
+          id="scene-8-driver-4"
+          className="h-screen w-full snap-start snap-always relative overflow-hidden"
+        >
+          <DefinitionScene
+            activeDriverIndex={3}
+            onSelectDriver={(idx) => scrollToDriverStage(idx)}
+            onScrollToNext={() => scrollToScene(9)}
+            onScrollToPrev={() => scrollToScene(7)}
+          />
         </div>
 
         {/* Scene 9: Healthy Balance vs. Digital Chaos */}

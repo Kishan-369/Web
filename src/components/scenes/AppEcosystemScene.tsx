@@ -20,6 +20,7 @@ interface AppEcosystemSceneProps {
   onNextScene?: () => void;
   onLaunchWhatsAppToWorldScene?: () => void;
   isWhatsAppFlying?: boolean;
+  onWhatsAppScreenPosition?: (pos: { x: number; y: number; size: number }) => void;
 }
 
 export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
@@ -30,6 +31,7 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
   onNextScene,
   onLaunchWhatsAppToWorldScene,
   isWhatsAppFlying = false,
+  onWhatsAppScreenPosition,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -42,10 +44,8 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Effective progress from scroll or active flight
-  const effectiveProgress = isWhatsAppFlying
-    ? 1.0
-    : Math.max(0, Math.min(1, whatsappLaunchProgress));
+  // Effective progress from scroll
+  const effectiveProgress = Math.max(0, Math.min(1, whatsappLaunchProgress));
 
   // Dynamic phone zoom-out calculation from scroll progress
   const zoomP = phoneZoomProgress !== undefined ? Math.max(0, Math.min(1, phoneZoomProgress)) : 1.0;
@@ -56,9 +56,9 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
   const settledOffsetX = isMobile ? 0 : -1.6;
   const settledOffsetY = isMobile ? -0.8 : -1.15;
 
-  // Phone visibility: fades out smoothly as the WhatsApp launch transition begins on scroll
-  const phoneFade = isWhatsAppFlying ? 0 : Math.max(0, 1 - effectiveProgress * 2.5);
-  const isPhoneVisible = phoneFade > 0.02 && !isWhatsAppFlying;
+  // Phone visibility: fades out smoothly as the WhatsApp launch transition progresses on scroll
+  const phoneFade = Math.max(0, 1 - effectiveProgress * 1.4);
+  const isPhoneVisible = phoneFade > 0.01;
 
   const currentZoomScale = phoneZoomProgress !== undefined ? 12.0 - easeZoom * (12.0 - settledScale) : settledScale;
   const currentOffsetX = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetX : settledOffsetX;
@@ -152,6 +152,7 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
           outlineOpacity={currentOutlineOpacity}
           selectedAppIndex={currentApp ? currentApp.iconIndex : null}
           whatsappLaunchProgress={effectiveProgress}
+          onWhatsAppScreenPosition={onWhatsAppScreenPosition}
         />
       </div>
 

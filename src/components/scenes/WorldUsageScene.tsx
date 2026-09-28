@@ -223,6 +223,7 @@ export const WORLD_STAGES: PlatformStage[] = [
 interface Props {
   onScrollToNext?: () => void;
   hasJustDocked?: boolean;
+  isWhatsAppFlying?: boolean;
   externalScrollProgress?: number;
   isEmbedded?: boolean;
 }
@@ -230,6 +231,7 @@ interface Props {
 export const WorldUsageScene: React.FC<Props> = ({
   onScrollToNext,
   hasJustDocked = false,
+  isWhatsAppFlying = false,
   externalScrollProgress,
   isEmbedded = false,
 }) => {
@@ -508,13 +510,22 @@ export const WorldUsageScene: React.FC<Props> = ({
                 <div className="flex items-center justify-between pb-2">
                   <div className="flex items-center space-x-2.5">
                     <div id="world-usage-left-whatsapp-logo" className="relative shrink-0 flex items-center justify-center">
-                      <StageLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+                      <StageLogo
+                        className={`w-8 h-8 sm:w-9 sm:h-9 transition-all duration-300 ${
+                          currentStage.id === 'whatsapp' && isWhatsAppFlying && !hasJustDocked
+                            ? 'opacity-0 scale-50'
+                            : 'opacity-100 scale-100'
+                        }`}
+                      />
+                      {currentStage.id === 'whatsapp' && isWhatsAppFlying && !hasJustDocked && (
+                        <div className="absolute inset-0 rounded-full border border-dashed border-emerald-500/40 animate-pulse pointer-events-none" />
+                      )}
                       {hasJustDocked && currentStage.id === 'whatsapp' && (
                         <motion.div
                           initial={{ scale: 0.8, opacity: 1 }}
-                          animate={{ scale: 2.3, opacity: 0 }}
-                          transition={{ duration: 0.9, ease: 'easeOut' }}
-                          className="absolute inset-0 rounded-full border-2 border-emerald-400 pointer-events-none"
+                          animate={{ scale: 2.6, opacity: 0 }}
+                          transition={{ duration: 0.85, ease: 'easeOut' }}
+                          className="absolute inset-0 rounded-full border-2 border-emerald-400 shadow-[0_0_20px_rgba(37,211,102,0.9)] pointer-events-none"
                         />
                       )}
                     </div>

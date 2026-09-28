@@ -75,6 +75,12 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   const hasWhatsAppDockedSoundPlayedRef = useRef(false);
   const hasAutoNextTriggeredRef = useRef(false);
 
+  // Live 2D screen coordinates of the 3D WhatsApp icon inside the phone
+  const whatsAppPhoneCoordsRef = useRef<{ x: number; y: number; size: number } | null>(null);
+  const handleWhatsAppScreenPosition = useCallback((pos: { x: number; y: number; size: number }) => {
+    whatsAppPhoneCoordsRef.current = pos;
+  }, []);
+
   // Measure untransformed docking positions
   const updateMeasurements = useCallback(() => {
     if (!svgWrapperRef.current || !lRef.current || !pRef.current) return;
@@ -262,27 +268,27 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
           hasFacebookSoundPlayedRef.current = false;
         }
 
-        // WhatsApp notification ping on scroll
-        if (next >= 0.68 && !hasWhatsAppSoundPlayedRef.current) {
+        // WhatsApp notification ping on scroll (when WhatsApp pops out on the phone)
+        if (next >= 0.69 && !hasWhatsAppSoundPlayedRef.current) {
           hasWhatsAppSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.665) {
+        } else if (next < 0.675) {
           hasWhatsAppSoundPlayedRef.current = false;
         }
 
-        // WhatsApp launch whoosh sound as it lifts towards next scene
-        if (next >= 0.705 && !hasWhooshSoundPlayedRef.current) {
+        // WhatsApp launch whoosh sound as it lifts smoothly towards next scene
+        if (next >= 0.725 && !hasWhooshSoundPlayedRef.current) {
           hasWhooshSoundPlayedRef.current = true;
           soundEngine.playWhooshSound();
-        } else if (next < 0.695) {
+        } else if (next < 0.71) {
           hasWhooshSoundPlayedRef.current = false;
         }
 
         // WhatsApp dock into Scene 5 impact tone & emerald ripple cue
-        if (next >= 0.735 && !hasWhatsAppDockedSoundPlayedRef.current) {
+        if (next >= 0.77 && !hasWhatsAppDockedSoundPlayedRef.current) {
           hasWhatsAppDockedSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.71) {
+        } else if (next < 0.75) {
           hasWhatsAppDockedSoundPlayedRef.current = false;
         }
 
@@ -696,21 +702,22 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsOpacity = 0;
 
     // Apps appear one by one as the user scrolls down!
-    if (displayProgress >= 0.67) {
-      activeAppIndex = 3; // WhatsApp
-    } else if (displayProgress >= 0.64) {
+    if (displayProgress >= 0.69) {
+      activeAppIndex = 3; // WhatsApp pops up in front of the phone screen
+    } else if (displayProgress >= 0.66) {
       activeAppIndex = 2; // Facebook
-    } else if (displayProgress >= 0.61) {
+    } else if (displayProgress >= 0.63) {
       activeAppIndex = 1; // YouTube
-    } else if (displayProgress >= 0.59) {
+    } else if (displayProgress >= 0.60) {
       activeAppIndex = 0; // Instagram appears on scroll!
     } else {
       activeAppIndex = null; // Clean blank phone with title!
     }
 
     // WhatsApp Launch Transition Progress (0.0 -> 1.0) on scroll
-    if (displayProgress >= 0.70) {
-      whatsappLaunchProgress = Math.min(1, Math.max(0, (displayProgress - 0.70) / 0.04));
+    // Spans 0.72 -> 0.78 for a generous, responsive, and buttery-smooth transition
+    if (displayProgress >= 0.72) {
+      whatsappLaunchProgress = Math.min(1, Math.max(0, (displayProgress - 0.72) / 0.058));
     } else {
       whatsappLaunchProgress = 0;
     }
@@ -718,49 +725,80 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
   // Layer 5 (World Usage Scene) & WhatsApp Docking Calculation
   let scene5Opacity = 0;
+  let scene5Blur = 0;
   let scene5ScrollProgress = 0;
-  const hasJustDocked = whatsappLaunchProgress >= 0.88;
+  const hasJustDocked = whatsappLaunchProgress >= 0.94;
 
-  if (displayProgress >= 0.70) {
-    scene5Opacity = Math.min(1, Math.max(0, (displayProgress - 0.705) / 0.032));
-    if (displayProgress >= 0.74) {
-      scene5ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.74) / 0.26));
+  if (displayProgress >= 0.71) {
+    if (whatsappLaunchProgress < 0.94) {
+      // During 3D transition: World Reality scene remains blurred
+      const flightRatio = Math.min(1, Math.max(0, whatsappLaunchProgress / 0.94));
+      scene5Blur = Math.round((1 - Math.pow(flightRatio, 1.6)) * 22);
+      scene5Opacity = 0.35 + flightRatio * 0.45;
+    } else {
+      // Exact WhatsApp icon fit: blur clears completely to 0px, scene reaches full 1.0 opacity & crystal clarity!
+      scene5Blur = 0;
+      scene5Opacity = 1.0;
+    }
+
+    if (displayProgress >= 0.78) {
+      scene5ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.78) / 0.22));
     }
   }
 
   // Flying WhatsApp Icon directly driven by scroll progress
-  const isFlying = displayProgress >= 0.70 && displayProgress < 0.74;
+  // Active until just as docking completes
+  const isFlying = displayProgress >= 0.72 && whatsappLaunchProgress < 0.96;
   let flyX = 0;
   let flyY = 0;
-  let flySize = 56;
+  let flySize = 48;
+  let flyRotation = 0;
 
   if (isFlying) {
     const isMobile = viewport.w < 768;
-    const t = Math.min(1, Math.max(0, (displayProgress - 0.70) / 0.04));
-    // Smooth ease-in-out
-    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const t = Math.min(1, Math.max(0, whatsappLaunchProgress / 0.94));
+    // Luxurious smooth cubic bezier easing
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-    const startX = isMobile ? viewport.w * 0.50 : viewport.w * 0.28;
-    const startY = isMobile ? viewport.h * 0.46 : viewport.h * 0.48;
-    const startSize = isMobile ? 48 : 56;
+    // Mathematical projection fallback matching Three.js scene dimensions
+    // WhatsApp icon size calibrated to 2.8 units (matching Instagram, YouTube, and Facebook)
+    const frustumH = 15.242;
+    const defStartX = isMobile
+      ? viewport.w * 0.5
+      : viewport.w * 0.5 + (-1.6 / frustumH) * viewport.h;
+    const defStartY = isMobile
+      ? viewport.h * 0.5 - (-0.8 / frustumH) * viewport.h
+      : viewport.h * 0.5 - (-1.15 / frustumH) * viewport.h;
+    const defStartSize = isMobile
+      ? (2.8 * 0.95 / frustumH) * viewport.h
+      : (2.8 * 1.12 / frustumH) * viewport.h;
 
-    let endX = isMobile ? viewport.w * 0.20 : Math.max(viewport.w * 0.165, (viewport.w - 1152) / 2 + 56);
-    let endY = isMobile ? viewport.h * 0.28 : viewport.h * 0.32;
+    const startX = whatsAppPhoneCoordsRef.current?.x ?? defStartX;
+    const startY = whatsAppPhoneCoordsRef.current?.y ?? defStartY;
+    const startSize = whatsAppPhoneCoordsRef.current?.size ?? defStartSize;
+
+    // Dynamic destination from DOM element `#world-usage-left-whatsapp-logo`
+    let endX = isMobile ? viewport.w * 0.18 : viewport.w * 0.24;
+    let endY = isMobile ? viewport.h * 0.28 : viewport.h * 0.35;
     let endSize = isMobile ? 32 : 36;
 
     const targetLogo = document.getElementById('world-usage-left-whatsapp-logo');
     if (targetLogo) {
       const rect = targetLogo.getBoundingClientRect();
-      if (rect.width > 0 && rect.top >= 0 && rect.top <= viewport.h) {
+      if (rect.width > 0 && rect.height > 0) {
         endX = rect.left + rect.width / 2;
         endY = rect.top + rect.height / 2;
         endSize = rect.width;
       }
     }
 
+    // Gentle organic parabolic flight arc
+    const arcY = -Math.sin(t * Math.PI) * (isMobile ? 24 : 48);
+
     flyX = startX + (endX - startX) * ease;
-    flyY = startY + (endY - startY) * ease;
+    flyY = startY + (endY - startY) * ease + arcY;
     flySize = startSize + (endSize - startSize) * ease;
+    flyRotation = Math.sin(t * Math.PI) * (startX < endX ? 10 : -10);
   }
 
   // Chromatic text shadow strings for glitch effects
@@ -1146,10 +1184,12 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       {/* then smoothly zooming out as Fake News shrinks into the phone glass */}
       {/* and presenting each app icon one-by-one as the user scrolls */}
       {/* =================================================================== */}
-      {displayProgress >= 0.52 && displayProgress < 0.75 && (
+      {displayProgress >= 0.52 && displayProgress < 0.79 && (
         <div
           style={{
-            opacity: Math.min(1, (displayProgress - 0.52) / 0.02),
+            opacity:
+              Math.min(1, (displayProgress - 0.52) / 0.02) *
+              Math.max(0, 1 - (displayProgress >= 0.72 ? (displayProgress - 0.72) / 0.055 : 0)),
             pointerEvents: 'none',
           }}
           className="absolute inset-0 z-20 overflow-hidden will-change-transform"
@@ -1162,26 +1202,31 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             onNextScene={onScrollToNext}
             onLaunchWhatsAppToWorldScene={onLaunchWhatsAppToWorld}
             isWhatsAppFlying={isFlying}
+            onWhatsAppScreenPosition={handleWhatsAppScreenPosition}
           />
         </div>
       )}
 
       {/* =================================================================== */}
       {/* LAYER 5: WORLD USAGE SCENE (SCENE 5 - NO EXTRA SLIDE) */}
-      {/* Smoothly fades in on scroll as WhatsApp launches & docks */}
+      {/* Blurred during WhatsApp transition; exact WhatsApp dock reveals crystal clarity */}
       {/* =================================================================== */}
       {displayProgress >= 0.70 && (
         <div
           style={{
             opacity: scene5Opacity,
-            pointerEvents: scene5Opacity > 0.85 ? 'auto' : 'none',
+            filter: scene5Blur > 0 ? `blur(${scene5Blur}px)` : 'none',
+            transform: scene5Blur > 0 ? `scale(${1 + (scene5Blur / 22) * 0.025})` : 'scale(1)',
+            pointerEvents: hasJustDocked ? 'auto' : 'none',
+            transition: 'filter 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
-          className="absolute inset-0 z-40 overflow-hidden will-change-transform"
+          className="absolute inset-0 z-40 overflow-hidden will-change-[filter,opacity,transform]"
         >
           <WorldUsageScene
             isEmbedded={true}
             externalScrollProgress={scene5ScrollProgress}
             hasJustDocked={hasJustDocked}
+            isWhatsAppFlying={isFlying}
             onScrollToNext={onScrollToNext}
           />
         </div>
@@ -1199,15 +1244,30 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             top: `${flyY}px`,
             width: `${flySize}px`,
             height: `${flySize}px`,
-            transform: 'translate(-50%, -50%)',
+            transform: `translate(-50%, -50%) rotate(${flyRotation}deg)`,
             zIndex: 60,
             pointerEvents: 'none',
           }}
           className="will-change-transform"
         >
           <div className="relative w-full h-full flex items-center justify-center">
-            <WhatsAppLogo className="w-full h-full drop-shadow-[0_0_30px_rgba(37,211,102,0.95)]" />
-            <div className="absolute inset-0 rounded-full bg-emerald-400/40 blur-md animate-pulse" />
+            {/* Soft luminous atmospheric trail */}
+            <div
+              className="absolute -inset-4 rounded-full bg-emerald-500/30 blur-2xl transition-transform"
+              style={{
+                opacity: 0.5 + Math.sin(whatsappLaunchProgress * Math.PI) * 0.5,
+                transform: `scale(${1 + Math.sin(whatsappLaunchProgress * Math.PI) * 0.4})`,
+              }}
+            />
+            {/* Luminous aura ring */}
+            <div
+              className="absolute -inset-1.5 rounded-full border border-emerald-400/60 shadow-[0_0_25px_rgba(37,211,102,0.85)]"
+              style={{
+                opacity: 0.7 + Math.sin(whatsappLaunchProgress * Math.PI) * 0.3,
+              }}
+            />
+            {/* Pure SVG WhatsApp Logo */}
+            <WhatsAppLogo className="w-full h-full drop-shadow-[0_15px_35px_rgba(0,0,0,0.85)] relative z-10" />
           </div>
         </div>
       )}

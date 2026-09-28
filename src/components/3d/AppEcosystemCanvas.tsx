@@ -11,6 +11,7 @@ interface Props {
   offsetY?: number;
   outlineOpacity?: number;
   whatsappLaunchProgress?: number;
+  onWhatsAppScreenPosition?: (pos: { x: number; y: number; size: number }) => void;
 }
 
 const createRoundedRectShape = (width: number, height: number, radius: number) => {
@@ -36,6 +37,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
   offsetY,
   outlineOpacity,
   whatsappLaunchProgress = 0,
+  onWhatsAppScreenPosition,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
   const offsetYRef = useRef(offsetY ?? -1.15);
   const outlineOpacityRef = useRef(outlineOpacity ?? 0.9);
   const whatsappLaunchProgressRef = useRef(whatsappLaunchProgress);
+  const onWhatsAppScreenPositionRef = useRef(onWhatsAppScreenPosition);
 
   useEffect(() => {
     explodedRef.current = exploded;
@@ -58,7 +61,8 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
     if (offsetY !== undefined) offsetYRef.current = offsetY;
     if (outlineOpacity !== undefined) outlineOpacityRef.current = outlineOpacity;
     whatsappLaunchProgressRef.current = whatsappLaunchProgress;
-  }, [exploded, selectedAppIndex, phoneVisible, zoomScale, offsetX, offsetY, outlineOpacity, whatsappLaunchProgress]);
+    onWhatsAppScreenPositionRef.current = onWhatsAppScreenPosition;
+  }, [exploded, selectedAppIndex, phoneVisible, zoomScale, offsetX, offsetY, outlineOpacity, whatsappLaunchProgress, onWhatsAppScreenPosition]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -225,6 +229,12 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
 
     // 2. Holographic App Icons
     const appCount = 4;
+
+    const WHATSAPP_SVG_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 30 30" width="256" height="256">
+  <circle cx="12" cy="12" r="12" fill="#25D366" />
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M18.4 12.05C18.4 8.54 15.54 5.68 12.03 5.68C8.52 5.68 5.66 8.54 5.66 12.05C5.66 13.23 5.98 14.34 6.55 15.3L5.6 18.4L8.79 17.48C9.72 18.01 10.84 18.42 12.03 18.42C15.54 18.42 18.4 15.56 18.4 12.05ZM12.03 7.03C14.8 7.03 17.05 9.28 17.05 12.05C17.05 14.82 14.8 17.07 12.03 17.07C10.96 17.07 9.96 16.73 9.14 16.16L8.91 16L6.96 16.56L7.54 14.65L7.38 14.4C6.77 13.43 6.48 12.65 6.48 12.05C6.48 9.28 8.73 7.03 12.03 7.03ZM14.73 13.62C14.59 13.55 13.91 13.21 13.78 13.16C13.65 13.11 13.56 13.09 13.47 13.23C13.38 13.37 13.13 13.67 13.06 13.75C12.99 13.83 12.92 13.84 12.78 13.77C12.64 13.7 12.05 13.51 11.35 12.89C10.81 12.4 10.45 11.8 10.38 11.66C10.31 11.52 10.37 11.45 10.44 11.38C10.5 11.32 10.57 11.23 10.64 11.15C10.71 11.07 10.74 11.01 10.79 10.91C10.84 10.81 10.81 10.73 10.77 10.66C10.73 10.59 10.37 9.7 10.22 9.33C10.07 8.97 9.92 9.02 9.81 9.01C9.71 9.01 9.6 9.01 9.49 9.01C9.38 9.01 9.2 9.05 9.05 9.21C8.9 9.37 8.48 9.76 8.48 10.56C8.48 11.36 9.06 12.13 9.14 12.24C9.22 12.35 10.29 13.99 11.93 14.69C12.32 14.86 12.62 14.96 12.86 15.04C13.26 15.17 13.62 15.15 13.91 15.11C14.23 15.06 14.89 14.71 15.03 14.32C15.17 13.93 15.17 13.6 15.13 13.53C15.09 13.46 14.87 13.69 14.73 13.62Z" fill="white"/>
+</svg>`)}`;
     
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin('anonymous');
@@ -232,7 +242,7 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
       'https://img.icons8.com/fluency/144/instagram-new.png',
       'https://img.icons8.com/color/144/youtube-play.png',
       'https://img.icons8.com/fluency/144/facebook-new.png',
-      'https://img.icons8.com/fluency/144/whatsapp.png',
+      WHATSAPP_SVG_DATA_URL,
     ];
     const textures = iconUrls.map(url => {
       const tex = textureLoader.load(url);
@@ -427,19 +437,47 @@ export const AppEcosystemCanvas: React.FC<Props> = ({
         mesh.visible = shouldShowPhone;
       });
 
+      // Track exact WhatsApp icon 2D screen coordinates
+      if (appParticles[3] && renderer && camera) {
+        const wp = new THREE.Vector3();
+        appParticles[3].mesh.getWorldPosition(wp);
+        wp.project(camera);
+        const rect = renderer.domElement.getBoundingClientRect();
+        const sx = rect.left + (wp.x * 0.5 + 0.5) * rect.width;
+        const sy = rect.top + (-wp.y * 0.5 + 0.5) * rect.height;
+
+        // Project edge to calculate on-screen pixel diameter for WhatsApp circle
+        // Green circle has radius 12 inside the 30-wide box on 3.5-wide geometry: (12 / 30) * 3.5 = 1.40
+        const wpEdge = new THREE.Vector3(1.4, 0, 0);
+        appParticles[3].mesh.localToWorld(wpEdge);
+        wpEdge.project(camera);
+        const sxEdge = rect.left + (wpEdge.x * 0.5 + 0.5) * rect.width;
+        const pSize = Math.abs(sxEdge - sx) * 2;
+
+        if (onWhatsAppScreenPositionRef.current && (selAppIndex === 3 || launchP > 0)) {
+          onWhatsAppScreenPositionRef.current({
+            x: sx,
+            y: sy,
+            size: Math.max(30, pSize),
+          });
+        }
+      }
+
       // Update material opacities and positions
       appParticles.forEach((item) => {
         const isSelected = selAppIndex === item.iconIndex;
-        // When launching WhatsApp (index 3), smoothly hand off to the 2D icon
-        const isLaunchingThisApp = isSelected && item.iconIndex === 3 && launchP > 0.02;
+        const isLaunchingWhatsApp = isSelected && item.iconIndex === 3 && launchP > 0;
 
-        if (!shouldShowPhone || isLaunchingThisApp) {
+        if (!shouldShowPhone || (item.iconIndex === 3 && launchP > 0.01)) {
           item.mesh.visible = false;
         } else {
           item.mesh.visible = true;
           // Opacity lerp (fade in if selected, fade out if not)
-          const targetOpacity = isSelected ? 1.0 : 0.0;
-          item.material.opacity = THREE.MathUtils.lerp(item.material.opacity, targetOpacity, 0.1);
+          let targetOpacity = isSelected ? 1.0 : 0.0;
+          if (isLaunchingWhatsApp) {
+            targetOpacity = Math.max(0, 1.0 - launchP * 4.0);
+          }
+          item.material.opacity = THREE.MathUtils.lerp(item.material.opacity, targetOpacity, 0.15);
 
           // Position lerp (pop out if selected, hide inside if not)
           const dest = isSelected ? item.targetPos : item.initialPos;
