@@ -6,6 +6,8 @@ import { MENTIMETER_CONFIG } from './QuizTimeScene';
 import { Carousel3DScene } from './Carousel3DScene';
 import { AppEcosystemScene } from './AppEcosystemScene';
 import { WorldUsageScene, WhatsAppLogo } from './WorldUsageScene';
+import { IndiaUsageScene } from './IndiaUsageScene';
+import indiaOuterBorder from './indiaOuterBorder.json';
 
 interface Props {
   onScrollToNext: () => void;
@@ -80,6 +82,16 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   const handleWhatsAppScreenPosition = useCallback((pos: { x: number; y: number; size: number }) => {
     whatsAppPhoneCoordsRef.current = pos;
   }, []);
+
+  // Live 2D screen coordinates of India on the 3D Google Earth globe
+  const indiaGlobeCoordsRef = useRef<{ x: number; y: number; size: number } | null>(null);
+  const startFlightCoordsRef = useRef<{ x: number; y: number; size: number } | null>(null);
+  const cachedIndiaTargetCoordsRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+  const handleIndiaScreenPosition = useCallback((pos: { x: number; y: number; size: number }) => {
+    indiaGlobeCoordsRef.current = pos;
+  }, []);
+  const hasIndiaWhooshSoundPlayedRef = useRef(false);
+  const hasIndiaDockedSoundPlayedRef = useRef(false);
 
   // Measure untransformed docking positions
   const updateMeasurements = useCallback(() => {
@@ -292,7 +304,15 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
           hasWhatsAppDockedSoundPlayedRef.current = false;
         }
 
-        // Trigger next scene (India Reality, Scene 6) when reaching completion of World Reality
+        // India map dock into Scene 6 impact tone
+        if (next >= 0.860 && !hasIndiaDockedSoundPlayedRef.current) {
+          hasIndiaDockedSoundPlayedRef.current = true;
+          soundEngine.playClickTone();
+        } else if (next < 0.840) {
+          hasIndiaDockedSoundPlayedRef.current = false;
+        }
+
+        // Trigger next scene (Instagram Evolution, Scene 7) when reaching completion of India Reality
         if (next >= 0.996 && !hasAutoNextTriggeredRef.current) {
           hasAutoNextTriggeredRef.current = true;
           if (onScrollToNext) {
@@ -715,9 +735,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     }
 
     // WhatsApp Launch Transition Progress (0.0 -> 1.0) on scroll
-    // Spans 0.72 -> 0.78 for a generous, responsive, and buttery-smooth transition
-    if (displayProgress >= 0.72) {
-      whatsappLaunchProgress = Math.min(1, Math.max(0, (displayProgress - 0.72) / 0.058));
+    // Spans 0.71 -> 0.76 for a generous, responsive, and buttery-smooth transition
+    if (displayProgress >= 0.71) {
+      whatsappLaunchProgress = Math.min(1, Math.max(0, (displayProgress - 0.71) / 0.048));
     } else {
       whatsappLaunchProgress = 0;
     }
@@ -729,26 +749,64 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
   let scene5ScrollProgress = 0;
   const hasJustDocked = whatsappLaunchProgress >= 0.94;
 
-  if (displayProgress >= 0.71) {
+  // India Zoom & Flight Transition Progress (0.0 -> 1.0) on scroll
+  // Spans 0.820 -> 0.862 as India smoothly glides from 3D Earth into Scene 6
+  let indiaZoomProgress = 0;
+  if (displayProgress >= 0.820) {
+    indiaZoomProgress = Math.min(1, Math.max(0, (displayProgress - 0.820) / 0.042));
+  }
+
+  if (displayProgress >= 0.70) {
     if (whatsappLaunchProgress < 0.94) {
       // During 3D transition: World Reality scene remains blurred
       const flightRatio = Math.min(1, Math.max(0, whatsappLaunchProgress / 0.94));
       scene5Blur = Math.round((1 - Math.pow(flightRatio, 1.6)) * 22);
       scene5Opacity = 0.35 + flightRatio * 0.45;
     } else {
-      // Exact WhatsApp icon fit: blur clears completely to 0px, scene reaches full 1.0 opacity & crystal clarity!
+      // Exact WhatsApp icon fit: blur clears completely to 0px, scene reaches full opacity
       scene5Blur = 0;
-      scene5Opacity = 1.0;
+      // As India zooms in towards next slide, World Reality gradually fades away
+      if (indiaZoomProgress > 0) {
+        scene5Opacity = Math.max(0, 1 - indiaZoomProgress * 1.35);
+      } else {
+        scene5Opacity = 1.0;
+      }
     }
 
-    if (displayProgress >= 0.78) {
-      scene5ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.78) / 0.22));
+    if (displayProgress >= 0.742) {
+      scene5ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.742) / 0.078));
+    }
+  }
+
+  // Layer 6 (India Usage Scene) & India Docking Calculation
+  let scene6Opacity = 0;
+  let scene6Blur = 0;
+  let scene6ScrollProgress = 0;
+  const hasIndiaJustDocked = indiaZoomProgress >= 0.94;
+
+  if (displayProgress >= 0.72) {
+    if (indiaZoomProgress < 0.94) {
+      const indiaFlightRatio = Math.min(1, Math.max(0, indiaZoomProgress / 0.94));
+      scene6Blur = Math.round((1 - Math.pow(indiaFlightRatio, 1.6)) * 12);
+      scene6Opacity = Math.pow(indiaFlightRatio, 1.2);
+    } else {
+      scene6Blur = 0;
+      scene6Opacity = 1.0;
+    }
+
+    // Keep the India map 100% BLANK for 2-3 scrolls after docking (from 0.862 to 0.885)
+    // Only after user scrolls 2-3 times past docking (displayProgress >= 0.885), the WhatsApp 3D effect continues
+    // Allocated a generous, wide scroll range (0.885 to 0.996) so all app transitions feel luxuriously smooth!
+    if (displayProgress >= 0.885) {
+      scene6ScrollProgress = Math.min(1, Math.max(0, (displayProgress - 0.885) / 0.111));
+    } else {
+      scene6ScrollProgress = 0;
     }
   }
 
   // Flying WhatsApp Icon directly driven by scroll progress
   // Active until just as docking completes
-  const isFlying = displayProgress >= 0.72 && whatsappLaunchProgress < 0.96;
+  const isFlying = displayProgress >= 0.71 && whatsappLaunchProgress < 0.96;
   let flyX = 0;
   let flyY = 0;
   let flySize = 48;
@@ -761,7 +819,6 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     // Mathematical projection fallback matching Three.js scene dimensions
-    // WhatsApp icon size calibrated to 2.8 units (matching Instagram, YouTube, and Facebook)
     const frustumH = 15.242;
     const defStartX = isMobile
       ? viewport.w * 0.5
@@ -799,6 +856,87 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     flyY = startY + (endY - startY) * ease + arcY;
     flySize = startSize + (endSize - startSize) * ease;
     flyRotation = Math.sin(t * Math.PI) * (startX < endX ? 10 : -10);
+  }
+
+  // Flying & Zooming India Map Shape (Directly driven by user scroll)
+  // Smoothly zooms along the path from the 3D globe India landmass in Instagram slide directly to the India vector map in Scene 6
+  const isIndiaFlying = indiaZoomProgress > 0.005 && indiaZoomProgress < 0.98;
+  let flyIndiaX = 0;
+  let flyIndiaY = 0;
+  let flyIndiaWidth = 60;
+  let flyIndiaHeight = 68;
+  let flyIndiaTiltX = 0;
+  let flyIndiaTiltY = 0;
+  let flyIndiaTiltZ = 0;
+  let flyIndiaFill = '#E1306C';
+  let flyIndiaFillOpacity = 0.9;
+  let flyIndiaStrokeOpacity = 0.95;
+  let flyIndiaGlowColor = '#ffffff';
+
+  if (isIndiaFlying) {
+    const isMobile = viewport.w < 768;
+    const t = Math.min(1, Math.max(0, indiaZoomProgress / 0.94));
+    // Luxurious smooth quadratic ease-in-out for a silky physical glide
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    // Start position: anchor live 3D Google Earth coordinates at lift-off so it never shifts
+    const defStartX = isMobile ? viewport.w * 0.5 : viewport.w * 0.70;
+    const defStartY = isMobile ? viewport.h * 0.65 : viewport.h * 0.52;
+    const defStartH = isMobile ? 55 : 68;
+
+    if (indiaZoomProgress <= 0.03 || !startFlightCoordsRef.current) {
+      if (indiaGlobeCoordsRef.current) {
+        startFlightCoordsRef.current = { ...indiaGlobeCoordsRef.current };
+      }
+    }
+
+    const startX = startFlightCoordsRef.current?.x ?? indiaGlobeCoordsRef.current?.x ?? defStartX;
+    const startY = startFlightCoordsRef.current?.y ?? indiaGlobeCoordsRef.current?.y ?? defStartY;
+    const startH = (startFlightCoordsRef.current?.size ?? indiaGlobeCoordsRef.current?.size ?? defStartH) * 0.85;
+    const startW = startH * (545 / 615);
+
+    // End destination: pre-measured or cached exact vector map container in IndiaUsageScene
+    const targetMap = document.getElementById('india-svg-vector-element') || document.getElementById('india-main-vector-map');
+    if (targetMap) {
+      const rect = targetMap.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        cachedIndiaTargetCoordsRef.current = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          w: Math.min(rect.width * 0.96, Math.min(rect.height * 0.96, 400) * (545 / 615)),
+          h: Math.min(rect.width * 0.96, Math.min(rect.height * 0.96, 400) * (545 / 615)) * (615 / 545),
+        };
+      }
+    }
+
+    const endX = cachedIndiaTargetCoordsRef.current?.x ?? (isMobile ? viewport.w * 0.5 : viewport.w * 0.70);
+    const endY = cachedIndiaTargetCoordsRef.current?.y ?? (isMobile ? viewport.h * 0.65 : viewport.h * 0.52);
+    const endW = cachedIndiaTargetCoordsRef.current?.w ?? (isMobile ? viewport.h * 0.40 * (545 / 615) : 310);
+    const endH = cachedIndiaTargetCoordsRef.current?.h ?? (endW * (615 / 545));
+
+    flyIndiaX = startX + (endX - startX) * ease;
+    flyIndiaY = startY + (endY - startY) * ease;
+    flyIndiaWidth = startW + (endW - startW) * ease;
+    flyIndiaHeight = startH + (endH - startH) * ease;
+
+    // Smoothly tilt from flat (0deg) on Earth to isometric 3D perspective (11deg, -7deg, 1.2deg) in Scene 6
+    flyIndiaTiltX = ease * 11;
+    flyIndiaTiltY = ease * -7;
+    flyIndiaTiltZ = ease * 1.2;
+
+    // Transition color from Instagram Pink (#E1306C) on 3D globe to Dark Slate (#081026) of the vector map
+    // At t = 0: Pink fill matching 2nd screenshot
+    // At t = 1: Dark navy base fill and glowing white/cyan perimeter matching 3rd screenshot
+    if (t < 0.5) {
+      flyIndiaFill = '#E1306C';
+      flyIndiaFillOpacity = 0.88;
+      flyIndiaGlowColor = '#E1306C';
+    } else {
+      const darkRatio = (t - 0.5) / 0.5;
+      flyIndiaFill = darkRatio > 0.4 ? '#081026' : '#6b1c3e';
+      flyIndiaFillOpacity = 0.70 + darkRatio * 0.30;
+      flyIndiaGlowColor = '#ffffff';
+    }
   }
 
   // Chromatic text shadow strings for glitch effects
@@ -1217,7 +1355,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             opacity: scene5Opacity,
             filter: scene5Blur > 0 ? `blur(${scene5Blur}px)` : 'none',
             transform: scene5Blur > 0 ? `scale(${1 + (scene5Blur / 22) * 0.025})` : 'scale(1)',
-            pointerEvents: hasJustDocked ? 'auto' : 'none',
+            pointerEvents: hasJustDocked && scene5Opacity > 0.05 ? 'auto' : 'none',
             transition: 'filter 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
           className="absolute inset-0 z-40 overflow-hidden will-change-[filter,opacity,transform]"
@@ -1227,6 +1365,30 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             externalScrollProgress={scene5ScrollProgress}
             hasJustDocked={hasJustDocked}
             isWhatsAppFlying={isFlying}
+            indiaZoomProgress={indiaZoomProgress}
+            onIndiaScreenPosition={handleIndiaScreenPosition}
+            onScrollToNext={onScrollToNext}
+          />
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* LAYER 6: INDIA USAGE SCENE (SCENE 6 - INDIA SCREEN REALITY) */}
+      {/* Pre-mounted and stable so target vector map position is precisely locked without shifts */}
+      {/* =================================================================== */}
+      {displayProgress >= 0.72 && (
+        <div
+          style={{
+            opacity: scene6Opacity,
+            filter: scene6Blur > 0 ? `blur(${scene6Blur}px)` : 'none',
+            pointerEvents: hasIndiaJustDocked ? 'auto' : 'none',
+          }}
+          className="absolute inset-0 z-45 overflow-hidden will-change-[filter,opacity]"
+        >
+          <IndiaUsageScene
+            isEmbedded={true}
+            externalScrollProgress={scene6ScrollProgress}
+            hasJustDocked={hasIndiaJustDocked}
             onScrollToNext={onScrollToNext}
           />
         </div>
@@ -1268,6 +1430,74 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             />
             {/* Pure SVG WhatsApp Logo */}
             <WhatsAppLogo className="w-full h-full drop-shadow-[0_15px_35px_rgba(0,0,0,0.85)] relative z-10" />
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* FLYING & ZOOMING INDIA MAP SHAPE */}
+      {/* Smoothly zooms along the path from 3D Earth (Screenshot 2) to India vector map (Screenshot 3) */}
+      {/* =================================================================== */}
+      {isIndiaFlying && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${flyIndiaX}px`,
+            top: `${flyIndiaY}px`,
+            width: `${flyIndiaWidth}px`,
+            height: `${flyIndiaHeight}px`,
+            transform: `translate(-50%, -50%) perspective(1100px) rotateX(${flyIndiaTiltX}deg) rotateY(${flyIndiaTiltY}deg) rotateZ(${flyIndiaTiltZ}deg)`,
+            transformStyle: 'preserve-3d',
+            zIndex: 65,
+            pointerEvents: 'none',
+          }}
+          className="will-change-transform"
+        >
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Exact India Outer Border SVG Path Matching Screenshot 2 -> Screenshot 3 */}
+            <svg
+              className="w-full h-full object-contain relative z-10"
+              viewBox="-25 -25 545 615"
+              preserveAspectRatio="xMidYMid meet"
+              fill="none"
+            >
+              <defs>
+                <filter id="flying-india-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor={flyIndiaGlowColor} floodOpacity="0.9" />
+                </filter>
+              </defs>
+
+              {/* India Landmass Body Fill */}
+              <path
+                d={indiaOuterBorder.d}
+                fill={flyIndiaFill}
+                fillOpacity={flyIndiaFillOpacity}
+                stroke="none"
+              />
+
+              {/* Glowing Outer Contour Outline */}
+              <path
+                d={indiaOuterBorder.d}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={2.0}
+                strokeOpacity={flyIndiaStrokeOpacity}
+                filter="url(#flying-india-glow)"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+
+              {/* Secondary crisp inner stroke */}
+              <path
+                d={indiaOuterBorder.d}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={1.2}
+                strokeOpacity={0.9}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
         </div>
       )}

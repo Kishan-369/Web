@@ -157,9 +157,17 @@ export const INDIA_STAGES: PlatformIndiaStage[] = [
 
 interface Props {
   onScrollToNext?: () => void;
+  isEmbedded?: boolean;
+  externalScrollProgress?: number;
+  hasJustDocked?: boolean;
 }
 
-export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
+export const IndiaUsageScene: React.FC<Props> = ({
+  onScrollToNext,
+  isEmbedded = false,
+  externalScrollProgress,
+  hasJustDocked = false,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [manualStageIndex, setManualStageIndex] = useState<number | null>(null);
@@ -169,8 +177,17 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const targetProgressRef = useRef(0);
   const lastStateRef = useRef<{ index: number; step: 'map' | 'image' }>({ index: 0, step: 'map' });
 
-  // Track sticky scroll progress with smooth damping
+  // If externalScrollProgress is passed, drive progress directly from parent
   useEffect(() => {
+    if (externalScrollProgress !== undefined) {
+      setScrollProgress(externalScrollProgress);
+    }
+  }, [externalScrollProgress]);
+
+  // Track sticky scroll progress with smooth damping (when not embedded)
+  useEffect(() => {
+    if (isEmbedded || externalScrollProgress !== undefined) return;
+
     const handleScroll = () => {
       if (!containerRef.current) return;
       const stickyWrapper =
@@ -218,14 +235,14 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       scrollContainer.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, []);
+  }, [isEmbedded, externalScrollProgress]);
 
   // Sequential Platform & Instagram Sub-phase Progression:
-  // Phase 0: WhatsApp (0.00 -> 0.24) - India Map
-  // Phase 1: Facebook (0.24 -> 0.48) - India Map
-  // Phase 2: YouTube  (0.48 -> 0.70) - India Map
-  // Phase 3a: Instagram Step 1: India Map Distribution (0.70 -> 0.85)
-  // Phase 3b: Instagram Step 2: Screen Reality (0.85 -> 1.00) [Uploaded image swoops in and replaces India map]
+  // Phase 0: WhatsApp (0.00 -> 0.22) - India Map
+  // Phase 1: Facebook (0.22 -> 0.44) - India Map
+  // Phase 2: YouTube  (0.44 -> 0.66) - India Map
+  // Phase 3a: Instagram Step 1: India Map Distribution (0.66 -> 0.83)
+  // Phase 3b: Instagram Step 2: Screen Reality (0.83 -> 1.00) [Uploaded image swoops in and replaces India map]
   let rawActiveIndex = 0;
   let rawLocalProgress = 0;
   let rawInstaStep: 'map' | 'image' = 'map';
@@ -235,25 +252,25 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     rawLocalProgress = 0.05;
     rawInstaStep = manualInstaStep || 'map';
   } else {
-    if (scrollProgress < 0.24) {
+    if (scrollProgress < 0.22) {
       rawActiveIndex = 0;
-      rawLocalProgress = scrollProgress / 0.24;
+      rawLocalProgress = scrollProgress / 0.22;
       rawInstaStep = 'map';
-    } else if (scrollProgress < 0.48) {
+    } else if (scrollProgress < 0.44) {
       rawActiveIndex = 1;
-      rawLocalProgress = (scrollProgress - 0.24) / 0.24;
+      rawLocalProgress = (scrollProgress - 0.22) / 0.22;
       rawInstaStep = 'map';
-    } else if (scrollProgress < 0.70) {
+    } else if (scrollProgress < 0.66) {
       rawActiveIndex = 2;
-      rawLocalProgress = (scrollProgress - 0.48) / 0.22;
+      rawLocalProgress = (scrollProgress - 0.44) / 0.22;
       rawInstaStep = 'map';
-    } else if (scrollProgress < 0.85) {
+    } else if (scrollProgress < 0.83) {
       rawActiveIndex = 3;
-      rawLocalProgress = (scrollProgress - 0.70) / 0.15;
+      rawLocalProgress = (scrollProgress - 0.66) / 0.17;
       rawInstaStep = 'map'; // First, the India map distribution is visible!
     } else {
       rawActiveIndex = 3;
-      rawLocalProgress = Math.min(1, (scrollProgress - 0.85) / 0.15);
+      rawLocalProgress = Math.min(1, (scrollProgress - 0.83) / 0.17);
       rawInstaStep = 'image'; // On next scroll, uploaded image replaces India map!
     }
   }
@@ -276,16 +293,16 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     }
   }, [activeIndex, currentInstaStep]);
 
-  // Holding plateau logic
+  // Holding plateau & smooth cross-fade logic between app cards
   let stageOpacity = 1;
   let stageScale = 1;
 
   if (manualStageIndex === null) {
-    if (stageLocalProgress < 0.05 && activeIndex > 0) {
-      stageOpacity = Math.min(1, stageLocalProgress / 0.05);
+    if (stageLocalProgress < 0.10 && activeIndex > 0) {
+      stageOpacity = Math.min(1, stageLocalProgress / 0.10);
       stageScale = 0.98 + stageOpacity * 0.02;
-    } else if (stageLocalProgress > 0.95 && activeIndex < 3) {
-      const fadeOutT = (stageLocalProgress - 0.95) / 0.05;
+    } else if (stageLocalProgress > 0.88 && activeIndex < 3) {
+      const fadeOutT = (stageLocalProgress - 0.88) / 0.12;
       stageOpacity = Math.max(0, 1 - fadeOutT);
       stageScale = 1.0 - fadeOutT * 0.02;
     } else {
@@ -298,23 +315,25 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   const StageLogo = currentStage.logo;
 
   // Natural Scroll-Driven 3D Extrusion & Color Emergence for ALL 4 APPS:
-  // 1. Initial Blank Buffer (stageLocalProgress 0.00 to 0.18):
-  //    ALL 4 apps (WhatsApp, Facebook, YouTube, Instagram) start on an identical 100% BLANK map (ZERO color).
-  // 2. Extrusion & Emergence (0.18 to 0.52):
-  //    As the user scrolls 2-3 times, the platform color illuminates and smoothly extrudes up & out in 3D!
-  // 3. Peak Plateau (0.52 to 0.84):
+  // 1. Initial Blank Buffer (stageLocalProgress 0.00 to 0.20):
+  //    ALL 4 apps start on an identical 100% BLANK map (ZERO color), giving a full extra scroll of peaceful blank state.
+  // 2. Extrusion & Emergence (0.20 to 0.48):
+  //    As the user scrolls, the platform color illuminates and smoothly extrudes up & out in 3D!
+  // 3. Peak Plateau (0.48 to 0.78):
   //    Full 3D extrusion (1.0), glowing perimeter outline, and elevated metro pins.
-  // 4. Clean Recede (0.84 to 0.98):
-  //    Color recedes back into the base map so the next platform begins on a pristine blank slate.
+  // 4. Clean Recede (0.78 to 0.88):
+  //    Color and 3D extrusion gently recede back into the base map.
+  // 5. Inter-Stage Calm Transition Buffer (0.88 to 1.00):
+  //    An extra scroll of calm glide where the base map is flat and dark, and the interface smoothly cross-fades to the next platform!
   let emergenceProgress = 0;
-  if (stageLocalProgress <= 0.18) {
+  if (stageLocalProgress <= 0.20) {
     emergenceProgress = 0;
-  } else if (stageLocalProgress < 0.52) {
-    emergenceProgress = (stageLocalProgress - 0.18) / 0.34;
-  } else if (stageLocalProgress <= 0.84) {
+  } else if (stageLocalProgress < 0.48) {
+    emergenceProgress = (stageLocalProgress - 0.20) / 0.28;
+  } else if (stageLocalProgress <= 0.78) {
     emergenceProgress = 1.0;
-  } else if (stageLocalProgress < 0.98 && (activeIndex < 3 || currentInstaStep === 'map')) {
-    emergenceProgress = Math.max(0, 1.0 - (stageLocalProgress - 0.84) / 0.14);
+  } else if (stageLocalProgress < 0.88 && (activeIndex < 3 || currentInstaStep === 'map')) {
+    emergenceProgress = Math.max(0, 1.0 - (stageLocalProgress - 0.78) / 0.10);
   } else {
     emergenceProgress = activeIndex === 3 && currentInstaStep === 'image' ? 1.0 : 0;
   }
@@ -352,7 +371,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
       const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
       if (scrollableDistance > 0) {
         // Start within the blank buffer zone of each platform stage (100% blank map!)
-        const targetFraction = [0.02, 0.25, 0.49, 0.715][index];
+        const targetFraction = [0.02, 0.23, 0.45, 0.67][index];
         targetProgressRef.current = targetFraction;
         const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
         const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
@@ -373,7 +392,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
     if (stickyWrapper) {
       const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
       if (scrollableDistance > 0) {
-        const targetFraction = step === 'map' ? 0.77 : 0.93;
+        const targetFraction = step === 'map' ? 0.745 : 0.915;
         targetProgressRef.current = targetFraction;
         const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
         const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
@@ -397,7 +416,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
   return (
     <section
       ref={containerRef}
-      className="relative h-screen w-full bg-black text-white flex flex-col justify-between overflow-hidden select-none"
+      className={`relative ${isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black'} w-full text-white flex flex-col justify-between overflow-hidden select-none`}
     >
       {/* =================================================================== */}
       {/* 1. SEAMLESS AMBIENT BACKDROP LIGHTING (NO BORDERS) */}
@@ -738,7 +757,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                   /* WHATSAPP, FB, YOUTUBE, AND INSTAGRAM STEP 1: INDIA MAP (NO STATE BORDERS, ONLY MAIN BORDER HIGHLIGHTED) */
                   <motion.div
                     key={`map-container-${currentStage.id}`}
-                    initial={{ opacity: 0, scale: 0.96 }}
+                    initial={isEmbedded ? false : { opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{
                       opacity: 0,
@@ -778,6 +797,7 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
 
                     {/* Vector India Map with 3D Isometric Tilt & Scroll-Driven Extrusion Pop-Out */}
                     <div
+                      id="india-main-vector-map"
                       className="relative w-full flex-1 flex items-center justify-center min-h-0 p-1 select-none"
                       style={{ perspective: '1100px' }}
                       onMouseMove={handleMapMouseMove}
@@ -788,9 +808,12 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                         style={{
                           transform: `rotateX(${11 + extrudeFactor * 8 + mouseTilt.y}deg) rotateY(${-7 - extrudeFactor * 6 + mouseTilt.x}deg) rotateZ(1.2deg)`,
                           transformStyle: 'preserve-3d',
+                          opacity: isEmbedded && !hasJustDocked ? 0 : 1,
+                          transition: 'opacity 0.2s ease-out',
                         }}
                       >
                         <svg
+                          id="india-svg-vector-element"
                           className="w-full h-full max-h-[400px] object-contain drop-shadow-2xl transition-transform duration-100 ease-out"
                           viewBox="-25 -25 545 615"
                           preserveAspectRatio="xMidYMid meet"
@@ -981,6 +1004,21 @@ export const IndiaUsageScene: React.FC<Props> = ({ onScrollToNext }) => {
                             strokeLinecap="round"
                             pointerEvents="none"
                           />
+
+                          {/* Docking Pulse Ripple when flying 3D globe India map docks */}
+                          {hasJustDocked && (
+                            <motion.path
+                              d={indiaOuterBorder.d}
+                              fill="none"
+                              stroke="#ffffff"
+                              strokeWidth={3}
+                              initial={{ opacity: 1, scale: 0.98 }}
+                              animate={{ opacity: 0, scale: 1.06 }}
+                              transition={{ duration: 0.85, ease: 'easeOut' }}
+                              style={{ transformOrigin: '240px 280px' }}
+                              className="pointer-events-none"
+                            />
+                          )}
 
                           {/* 5. Metro Hubs Floating in 3D with Vertical Laser Ground Anchors */}
                           <g

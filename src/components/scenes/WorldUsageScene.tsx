@@ -226,6 +226,8 @@ interface Props {
   isWhatsAppFlying?: boolean;
   externalScrollProgress?: number;
   isEmbedded?: boolean;
+  indiaZoomProgress?: number;
+  onIndiaScreenPosition?: (pos: { x: number; y: number; size: number }) => void;
 }
 
 export const WorldUsageScene: React.FC<Props> = ({
@@ -234,6 +236,8 @@ export const WorldUsageScene: React.FC<Props> = ({
   isWhatsAppFlying = false,
   externalScrollProgress,
   isEmbedded = false,
+  indiaZoomProgress = 0,
+  onIndiaScreenPosition,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -411,6 +415,8 @@ export const WorldUsageScene: React.FC<Props> = ({
     }
   };
 
+  const uiFadeOpacity = Math.max(0, 1 - (indiaZoomProgress || 0) * 1.6);
+
   return (
     <section
       ref={containerRef}
@@ -425,7 +431,7 @@ export const WorldUsageScene: React.FC<Props> = ({
           className="absolute inset-0 transition-opacity duration-1000 ease-out"
           style={{
             background: `radial-gradient(circle at 65% 50%, ${currentStage.glowColor} 0%, rgba(3, 7, 18, 0.95) 70%, #000000 100%)`,
-            opacity: 0.60,
+            opacity: 0.60 * uiFadeOpacity,
           }}
         />
         {/* Soft edge darkening */}
@@ -436,7 +442,10 @@ export const WorldUsageScene: React.FC<Props> = ({
       {/* =================================================================== */}
       {/* 2. TOP HEADER & INTERACTIVE STEPPER TABS (NO BORDERS) */}
       {/* =================================================================== */}
-      <header className="relative z-20 max-w-6xl mx-auto w-full pt-4 sm:pt-6 px-4 text-center">
+      <header
+        style={{ opacity: uiFadeOpacity }}
+        className="relative z-20 max-w-6xl mx-auto w-full pt-4 sm:pt-6 px-4 text-center transition-opacity duration-200"
+      >
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-sans drop-shadow-md">
           World’s Digital Screen Reality
         </h2>
@@ -505,7 +514,10 @@ export const WorldUsageScene: React.FC<Props> = ({
               className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center"
             >
               {/* LEFT COLUMN: Clean, Focused Data Panel (NO BORDERS) */}
-              <div className="lg:col-span-5 bg-neutral-950/80 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-left border-0">
+              <div
+                style={{ opacity: uiFadeOpacity }}
+                className="lg:col-span-5 bg-neutral-950/80 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-left border-0 transition-opacity duration-200"
+              >
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2">
                   <div className="flex items-center space-x-2.5">
@@ -610,7 +622,10 @@ export const WorldUsageScene: React.FC<Props> = ({
 
               {/* RIGHT COLUMN: 3D Google Earth Globe with Highlighted Countries (NO BORDERS) */}
               <div className="lg:col-span-7 bg-neutral-950/70 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 shadow-2xl flex flex-col justify-between h-[360px] sm:h-[430px] lg:h-[490px] max-h-[60vh] border-0 relative overflow-hidden group">
-                <div className="flex items-center justify-between pb-1 shrink-0 z-10">
+                <div
+                  style={{ opacity: uiFadeOpacity }}
+                  className="flex items-center justify-between pb-1 shrink-0 z-10 transition-opacity duration-200"
+                >
                   <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
                     <Activity className={`w-3.5 h-3.5 ${currentStage.textColor}`} />
                     <span>3D Google Earth • {currentStage.name} Global Penetration</span>
@@ -625,11 +640,16 @@ export const WorldUsageScene: React.FC<Props> = ({
                   <GoogleEarth3DCanvas
                     activeStage={currentStage}
                     scrollProgress={scrollProgress}
+                    indiaZoomProgress={indiaZoomProgress}
+                    onIndiaScreenPosition={onIndiaScreenPosition}
                   />
                 </div>
 
                 {/* Bottom Highlight Summary (No borders) */}
-                <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0 z-10">
+                <div
+                  style={{ opacity: uiFadeOpacity }}
+                  className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 shrink-0 z-10 transition-opacity duration-200"
+                >
                   <span className={`${currentStage.textColor} font-bold`}>High Penetration:</span>
                   <div className="flex items-center space-x-1.5 overflow-x-auto text-[9px]">
                     {currentStage.highlightedCountryNames.slice(0, 6).map((c, i) => (

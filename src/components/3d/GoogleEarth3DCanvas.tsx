@@ -7,6 +7,8 @@ interface GoogleEarth3DCanvasProps {
   activeStage: PlatformStage;
   scrollProgress: number;
   className?: string;
+  indiaZoomProgress?: number;
+  onIndiaScreenPosition?: (pos: { x: number; y: number; size: number }) => void;
 }
 
 // Convert 1000x500 equirectangular map coords to 3D Cartesian coords on a sphere of radius R
@@ -30,6 +32,8 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
   activeStage,
   scrollProgress,
   className = '',
+  indiaZoomProgress = 0,
+  onIndiaScreenPosition,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -37,6 +41,8 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
   // References to keep render loop in sync without recreating Three.js scene
   const stageRef = useRef(activeStage);
   const scrollProgressRef = useRef(scrollProgress);
+  const indiaZoomProgressRef = useRef(indiaZoomProgress);
+  const onIndiaScreenPositionRef = useRef(onIndiaScreenPosition);
   const currentThemeColorRef = useRef(new THREE.Color(activeStage.mapColor));
   const targetThemeColorRef = useRef(new THREE.Color(activeStage.mapColor));
 
@@ -57,6 +63,11 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
   useEffect(() => {
     scrollProgressRef.current = scrollProgress;
   }, [scrollProgress]);
+
+  useEffect(() => {
+    indiaZoomProgressRef.current = indiaZoomProgress;
+    onIndiaScreenPositionRef.current = onIndiaScreenPosition;
+  }, [indiaZoomProgress, onIndiaScreenPosition]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -290,6 +301,9 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
     const dynamicObjectsGroup = new THREE.Group();
     globeGroup.add(dynamicObjectsGroup);
 
+    // Coordinate point of India on the 3D globe for live screen tracking
+    const indiaGeoPos = mapXYToVector3(718, 215, GLOBE_RADIUS);
+
     interface PulseParticle {
       curve: THREE.QuadraticBezierCurve3;
       mesh: THREE.Mesh;
@@ -487,18 +501,45 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
       // A) Scroll-driven rotation (smoothly turns across the globe as user scrolls)
       const scrollRot = scrollProgressRef.current * Math.PI * 2.8;
 
-      // B) Gentle ambient Earth rotation when idle
+      // B) Gentle ambient Earth rotation when idle (paused when zooming into India)
+      const zoomP = Math.max(0, Math.min(1, indiaZoomProgressRef.current));
+      const zoomEase = zoomP < 0.5 ? 4 * zoomP * zoomP * zoomP : 1 - Math.pow(-2 * zoomP + 2, 3) / 2;
+
       if (!isDragging) {
         dragVelocityX *= 0.93;
         dragVelocityY *= 0.93;
         manualRotY += dragVelocityX;
         manualRotX += dragVelocityY;
-        idleRotationTimer += 0.0016;
+        // Keep idle rotation active only when not zooming into India, preventing position wobble
+        if (zoomP <= 0.01) {
+          idleRotationTimer += 0.0016;
+        }
       }
 
-      // Apply combined rotation to globe
-      globeGroup.rotation.y = -(scrollRot + manualRotY + idleRotationTimer);
-      globeGroup.rotation.x = 0.18 + manualRotX;
+      const rawRotY = -(scrollRot + manualRotY + idleRotationTimer);
+      const rawRotX = 0.18 + manualRotX;
+
+      // Keep natural rotation of the globe without any left/right sideways swing
+      globeGroup.rotation.y = rawRotY;
+      globeGroup.rotation.x = rawRotX;
+
+      // Globe camera remains steady at natural Google Earth view (no Earth zooming forward into user)
+      camera.position.z = 11.2;
+      camera.position.y = 0;
+
+      // Track India's live 2D screen coordinates on the 3D Google Earth globe
+      if (onIndiaScreenPositionRef.current && camera && container) {
+        const wp = indiaGeoPos.clone();
+        globeGroup.localToWorld(wp);
+        wp.project(camera);
+        const rect = container.getBoundingClientRect();
+        const screenX = (wp.x * 0.5 + 0.5) * rect.width + rect.left;
+        const screenY = (-(wp.y * 0.5) + 0.5) * rect.height + rect.top;
+        const dist = camera.position.distanceTo(indiaGeoPos.clone().applyMatrix4(globeGroup.matrixWorld));
+        const baseSize = (rect.height * 0.18) * (11.2 / Math.max(0.2, dist));
+        const screenIndiaSize = Math.max(36, Math.min(110, baseSize));
+        onIndiaScreenPositionRef.current({ x: screenX, y: screenY, size: screenIndiaSize });
+      }
 
       // Rotate cloud layer slightly independently for realistic atmospheric parallax
       cloudMesh.rotation.y += 0.0006;
