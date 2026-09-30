@@ -59,13 +59,6 @@ export default function App() {
     }
   };
 
-  const scrollToDriverStage = (driverIndex: number) => {
-    const el = document.getElementById(`scene-8-driver-${driverIndex + 1}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const toggleSound = () => {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
@@ -163,59 +156,18 @@ export default function App() {
           </div>
         </div>
 
-        {/* Scene 8: Behavioral Definition (4 Progressive Driver Stages) */}
-        {/* Driver 1: Compulsion to Refresh */}
+        {/* Scene 8: Behavioral Definition (What is Social Media Addiction? - 4 Progressive Drivers) */}
         <div
           ref={(el) => (sceneRefs.current[7] = el)}
-          id="scene-8-driver-1"
           data-scene-id="8"
-          className="h-screen w-full snap-start snap-always relative overflow-hidden"
+          className="h-[450vh] w-full snap-start relative sticky-scene-container"
         >
-          <DefinitionScene
-            activeDriverIndex={0}
-            onSelectDriver={(idx) => scrollToDriverStage(idx)}
-            onScrollToNext={() => scrollToScene(9)}
-            onScrollToPrev={() => scrollToScene(7)}
-          />
-        </div>
-
-        {/* Driver 2: Receptor Burnout & Tolerance */}
-        <div
-          id="scene-8-driver-2"
-          className="h-screen w-full snap-start snap-always relative overflow-hidden"
-        >
-          <DefinitionScene
-            activeDriverIndex={1}
-            onSelectDriver={(idx) => scrollToDriverStage(idx)}
-            onScrollToNext={() => scrollToScene(9)}
-            onScrollToPrev={() => scrollToScene(7)}
-          />
-        </div>
-
-        {/* Driver 3: Phantom Vibrations */}
-        <div
-          id="scene-8-driver-3"
-          className="h-screen w-full snap-start snap-always relative overflow-hidden"
-        >
-          <DefinitionScene
-            activeDriverIndex={2}
-            onSelectDriver={(idx) => scrollToDriverStage(idx)}
-            onScrollToNext={() => scrollToScene(9)}
-            onScrollToPrev={() => scrollToScene(7)}
-          />
-        </div>
-
-        {/* Driver 4: Separation Distress & Cortisol */}
-        <div
-          id="scene-8-driver-4"
-          className="h-screen w-full snap-start snap-always relative overflow-hidden"
-        >
-          <DefinitionScene
-            activeDriverIndex={3}
-            onSelectDriver={(idx) => scrollToDriverStage(idx)}
-            onScrollToNext={() => scrollToScene(9)}
-            onScrollToPrev={() => scrollToScene(7)}
-          />
+          <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <DefinitionScene
+              onScrollToNext={() => scrollToScene(9)}
+              onScrollToPrev={() => scrollToScene(7)}
+            />
+          </div>
         </div>
 
         {/* Scene 9: Healthy Balance vs. Digital Chaos */}

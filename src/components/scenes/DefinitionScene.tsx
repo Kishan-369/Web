@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { soundEngine } from '../../utils/soundEngine';
 import {
@@ -19,8 +19,6 @@ import {
 } from 'lucide-react';
 
 interface Props {
-  activeDriverIndex: number;
-  onSelectDriver: (idx: number) => void;
   onScrollToNext?: () => void;
   onScrollToPrev?: () => void;
 }
@@ -37,6 +35,7 @@ interface DriverInfo {
   glowColor: string;
   borderColor: string;
   textColor: string;
+  accentGradient: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -53,6 +52,7 @@ const DRIVERS: DriverInfo[] = [
     glowColor: 'rgba(239, 68, 68, 0.45)',
     borderColor: 'border-red-500/70',
     textColor: 'text-red-400',
+    accentGradient: 'from-red-600 via-orange-600 to-amber-600',
     icon: Zap,
   },
   {
@@ -67,6 +67,7 @@ const DRIVERS: DriverInfo[] = [
     glowColor: 'rgba(168, 85, 247, 0.45)',
     borderColor: 'border-purple-500/70',
     textColor: 'text-purple-400',
+    accentGradient: 'from-purple-600 via-indigo-600 to-violet-600',
     icon: Cpu,
   },
   {
@@ -81,6 +82,7 @@ const DRIVERS: DriverInfo[] = [
     glowColor: 'rgba(6, 182, 212, 0.45)',
     borderColor: 'border-cyan-500/70',
     textColor: 'text-cyan-400',
+    accentGradient: 'from-cyan-600 via-teal-600 to-blue-600',
     icon: AlertCircle,
   },
   {
@@ -95,17 +97,22 @@ const DRIVERS: DriverInfo[] = [
     glowColor: 'rgba(244, 63, 94, 0.45)',
     borderColor: 'border-rose-500/70',
     textColor: 'text-rose-400',
+    accentGradient: 'from-rose-600 via-red-600 to-amber-600',
     icon: ShieldAlert,
   },
 ];
 
-export const DefinitionScene: React.FC<Props> = ({
-  activeDriverIndex,
-  onSelectDriver,
-  onScrollToNext,
-  onScrollToPrev,
-}) => {
+export const DefinitionScene: React.FC<Props> = ({ onScrollToNext, onScrollToPrev }) => {
+  const containerRef = useRef<HTMLElement>(null);
+  const [activeDriverIndex, setActiveDriverIndex] = useState<number>(0);
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [manualMode, setManualMode] = useState<boolean>(false);
   const [isTransitioningNext, setIsTransitioningNext] = useState<boolean>(false);
+
+  const displayProgressRef = useRef<number>(0);
+  const targetProgressRef = useRef<number>(0);
+  const lastDriverIndexRef = useRef<number>(0);
+  const hasTriggeredNextRef = useRef<boolean>(false);
 
   // --- Interactive Lab 1: Pull to Refresh ---
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -135,10 +142,112 @@ export const DefinitionScene: React.FC<Props> = ({
     return () => clearInterval(interval);
   }, [isQuarantined]);
 
+  // Track scroll inside the sticky scene container (same architecture as Scene 6 & 7)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      const stickyWrapper =
+        containerRef.current.closest('.sticky-scene-container') ||
+        containerRef.current.parentElement;
+      const target = stickyWrapper || containerRef.current;
+      const rect = target.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const scrollableDistance = rect.height - windowHeight;
+
+      if (scrollableDistance > 0) {
+        const raw = Math.max(0, Math.min(1, -rect.top / scrollableDistance));
+        targetProgressRef.current = raw;
+      } else {
+        targetProgressRef.current = 0;
+      }
+    };
+
+    const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    handleScroll();
+
+    let animId: number;
+    const animate = () => {
+      const current = displayProgressRef.current;
+      const target = targetProgressRef.current;
+      const diff = target - current;
+
+      if (Math.abs(diff) > 0.0001) {
+        const next = current + diff * 0.2;
+        displayProgressRef.current = next;
+        setScrollProgress(next);
+      } else if (current !== target) {
+        displayProgressRef.current = target;
+        setScrollProgress(target);
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+    animId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
+  // Map scroll progress to the 4 drivers effortlessly
+  useEffect(() => {
+    if (manualMode) return;
+
+    // Distribute 4 drivers across 0.0 to 0.95
+    const driverIdx = Math.min(
+      DRIVERS.length - 1,
+      Math.floor(scrollProgress * DRIVERS.length)
+    );
+
+    if (driverIdx !== lastDriverIndexRef.current) {
+      lastDriverIndexRef.current = driverIdx;
+      setActiveDriverIndex(driverIdx);
+      soundEngine.playClickTone();
+    }
+
+    // Guarded transition to Scene 9 when reaching the very end of Scene 8
+    if (scrollProgress < 0.92) {
+      hasTriggeredNextRef.current = false;
+    } else if (scrollProgress >= 0.985 && !hasTriggeredNextRef.current && !isTransitioningNext) {
+      hasTriggeredNextRef.current = true;
+      handleTriggerNextScene();
+    }
+  }, [scrollProgress, manualMode, isTransitioningNext]);
+
+  const scrollToDriver = (idx: number) => {
+    setManualMode(true);
+    setActiveDriverIndex(idx);
+    lastDriverIndexRef.current = idx;
+    soundEngine.playClickTone();
+
+    const targetFrac = (idx + 0.5) / DRIVERS.length;
+    displayProgressRef.current = targetFrac;
+    targetProgressRef.current = targetFrac;
+    setScrollProgress(targetFrac);
+
+    const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
+    if (stickyWrapper) {
+      const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
+      if (scrollableDistance > 0) {
+        const targetScrollTop = stickyWrapper.offsetTop + targetFrac * scrollableDistance;
+        const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
+        scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+      }
+    }
+
+    setTimeout(() => {
+      setManualMode(false);
+    }, 600);
+  };
+
   const handlePrev = () => {
     soundEngine.playClickTone();
     if (activeDriverIndex > 0) {
-      onSelectDriver(activeDriverIndex - 1);
+      scrollToDriver(activeDriverIndex - 1);
     } else {
       onScrollToPrev?.();
     }
@@ -147,21 +256,22 @@ export const DefinitionScene: React.FC<Props> = ({
   const handleNext = () => {
     soundEngine.playClickTone();
     if (activeDriverIndex < DRIVERS.length - 1) {
-      onSelectDriver(activeDriverIndex + 1);
+      scrollToDriver(activeDriverIndex + 1);
     } else {
       handleTriggerNextScene();
     }
   };
 
   const handleTriggerNextScene = () => {
+    if (isTransitioningNext) return;
     soundEngine.playSubBassImpact();
     setIsTransitioningNext(true);
     setTimeout(() => {
       onScrollToNext?.();
       setTimeout(() => {
         setIsTransitioningNext(false);
-      }, 400);
-    }, 600);
+      }, 700);
+    }, 450);
   };
 
   const handlePullFeed = () => {
@@ -180,14 +290,14 @@ export const DefinitionScene: React.FC<Props> = ({
     setTimeout(() => {
       setFeedNotification(rewards[Math.floor(Math.random() * rewards.length)]);
       setIsRefreshing(false);
-    }, 600);
+    }, 550);
   };
 
   const handleTriggerVibrate = () => {
     if (isVibrating) return;
     soundEngine.playNotificationPing();
     setIsVibrating(true);
-    setTimeout(() => setIsVibrating(false), 1000);
+    setTimeout(() => setIsVibrating(false), 900);
   };
 
   const current = DRIVERS[activeDriverIndex] || DRIVERS[0];
@@ -197,18 +307,21 @@ export const DefinitionScene: React.FC<Props> = ({
   const cortisolLevel = Math.min(50, Math.round(12 + quarantineSeconds * 2.5));
 
   return (
-    <section className="h-screen w-full text-white relative flex flex-col justify-between py-3 px-4 sm:px-8 select-none bg-neutral-950 overflow-hidden">
+    <section
+      ref={containerRef}
+      className="h-screen w-full text-white relative flex flex-col justify-between py-3 px-4 sm:px-8 select-none bg-neutral-950 overflow-hidden"
+    >
       {/* Dynamic Ambient Background Glow */}
       <div
         className="absolute inset-0 transition-all duration-700 ease-out pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 35%, ${current.glowColor} 0%, rgba(6, 3, 5, 0.98) 70%)`,
+          background: `radial-gradient(circle at 50% 35%, ${current.glowColor} 0%, rgba(6, 3, 5, 0.98) 72%)`,
           opacity: 0.95,
         }}
       />
 
       {/* =================================================================== */}
-      {/* 1. TOP HEADER & DRIVER STEPS (INACTIVE ARE SOFTLY BLURRED)           */}
+      {/* 1. TOP HEADER & DRIVER STEPS (ACTIVE CRISP, REST BLURRED)           */}
       {/* =================================================================== */}
       <header className="relative z-20 max-w-5xl mx-auto w-full flex flex-col space-y-2">
         <div className="flex items-center justify-between w-full">
@@ -221,17 +334,20 @@ export const DefinitionScene: React.FC<Props> = ({
             </span>
           </div>
 
-          <div className="text-xs font-mono text-neutral-400">
-            Driver {activeDriverIndex + 1} of {DRIVERS.length}
+          <div className="flex items-center space-x-2 text-xs font-mono text-neutral-400">
+            <span>Scroll or click to advance</span>
+            <span className="text-neutral-600">•</span>
+            <span className="text-red-400 font-bold">
+              0{activeDriverIndex + 1} / 0{DRIVERS.length}
+            </span>
           </div>
         </div>
 
-        {/* DRIVER STEPS BAR: Inactive drivers are blurred, active is highlighted */}
+        {/* DRIVER STEPS BAR: Inactive drivers are softly blurred, active is crisp & glowing */}
         <div className="flex items-center justify-between gap-1.5 sm:gap-2">
           <button
             onClick={handlePrev}
-            disabled={activeDriverIndex === 0 && !onScrollToPrev}
-            className="p-1.5 rounded-xl bg-neutral-900 border border-white/10 text-white disabled:opacity-20 disabled:pointer-events-none hover:bg-neutral-800 transition-all cursor-pointer shrink-0"
+            className="p-1.5 rounded-xl bg-neutral-900 border border-white/10 text-white hover:bg-neutral-800 transition-all cursor-pointer shrink-0"
             title="Previous Driver"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -245,10 +361,7 @@ export const DefinitionScene: React.FC<Props> = ({
               return (
                 <button
                   key={d.id}
-                  onClick={() => {
-                    soundEngine.playClickTone();
-                    onSelectDriver(idx);
-                  }}
+                  onClick={() => scrollToDriver(idx)}
                   className={`p-2 sm:p-2.5 rounded-2xl border text-left cursor-pointer transition-all duration-300 relative ${
                     isSelected
                       ? `bg-neutral-900/95 ${d.borderColor} shadow-[0_0_25px_${d.glowColor}] ring-2 ring-red-500/70 scale-105 opacity-100 blur-none z-10 font-bold`
@@ -286,9 +399,9 @@ export const DefinitionScene: React.FC<Props> = ({
         <AnimatePresence mode="wait">
           <motion.div
             key={current.id}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
             className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center"
           >
@@ -359,193 +472,148 @@ export const DefinitionScene: React.FC<Props> = ({
                     disabled={isRefreshing}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs font-mono uppercase tracking-wider shadow-lg hover:scale-102 active:scale-95 transition-all cursor-pointer flex items-center justify-center space-x-2"
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    <span>Pull Down to Refresh Feed</span>
+                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>Pull Down to Check Feed</span>
                   </button>
                 </div>
               )}
 
-              {/* LAB 2: TOLERANCE SLIDER */}
+              {/* LAB 2: RECEPTOR BURNOUT SLIDER */}
               {activeDriverIndex === 1 && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-xs font-mono border-b border-white/10 pb-2">
                     <span className="text-purple-400 font-bold flex items-center space-x-1.5">
                       <Sliders className="w-3.5 h-3.5" />
-                      <span>DOPAMINE RECEPTOR SENSITIVITY</span>
+                      <span>DOPAMINE BURNOUT SIMULATOR</span>
                     </span>
-                    <span className="text-white font-bold">{screenTime} Hours / Day</span>
+                    <span className="text-neutral-400">{screenTime} hrs/day screen</span>
                   </div>
 
-                  {/* Slider */}
-                  <div className="space-y-1 bg-neutral-950 p-3 rounded-2xl border border-white/10">
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={screenTime}
-                      onChange={(e) => {
-                        soundEngine.playClickTone();
-                        setScreenTime(Number(e.target.value));
-                      }}
-                      className="w-full accent-purple-500 cursor-pointer h-2 bg-neutral-800 rounded-lg"
-                    />
-                    <div className="flex justify-between text-[10px] font-mono text-neutral-500 pt-1">
-                      <span>1h (Sharp mind)</span>
-                      <span>5h (Average)</span>
-                      <span>10h (Anhedonia)</span>
-                    </div>
-                  </div>
-
-                  {/* Visual 24 Dots */}
-                  <div className="p-3 bg-neutral-950 rounded-2xl border border-white/10 space-y-2">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span className="text-neutral-400">Active D2 Receptors:</span>
-                      <span
-                        className={`font-black ${
-                          sensitivityPct > 55
-                            ? 'text-emerald-400'
-                            : sensitivityPct > 35
-                            ? 'text-amber-400'
-                            : 'text-rose-500'
-                        }`}
-                      >
-                        {sensitivityPct}%
+                  <div className="p-4 rounded-2xl bg-neutral-950 border border-white/10 space-y-3">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-neutral-400">D2 Receptor Sensitivity</span>
+                      <span className={`font-bold ${sensitivityPct > 50 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {sensitivityPct}% Remaining
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-8 gap-1.5 p-2 bg-black/60 rounded-xl">
-                      {Array.from({ length: 24 }).map((_, i) => {
-                        const threshold = (i / 24) * 100;
-                        const isAlive = sensitivityPct > threshold;
-                        return (
-                          <div
-                            key={i}
-                            className={`h-3.5 rounded-sm transition-all duration-300 ${
-                              isAlive
-                                ? 'bg-gradient-to-t from-purple-600 to-pink-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]'
-                                : 'bg-neutral-800/40 opacity-20'
-                            }`}
-                          />
-                        );
-                      })}
+                    {/* Sensitivity Gauge Bar */}
+                    <div className="w-full h-3 bg-neutral-800 rounded-full overflow-hidden p-0.5">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          sensitivityPct > 50
+                            ? 'bg-gradient-to-r from-emerald-500 to-purple-500'
+                            : 'bg-gradient-to-r from-amber-500 to-red-500'
+                        }`}
+                        style={{ width: `${sensitivityPct}%` }}
+                      />
                     </div>
 
-                    <div className="text-[11px] font-mono text-neutral-400 text-center">
-                      {screenTime <= 3
-                        ? '🟢 Normal tasks & books feel rewarding.'
-                        : screenTime <= 6
-                        ? '🟡 Mild numbness. Real life feels slow.'
-                        : '🔴 Severe burnout. Only short reels stimulate.'}
+                    <div className="text-[11px] font-mono text-neutral-400 pt-1 flex justify-between">
+                      <span>Real-life stimulation:</span>
+                      <span className="text-white font-bold">
+                        {screenTime > 6 ? 'Agonizingly dull & flat' : 'Healthy engagement'}
+                      </span>
                     </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-mono text-neutral-400">
+                      <span>Slide Daily Screen Time</span>
+                      <span className="text-purple-400 font-bold">{screenTime} Hours</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={12}
+                      value={screenTime}
+                      onChange={(e) => setScreenTime(Number(e.target.value))}
+                      className="w-full accent-purple-500 cursor-pointer h-2 bg-neutral-800 rounded-lg"
+                    />
                   </div>
                 </div>
               )}
 
-              {/* LAB 3: PHANTOM VIBRATION */}
+              {/* LAB 3: PHANTOM VIBRATIONS */}
               {activeDriverIndex === 2 && (
                 <div className="space-y-4 text-center">
                   <div className="flex justify-between items-center text-xs font-mono border-b border-white/10 pb-2">
                     <span className="text-cyan-400 font-bold flex items-center space-x-1.5">
-                      <Activity className="w-3.5 h-3.5" />
-                      <span>TACTILE RADAR TEST</span>
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>PHANTOM HAPTIC GENERATOR</span>
                     </span>
                     <span className="text-neutral-400">89% experience this</span>
                   </div>
 
-                  <div
-                    className={`p-4 rounded-2xl border transition-all duration-300 ${
-                      isVibrating
-                        ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_25px_rgba(6,182,212,0.5)] scale-102'
-                        : 'border-white/10 bg-neutral-950'
-                    }`}
-                  >
+                  <div className="p-4 rounded-2xl bg-neutral-950 border border-white/10 space-y-3">
                     <motion.div
-                      animate={isVibrating ? { x: [-4, 4, -3, 3, 0] } : {}}
-                      transition={{ duration: 0.3, repeat: 3 }}
-                      className="py-2 space-y-1.5"
+                      animate={isVibrating ? { x: [-3, 3, -3, 3, 0], scale: [1, 1.05, 1] } : {}}
+                      transition={{ duration: 0.2, repeat: isVibrating ? 3 : 0 }}
+                      className="w-14 h-14 rounded-2xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center mx-auto text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-300">
-                        <Activity className={`w-5 h-5 ${isVibrating ? 'animate-bounce' : ''}`} />
-                      </div>
-                      <div className="text-xs font-mono font-bold text-white">
-                        {isVibrating ? '⚡ [PHANTOM BUZZ FIRED]' : 'Pocket Sensor Idle'}
-                      </div>
+                      <Activity className={`w-6 h-6 ${isVibrating ? 'animate-pulse' : ''}`} />
                     </motion.div>
 
+                    <div className="text-sm font-mono text-white font-semibold">
+                      {isVibrating ? (
+                        <span className="text-cyan-400 animate-pulse">⚡ Ghost Pulse in Leg Tissue...</span>
+                      ) : (
+                        'Tap below to simulate phantom pulse'
+                      )}
+                    </div>
+
+                    <div className="text-[11px] font-mono text-neutral-400">
+                      Cortex hyper-vigilance converts pocket friction into social alert
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
                     <button
                       onClick={handleTriggerVibrate}
                       disabled={isVibrating}
-                      className="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-wider transition-all cursor-pointer"
+                      className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-wider shadow-lg transition-all cursor-pointer flex items-center justify-center space-x-2"
                     >
-                      Trigger Pocket Vibration
+                      <Activity className="w-4 h-4" />
+                      <span>Trigger Ghost Vibration</span>
                     </button>
-                  </div>
 
-                  {/* 2-Option Poll */}
-                  <div className="p-2.5 rounded-xl bg-neutral-950 border border-white/10 flex items-center justify-between gap-2 text-xs font-mono">
-                    <span className="text-neutral-300 text-[11px] truncate">Felt ghost vibration?</span>
-                    <div className="flex gap-1.5 shrink-0">
-                      <button
-                        onClick={() => {
-                          soundEngine.playNotificationPing();
-                          setSurveyAnswer('yes');
-                        }}
-                        className={`px-3 py-1 rounded-lg border transition-all cursor-pointer ${
-                          surveyAnswer === 'yes'
-                            ? 'bg-cyan-950 border-cyan-400 text-cyan-300 font-bold'
-                            : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
-                        }`}
-                      >
-                        Yes (89%)
-                      </button>
-                      <button
-                        onClick={() => {
-                          soundEngine.playClickTone();
-                          setSurveyAnswer('no');
-                        }}
-                        className={`px-3 py-1 rounded-lg border transition-all cursor-pointer ${
-                          surveyAnswer === 'no'
-                            ? 'bg-neutral-800 border-white/30 text-white font-bold'
-                            : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
-                        }`}
-                      >
-                        No (11%)
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setSurveyAnswer(surveyAnswer === 'yes' ? null : 'yes')}
+                      className={`px-3 py-2.5 rounded-xl border text-xs font-mono font-bold transition-all cursor-pointer ${
+                        surveyAnswer === 'yes'
+                          ? 'bg-cyan-500 border-cyan-400 text-black font-black'
+                          : 'bg-neutral-800 border-white/10 text-neutral-300 hover:text-white'
+                      }`}
+                      title="I feel this regularly"
+                    >
+                      {surveyAnswer === 'yes' ? '✓ I feel this' : 'I feel this too'}
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* LAB 4: QUARANTINE VAULT */}
+              {/* LAB 4: SEPARATION DISTRESS */}
               {activeDriverIndex === 3 && (
-                <div className="space-y-4 text-center">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center text-xs font-mono border-b border-white/10 pb-2">
                     <span className="text-rose-400 font-bold flex items-center space-x-1.5">
                       <ShieldAlert className="w-3.5 h-3.5" />
-                      <span>PHONE QUARANTINE SIMULATOR</span>
+                      <span>SEPARATION CORTISOL CHAMBER</span>
                     </span>
-                    <span className="text-neutral-400">
-                      {isQuarantined ? `T+ ${quarantineSeconds}m` : 'Unlocked'}
-                    </span>
+                    <span className="text-neutral-400">15 min without phone</span>
                   </div>
 
-                  <div className="p-4 bg-neutral-950 rounded-2xl border border-white/10 space-y-3 text-left">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span className="text-neutral-400">Cortisol Level:</span>
-                      <span
-                        className={`font-black ${
-                          cortisolLevel > 35 ? 'text-red-500 animate-pulse' : 'text-amber-400'
-                        }`}
-                      >
-                        {cortisolLevel} ng/mL
-                      </span>
+                  <div className="p-4 rounded-2xl bg-neutral-950 border border-white/10 space-y-3">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-neutral-400">Cortisol Stress Spike</span>
+                      <span className="text-rose-400 font-bold">+{cortisolLevel}% over baseline</span>
                     </div>
 
-                    <div className="w-full h-2.5 bg-neutral-800 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 transition-all duration-300"
-                        style={{ width: `${(cortisolLevel / 50) * 100}%` }}
+                    {/* Stress Level Bar */}
+                    <div className="w-full h-3 bg-neutral-800 rounded-full overflow-hidden p-0.5">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-amber-500 via-red-500 to-rose-600 transition-all duration-300"
+                        style={{ width: `${Math.min(100, cortisolLevel * 2)}%` }}
                       />
                     </div>
 
@@ -593,8 +661,7 @@ export const DefinitionScene: React.FC<Props> = ({
       <footer className="relative z-20 max-w-5xl mx-auto w-full flex items-center justify-between border-t border-white/10 pt-2 text-xs font-mono">
         <button
           onClick={handlePrev}
-          disabled={activeDriverIndex === 0 && !onScrollToPrev}
-          className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer"
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white transition-all cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>{activeDriverIndex === 0 ? 'Instagram Evolution' : 'Previous Driver'}</span>
@@ -604,10 +671,7 @@ export const DefinitionScene: React.FC<Props> = ({
           {DRIVERS.map((_, i) => (
             <button
               key={i}
-              onClick={() => {
-                soundEngine.playClickTone();
-                onSelectDriver(i);
-              }}
+              onClick={() => scrollToDriver(i)}
               className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
                 activeDriverIndex === i
                   ? 'bg-red-500 scale-125 shadow-[0_0_8px_rgba(239,68,68,0.8)]'

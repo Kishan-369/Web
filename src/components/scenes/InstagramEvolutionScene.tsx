@@ -451,6 +451,7 @@ export const InstagramEvolutionScene: React.FC<Props> = ({ onScrollToNext }) => 
 
   // Next scene transition state & moment
   const [isTransitioningToNext, setIsTransitioningToNext] = useState<boolean>(false);
+  const hasTriggeredNextRef = useRef<boolean>(false);
 
   const displayProgressRef = useRef(0);
   const targetProgressRef = useRef(0);
@@ -547,7 +548,10 @@ export const InstagramEvolutionScene: React.FC<Props> = ({ onScrollToNext }) => 
     }
 
     // When scrolling reaches the very end of Scene 7 (> 0.985), trigger cinematic transition to Scene 8
-    if (scrollProgress >= 0.985 && !isTransitioningToNext) {
+    if (scrollProgress < 0.92) {
+      hasTriggeredNextRef.current = false;
+    } else if (scrollProgress >= 0.985 && !hasTriggeredNextRef.current && !isTransitioningToNext) {
+      hasTriggeredNextRef.current = true;
       handleProceedToNextScene();
     }
   }, [scrollProgress, manualMode, isTransitioningToNext]);
@@ -560,8 +564,8 @@ export const InstagramEvolutionScene: React.FC<Props> = ({ onScrollToNext }) => 
       onScrollToNext?.();
       setTimeout(() => {
         setIsTransitioningToNext(false);
-      }, 500);
-    }, 650);
+      }, 700);
+    }, 450);
   };
 
   const scrollToTargetProgress = (targetFrac: number) => {
