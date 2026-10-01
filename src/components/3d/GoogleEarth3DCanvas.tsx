@@ -46,6 +46,20 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
   const currentThemeColorRef = useRef(new THREE.Color(activeStage.mapColor));
   const targetThemeColorRef = useRef(new THREE.Color(activeStage.mapColor));
 
+  // Targeted rotation angles for each platform to smoothly face key territories
+  // WhatsApp: India/Middle East (0)
+  // Facebook: Americas/Atlantic (-2.3)
+  // YouTube: Asia/Pacific (-0.9)
+  // Instagram: Europe/Middle East/India (-1.6)
+  const STAGE_ROTATION_TARGETS: Record<string, number> = {
+    whatsapp: 0,
+    facebook: -2.3,
+    youtube: -0.9,
+    instagram: -1.6,
+  };
+  const stageTargetRotYRef = useRef(STAGE_ROTATION_TARGETS[activeStage.id] ?? 0);
+  const stageCurrentRotYRef = useRef(STAGE_ROTATION_TARGETS[activeStage.id] ?? 0);
+
   // Pre-parse Path2D objects once for high performance
   const countryPathObjects = useMemo(() => {
     return (worldMapCountries as Array<{ name: string; d: string }>).map((c) => ({
@@ -58,6 +72,7 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
   useEffect(() => {
     stageRef.current = activeStage;
     targetThemeColorRef.current.set(activeStage.mapColor);
+    stageTargetRotYRef.current = STAGE_ROTATION_TARGETS[activeStage.id] ?? 0;
   }, [activeStage]);
 
   useEffect(() => {
@@ -510,13 +525,15 @@ export const GoogleEarth3DCanvas: React.FC<GoogleEarth3DCanvasProps> = ({
         dragVelocityY *= 0.93;
         manualRotY += dragVelocityX;
         manualRotX += dragVelocityY;
+        // Smoothly interpolate stage target rotation for instant animated feedback on button click
+        stageCurrentRotYRef.current += (stageTargetRotYRef.current - stageCurrentRotYRef.current) * 0.055;
         // Keep idle rotation active only when not zooming into India, preventing position wobble
         if (zoomP <= 0.01) {
           idleRotationTimer += 0.0016;
         }
       }
 
-      const rawRotY = -(scrollRot + manualRotY + idleRotationTimer);
+      const rawRotY = -(scrollRot + manualRotY + idleRotationTimer) + stageCurrentRotYRef.current;
       const rawRotX = 0.18 + manualRotX;
 
       // Keep natural rotation of the globe without any left/right sideways swing

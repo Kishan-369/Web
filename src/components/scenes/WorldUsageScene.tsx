@@ -386,32 +386,31 @@ export const WorldUsageScene: React.FC<Props> = ({
     }
   }
 
+  const lastScrollProgressRef = useRef(scrollProgress);
+  useEffect(() => {
+    if (manualStageIndex !== null && Math.abs(scrollProgress - lastScrollProgressRef.current) > 0.04) {
+      setManualStageIndex(null);
+    }
+    lastScrollProgressRef.current = scrollProgress;
+  }, [scrollProgress, manualStageIndex]);
+
   const currentStage = WORLD_STAGES[activeIndex];
   const StageLogo = currentStage.logo;
 
-  const handleSelectStage = (index: number) => {
+  const handleSelectStage = (index: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     soundEngine.playClickTone();
     setManualStageIndex(index);
-
-    const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
-    if (stickyWrapper) {
-      const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
-      if (scrollableDistance > 0) {
-        const targetFraction = [0.10, 0.35, 0.60, 0.85][index];
-        targetProgressRef.current = targetFraction;
-        const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
-        const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
-        scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-      }
-    }
+    // Stays entirely in-slide: only platform visuals and 3D globe animation change
   };
 
-  const handleNextStage = () => {
+  const handleNextStage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (activeIndex < 3) {
-      handleSelectStage(activeIndex + 1);
-    } else if (onScrollToNext) {
-      soundEngine.playSubBassImpact();
-      onScrollToNext();
+      handleSelectStage(activeIndex + 1, e);
+    } else {
+      // Cycle back to WhatsApp so the user can easily explore all platforms repeatedly without ever leaving this slide
+      handleSelectStage(0, e);
     }
   };
 
@@ -420,6 +419,7 @@ export const WorldUsageScene: React.FC<Props> = ({
   return (
     <section
       ref={containerRef}
+      onClick={(e) => e.stopPropagation()}
       className={`relative ${isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black'} w-full text-white flex flex-col justify-between overflow-hidden select-none`}
     >
       {/* =================================================================== */}
@@ -459,7 +459,7 @@ export const WorldUsageScene: React.FC<Props> = ({
             return (
               <button
                 key={stage.id}
-                onClick={() => handleSelectStage(idx)}
+                onClick={(e) => handleSelectStage(idx, e)}
                 className={`relative flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition-all duration-300 text-left cursor-pointer border-0 shadow-lg ${
                   isActive
                     ? 'bg-neutral-900/95 shadow-2xl scale-105 z-10 filter-none opacity-100'
@@ -611,10 +611,10 @@ export const WorldUsageScene: React.FC<Props> = ({
                     </span>
                   </span>
                   <button
-                    onClick={handleNextStage}
+                    onClick={(e) => handleNextStage(e)}
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs transition-all cursor-pointer border-0"
                   >
-                    <span>{activeIndex < 3 ? 'Next App' : 'India Reality'}</span>
+                    <span>{activeIndex < 3 ? 'Next App' : 'View WhatsApp'}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

@@ -248,8 +248,8 @@ export const IndiaUsageScene: React.FC<Props> = ({
   let rawInstaStep: 'map' | 'image' = 'map';
 
   if (manualStageIndex !== null) {
-    rawActiveIndex = Math.min(3, manualStageIndex);
-    rawLocalProgress = 0.05;
+    rawActiveIndex = Math.min(3, Math.max(0, manualStageIndex));
+    rawLocalProgress = 0.60; // Peak 3D extrusion plateau (emergenceProgress = 1.0)
     rawInstaStep = manualInstaStep || 'map';
   } else {
     if (scrollProgress < 0.22) {
@@ -279,6 +279,15 @@ export const IndiaUsageScene: React.FC<Props> = ({
   const stageLocalProgress = rawLocalProgress;
   const currentInstaStep: 'map' | 'image' =
     manualInstaStep && activeIndex === 3 ? manualInstaStep : rawInstaStep;
+
+  // Release manual stage selection when user scrolls significantly
+  const lastScrollProgressRef = useRef(scrollProgress);
+  useEffect(() => {
+    if (manualStageIndex !== null && Math.abs(scrollProgress - lastScrollProgressRef.current) > 0.05) {
+      setManualStageIndex(null);
+    }
+    lastScrollProgressRef.current = scrollProgress;
+  }, [scrollProgress, manualStageIndex]);
 
   // Sound triggers
   useEffect(() => {
@@ -361,61 +370,37 @@ export const IndiaUsageScene: React.FC<Props> = ({
     setMouseTilt({ x: 0, y: 0 });
   };
 
-  const handleSelectStage = (index: number) => {
+  const handleSelectStage = (index: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     soundEngine.playClickTone();
     setManualStageIndex(index);
     setManualInstaStep('map');
-
-    const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
-    if (stickyWrapper) {
-      const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
-      if (scrollableDistance > 0) {
-        // Start within the blank buffer zone of each platform stage (100% blank map!)
-        const targetFraction = [0.02, 0.23, 0.45, 0.67][index];
-        targetProgressRef.current = targetFraction;
-        const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
-        const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
-        scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-        setTimeout(() => {
-          setManualStageIndex(null);
-        }, 500);
-      }
-    }
   };
 
-  const handleSwitchInstaStep = (step: 'map' | 'image') => {
+  const handleSwitchInstaStep = (step: 'map' | 'image', e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     soundEngine.playClickTone();
     setManualInstaStep(step);
-    setManualStageIndex(null);
-
-    const stickyWrapper = containerRef.current?.closest('.sticky-scene-container') as HTMLElement;
-    if (stickyWrapper) {
-      const scrollableDistance = stickyWrapper.offsetHeight - window.innerHeight;
-      if (scrollableDistance > 0) {
-        const targetFraction = step === 'map' ? 0.745 : 0.915;
-        targetProgressRef.current = targetFraction;
-        const targetScrollTop = stickyWrapper.offsetTop + targetFraction * scrollableDistance;
-        const scrollContainer = containerRef.current?.closest('.overflow-y-scroll') || window;
-        scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-      }
-    }
+    setManualStageIndex(3);
   };
 
-  const handleNextStage = () => {
+  const handleNextStage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (activeIndex < 3) {
-      handleSelectStage(activeIndex + 1);
+      handleSelectStage(activeIndex + 1, e);
     } else if (activeIndex === 3 && currentInstaStep === 'map') {
       // Advance to Instagram step 2 (Uploaded Image replaces India map)
-      handleSwitchInstaStep('image');
-    } else if (onScrollToNext) {
-      soundEngine.playSubBassImpact();
-      onScrollToNext();
+      handleSwitchInstaStep('image', e);
+    } else {
+      // Cycle back to WhatsApp so the user can easily explore all platforms repeatedly in-place
+      handleSelectStage(0, e);
     }
   };
 
   return (
     <section
       ref={containerRef}
+      onClick={(e) => e.stopPropagation()}
       className={`relative ${isEmbedded ? 'h-full bg-transparent' : 'h-screen bg-black'} w-full text-white flex flex-col justify-between overflow-hidden select-none`}
     >
       {/* =================================================================== */}
@@ -451,7 +436,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
             return (
               <button
                 key={stage.id}
-                onClick={() => handleSelectStage(idx)}
+                onClick={(e) => handleSelectStage(idx, e)}
                 className={`relative flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition-all duration-300 text-left cursor-pointer border-0 shadow-lg ${
                   isActive
                     ? 'bg-neutral-900/95 shadow-2xl scale-105 z-10 filter-none opacity-100 ring-1 ring-white/10'
@@ -497,7 +482,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
             className="flex items-center justify-center gap-2 pt-1"
           >
             <button
-              onClick={() => handleSwitchInstaStep('map')}
+              onClick={(e) => handleSwitchInstaStep('map', e)}
               className={`px-3 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer border ${
                 currentInstaStep === 'map'
                   ? 'bg-pink-600 text-white font-bold shadow-lg shadow-pink-600/30 border-pink-400/50 scale-105'
@@ -507,7 +492,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
               <span>1. India Map Distribution</span>
             </button>
             <button
-              onClick={() => handleSwitchInstaStep('image')}
+              onClick={(e) => handleSwitchInstaStep('image', e)}
               className={`px-3 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer border ${
                 currentInstaStep === 'image'
                   ? 'bg-pink-600 text-white font-bold shadow-lg shadow-pink-600/30 border-pink-400/60 ring-1 ring-pink-400/50 scale-105'
@@ -654,7 +639,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
                   </span>
                 </span>
                 <button
-                  onClick={handleNextStage}
+                  onClick={(e) => handleNextStage(e)}
                   className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs transition-all cursor-pointer border-0"
                 >
                   <span>
@@ -662,7 +647,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
                       ? 'Next App'
                       : currentInstaStep === 'map'
                       ? 'Reveal Reality'
-                      : 'The Trap'}
+                      : 'View WhatsApp'}
                   </span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -719,7 +704,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
                           Reality Revealed
                         </span>
                         <button
-                          onClick={() => handleSwitchInstaStep('map')}
+                          onClick={(e) => handleSwitchInstaStep('map', e)}
                           className="text-[9px] font-mono text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-900 hover:bg-neutral-800 transition-colors cursor-pointer border border-white/10"
                           title="Back to India Map"
                         >
@@ -785,7 +770,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
                         </span>
                         {activeIndex === 3 && (
                           <button
-                            onClick={() => handleSwitchInstaStep('image')}
+                            onClick={(e) => handleSwitchInstaStep('image', e)}
                             className="text-[9px] font-mono font-bold text-pink-300 hover:text-white bg-pink-950/70 hover:bg-pink-900 border border-pink-500/30 px-2 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1"
                           >
                             <span>Reveal Reality</span>

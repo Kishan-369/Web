@@ -138,6 +138,8 @@ export default function App() {
             data-scene-id="6"
             className="absolute top-[86%] h-px w-full snap-start pointer-events-none"
           />
+          {/* Scene 6 Reality Image & Interactive Anchor */}
+          <div className="absolute top-[93%] h-px w-full snap-start pointer-events-none" />
         </div>
 
         {/* Scene 7: The Instagram Trap — Feature Evolution & Psychology (How Every Feature Was Engineered To Glue Users In) */}

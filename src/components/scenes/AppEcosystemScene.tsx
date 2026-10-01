@@ -47,12 +47,14 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
   // Effective progress from scroll
   const effectiveProgress = Math.max(0, Math.min(1, whatsappLaunchProgress));
 
-  // Dynamic phone zoom-out calculation from scroll progress
+  // Dynamic phone zoom-out calculation from scroll progress:
+  // Starts slightly prominent and centered, then smoothly docks to left with zero blank void!
   const zoomP = phoneZoomProgress !== undefined ? Math.max(0, Math.min(1, phoneZoomProgress)) : 1.0;
   const easeZoom = 1 - Math.pow(1 - zoomP, 3);
 
   // Settled target dimensions: phone docked on the left
   const settledScale = isMobile ? 0.95 : 1.12;
+  const startScale = settledScale * 1.15;
   const settledOffsetX = isMobile ? 0 : -1.6;
   const settledOffsetY = isMobile ? -0.8 : -1.15;
 
@@ -60,12 +62,12 @@ export const AppEcosystemScene: React.FC<AppEcosystemSceneProps> = ({
   const phoneFade = Math.max(0, 1 - effectiveProgress * 1.4);
   const isPhoneVisible = phoneFade > 0.01;
 
-  const currentZoomScale = phoneZoomProgress !== undefined ? 12.0 - easeZoom * (12.0 - settledScale) : settledScale;
+  const currentZoomScale = phoneZoomProgress !== undefined ? startScale - easeZoom * (startScale - settledScale) : settledScale;
   const currentOffsetX = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetX : settledOffsetX;
   const currentOffsetY = phoneZoomProgress !== undefined ? 0 + easeZoom * settledOffsetY : settledOffsetY;
-  const currentOutlineOpacity = phoneZoomProgress !== undefined ? Math.max(0, (zoomP - 0.25) / 0.75) * 0.9 : 0.9;
-  const headerOpacity = phoneZoomProgress !== undefined ? Math.max(0, (zoomP - 0.30) / 0.70) : 1.0;
-  const headerTranslateY = phoneZoomProgress !== undefined ? (1 - headerOpacity) * -30 : 0;
+  const currentOutlineOpacity = 0.9;
+  const headerOpacity = phoneZoomProgress !== undefined ? Math.min(1, zoomP * 1.4) : 1.0;
+  const headerTranslateY = phoneZoomProgress !== undefined ? (1 - headerOpacity) * -24 : 0;
 
   const apps: AppItem[] = [
     {

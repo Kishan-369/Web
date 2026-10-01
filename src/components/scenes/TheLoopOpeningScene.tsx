@@ -233,58 +233,58 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         }
 
         // Official government rubber stamp impact sound (Slam down across ALL 3 images)
-        if (next >= 0.52 && !hasFakeNewsStampSoundPlayedRef.current) {
+        if (next >= 0.508 && !hasFakeNewsStampSoundPlayedRef.current) {
           hasFakeNewsStampSoundPlayedRef.current = true;
           soundEngine.playRubberStampSound();
-        } else if (next < 0.505) {
+        } else if (next < 0.495) {
           hasFakeNewsStampSoundPlayedRef.current = false;
         }
 
         // Cinematic Zoom-out vacuum suck sound (Fake news shrinks into mobile phone)
-        if (next >= 0.535 && !hasZoomOutSoundPlayedRef.current) {
+        if (next >= 0.524 && !hasZoomOutSoundPlayedRef.current) {
           hasZoomOutSoundPlayedRef.current = true;
           soundEngine.playZoomOutSuckSound();
-        } else if (next < 0.52) {
+        } else if (next < 0.516) {
           hasZoomOutSoundPlayedRef.current = false;
         }
 
         // Phone settled impact tone
-        if (next >= 0.58 && !hasPhoneSettledSoundPlayedRef.current) {
+        if (next >= 0.546 && !hasPhoneSettledSoundPlayedRef.current) {
           hasPhoneSettledSoundPlayedRef.current = true;
           soundEngine.playClickTone();
-        } else if (next < 0.56) {
+        } else if (next < 0.538) {
           hasPhoneSettledSoundPlayedRef.current = false;
         }
 
         // Instagram notification ping on scroll
-        if (next >= 0.61 && !hasInstagramSoundPlayedRef.current) {
+        if (next >= 0.555 && !hasInstagramSoundPlayedRef.current) {
           hasInstagramSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.59) {
+        } else if (next < 0.548) {
           hasInstagramSoundPlayedRef.current = false;
         }
 
         // YouTube notification ping on scroll
-        if (next >= 0.63 && !hasYouTubeSoundPlayedRef.current) {
+        if (next >= 0.595 && !hasYouTubeSoundPlayedRef.current) {
           hasYouTubeSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.615) {
+        } else if (next < 0.585) {
           hasYouTubeSoundPlayedRef.current = false;
         }
 
         // Facebook notification ping on scroll
-        if (next >= 0.65 && !hasFacebookSoundPlayedRef.current) {
+        if (next >= 0.635 && !hasFacebookSoundPlayedRef.current) {
           hasFacebookSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.635) {
+        } else if (next < 0.625) {
           hasFacebookSoundPlayedRef.current = false;
         }
 
         // WhatsApp notification ping on scroll (when WhatsApp pops out on the phone)
-        if (next >= 0.69 && !hasWhatsAppSoundPlayedRef.current) {
+        if (next >= 0.675 && !hasWhatsAppSoundPlayedRef.current) {
           hasWhatsAppSoundPlayedRef.current = true;
           soundEngine.playNotificationPing();
-        } else if (next < 0.675) {
+        } else if (next < 0.665) {
           hasWhatsAppSoundPlayedRef.current = false;
         }
 
@@ -348,32 +348,11 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (showLargeQr) return;
-    if (displayProgress < 0.29) {
+    // Clicking anywhere in the background NEVER kicks the user to another slide once beyond the opening title
+    if (displayProgressRef.current < 0.22) {
       if (onScrollToQuiz) {
         onScrollToQuiz();
-      } else {
-        onScrollToNext();
       }
-    } else if (displayProgress < 0.42) {
-      if (onScrollToNews) {
-        onScrollToNews();
-      } else {
-        onScrollToNext();
-      }
-    } else if (displayProgress < 0.58) {
-      if (onScrollToPhone) {
-        onScrollToPhone();
-      } else {
-        onScrollToNext();
-      }
-    } else if (displayProgress < 0.74) {
-      if (onScrollToWorld) {
-        onScrollToWorld();
-      } else {
-        onScrollToNext();
-      }
-    } else {
-      onScrollToNext();
     }
   };
 
@@ -683,11 +662,11 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsRotate = 0;
     newsScale = 1;
     newsOpacity = 1;
-    newsReadingProgress = Math.max(0, Math.min(0.90, (displayProgress - 0.42) / 0.10));
+    newsReadingProgress = Math.max(0, Math.min(1.0, (displayProgress - 0.42) / 0.10));
     phoneZoomProgress = 0;
     activeAppIndex = null;
-  } else if (displayProgress < 0.58) {
-    // 10. FAKE NEWS VACUUM SHRINK INTO CENTER & PHONE ZOOM OUT
+  } else if (displayProgress < 0.548) {
+    // 10. FAST & CRISP FAKE NEWS VACUUM SHRINK INTO PHONE (Takes only 2-3 scrolls!)
     isDocked = true;
     loopOpacity = 0;
     opacity_L = 0;
@@ -700,9 +679,10 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsRotate = 0;
     newsScale = 1;
 
-    phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.52) / 0.06));
-    newsReadingProgress = 0.91 + phoneZoomProgress * 0.09;
-    newsOpacity = displayProgress > 0.56 ? Math.max(0, 1 - (displayProgress - 0.56) / 0.02) : 1;
+    // Smoothly shrinks into the phone glass in 2-3 scrolls
+    phoneZoomProgress = Math.max(0, Math.min(1, (displayProgress - 0.52) / 0.024));
+    newsReadingProgress = 1.0;
+    newsOpacity = displayProgress > 0.536 ? Math.max(0, 1 - (displayProgress - 0.536) / 0.008) : 1;
     activeAppIndex = null;
   } else {
     // 11. PHONE SETTLED, APP ECOSYSTEM, & WHATSAPP LAUNCH TRANSITION
@@ -721,17 +701,17 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
     newsReadingProgress = 1.0;
     newsOpacity = 0;
 
-    // Apps appear one by one as the user scrolls down!
-    if (displayProgress >= 0.69) {
+    // Apps appear smoothly one by one as the user scrolls down without dead delay!
+    if (displayProgress >= 0.67) {
       activeAppIndex = 3; // WhatsApp pops up in front of the phone screen
-    } else if (displayProgress >= 0.66) {
-      activeAppIndex = 2; // Facebook
     } else if (displayProgress >= 0.63) {
+      activeAppIndex = 2; // Facebook
+    } else if (displayProgress >= 0.59) {
       activeAppIndex = 1; // YouTube
-    } else if (displayProgress >= 0.60) {
+    } else if (displayProgress >= 0.55) {
       activeAppIndex = 0; // Instagram appears on scroll!
     } else {
-      activeAppIndex = null; // Clean blank phone with title!
+      activeAppIndex = null; // Clean phone settling
     }
 
     // WhatsApp Launch Transition Progress (0.0 -> 1.0) on scroll
@@ -965,7 +945,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
         setIsHovered(false);
         setMousePos({ x: 0.5, y: 0.5 });
       }}
-      className="h-screen w-full bg-black flex flex-col justify-center items-center relative overflow-hidden px-4 select-none cursor-pointer group"
+      className={`h-screen w-full bg-black flex flex-col justify-center items-center relative overflow-hidden px-4 select-none group ${
+        displayProgress < 0.22 ? 'cursor-pointer' : 'cursor-default'
+      }`}
     >
       {/* Dynamic Ambient Background Glow (Subtle & clean during Quiz phase) */}
       <div
@@ -1349,13 +1331,14 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       {/* LAYER 5: WORLD USAGE SCENE (SCENE 5 - NO EXTRA SLIDE) */}
       {/* Blurred during WhatsApp transition; exact WhatsApp dock reveals crystal clarity */}
       {/* =================================================================== */}
-      {displayProgress >= 0.70 && (
+      {displayProgress >= 0.70 && displayProgress < 0.865 && (
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             opacity: scene5Opacity,
             filter: scene5Blur > 0 ? `blur(${scene5Blur}px)` : 'none',
             transform: scene5Blur > 0 ? `scale(${1 + (scene5Blur / 22) * 0.025})` : 'scale(1)',
-            pointerEvents: hasJustDocked && scene5Opacity > 0.05 ? 'auto' : 'none',
+            pointerEvents: scene5Opacity > 0.05 && displayProgress < 0.84 ? 'auto' : 'none',
             transition: 'filter 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
           className="absolute inset-0 z-40 overflow-hidden will-change-[filter,opacity,transform]"
@@ -1367,7 +1350,6 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             isWhatsAppFlying={isFlying}
             indiaZoomProgress={indiaZoomProgress}
             onIndiaScreenPosition={handleIndiaScreenPosition}
-            onScrollToNext={onScrollToNext}
           />
         </div>
       )}
@@ -1376,12 +1358,13 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
       {/* LAYER 6: INDIA USAGE SCENE (SCENE 6 - INDIA SCREEN REALITY) */}
       {/* Pre-mounted and stable so target vector map position is precisely locked without shifts */}
       {/* =================================================================== */}
-      {displayProgress >= 0.72 && (
+      {displayProgress >= 0.82 && (
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             opacity: scene6Opacity,
             filter: scene6Blur > 0 ? `blur(${scene6Blur}px)` : 'none',
-            pointerEvents: hasIndiaJustDocked ? 'auto' : 'none',
+            pointerEvents: scene6Opacity > 0.15 ? 'auto' : 'none',
           }}
           className="absolute inset-0 z-45 overflow-hidden will-change-[filter,opacity]"
         >
@@ -1389,7 +1372,6 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
             isEmbedded={true}
             externalScrollProgress={scene6ScrollProgress}
             hasJustDocked={hasIndiaJustDocked}
-            onScrollToNext={onScrollToNext}
           />
         </div>
       )}

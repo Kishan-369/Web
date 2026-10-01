@@ -7,6 +7,7 @@ export interface NewsItem {
   title: string;
   verdict: string;
   factCheckLabel: string;
+  foldSplit: number; // Fold crease split ratio (shifted to the right so right side content is not cut off)
 }
 
 const NEWS_DATA: NewsItem[] = [
@@ -17,6 +18,7 @@ const NEWS_DATA: NewsItem[] = [
     title: 'Govt Mandates 2-Hour Daily Screen Time Limit',
     verdict: '100% FALSE CLAIM',
     factCheckLabel: 'GOVT SCREEN TIME • FABRICATED',
+    foldSplit: 0.530, // Reference image fold line moved to the right (53.0%)
   },
   {
     id: 2,
@@ -25,6 +27,7 @@ const NEWS_DATA: NewsItem[] = [
     title: 'Meta to Launch Mandatory Paid Subscriptions',
     verdict: '100% FABRICATED',
     factCheckLabel: 'META SUBSCRIPTION • FALSE',
+    foldSplit: 0.535, // Reference image fold line moved to the right (53.5%)
   },
   {
     id: 3,
@@ -33,6 +36,7 @@ const NEWS_DATA: NewsItem[] = [
     title: 'AMC Announces Strict New Guidelines For City Residents',
     verdict: '100% MISLEADING',
     factCheckLabel: 'AMC GUIDELINES • UNVERIFIED',
+    foldSplit: 0.540, // Reference image fold line moved to the right (54.0%)
   },
 ];
 
@@ -64,48 +68,48 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
   // -------------------------------------------------------------------------
   // Phase 1: News 1 (Govt Screen Time Limit)
   //   0.00 -> 0.08: Flat uncut resting stable
-  //   0.08 -> 0.34: Middle-fold Turn 1: Right half folds over to left, smoothly
-  //                 revealing the next news (News 2) on both left and right sides!
+  //   0.08 -> 0.38: Middle-fold Turn 1: Right half folds over from the right (53.0%) to left,
+  //                 smoothly revealing News 2 on both left and right sides without cutting!
   // Phase 2: News 2 (Meta Paid Subscription)
-  //   0.34 -> 0.44: Flat uncut resting stable at 100% clarity
-  //   0.44 -> 0.70: Middle-fold Turn 2: Right half folds over to left, smoothly
-  //                 revealing the next news (News 3) on both left and right sides!
+  //   0.38 -> 0.46: Flat uncut resting stable at 100% clarity
+  //   0.46 -> 0.74: Middle-fold Turn 2: Right half folds over from the right (53.5%) to left,
+  //                 smoothly revealing News 3 on both left and right sides without cutting!
   // Phase 3: News 3 (AMC Guidelines)
-  //   0.70 -> 0.78: Flat uncut resting stable at 100% clarity (Zero blank pages!)
+  //   0.74 -> 0.82: Flat uncut resting stable at 100% clarity (Zero unwanted dossier / black fold!)
   // Phase 4: The Grand Finale (ALL 3 BROADSHEETS SPREAD & FAKE NEWS STAMP)
-  //   0.78 -> 0.86: All 3 images smoothly spread out across the screen!
-  //   0.86 -> 0.93: Massive official government "FAKE NEWS" rubber stamp slams across all 3!
-  //   0.93 -> 1.00: Smooth vacuum zoom into phone screen!
+  //   0.82 -> 0.88: All 3 images smoothly spread out side-by-side across the screen!
+  //   0.88 -> 0.94: Massive official government "FAKE NEWS" rubber stamp slams across all 3!
+  //   0.94 -> 1.00: Smooth vacuum zoom into phone screen!
   // =========================================================================
 
   // Turn 1 calculation (News 1 -> News 2)
   let turn1 = 0;
-  if (p >= 0.08 && p <= 0.34) {
-    const raw = (p - 0.08) / 0.26;
+  if (p >= 0.08 && p <= 0.38) {
+    const raw = (p - 0.08) / 0.30;
     turn1 = raw * raw * (3 - 2 * raw); // Smooth cubic hermite
-  } else if (p > 0.34) {
+  } else if (p > 0.38) {
     turn1 = 1;
   }
 
   // Turn 2 calculation (News 2 -> News 3)
   let turn2 = 0;
-  if (p >= 0.44 && p <= 0.70) {
-    const raw = (p - 0.44) / 0.26;
+  if (p >= 0.46 && p <= 0.74) {
+    const raw = (p - 0.46) / 0.28;
     turn2 = raw * raw * (3 - 2 * raw);
-  } else if (p > 0.70) {
+  } else if (p > 0.74) {
     turn2 = 1;
   }
 
   // Spread calculation for the finale (All 3 broadsheets appear side-by-side)
   let spreadT = 0;
-  if (p >= 0.78) {
-    const raw = Math.min(1, (p - 0.78) / 0.08); // 0.78 to 0.86
+  if (p >= 0.82) {
+    const raw = Math.min(1, (p - 0.82) / 0.06); // 0.82 to 0.88
     spreadT = raw * raw * (3 - 2 * raw);
   }
 
   // Unified Fake News stamp slam calculation (Applied ONE single stamp across ALL 3 images)
-  const isStampVisible = p >= 0.86;
-  const stampProgress = isStampVisible ? Math.min(1, (p - 0.86) / 0.05) : 0;
+  const isStampVisible = p >= 0.88;
+  const stampProgress = isStampVisible ? Math.min(1, (p - 0.88) / 0.06) : 0;
   const stampScale = Math.max(1, 3.0 - stampProgress * 2.0);
   const stampOpacity = Math.min(1, stampProgress * 3.5);
 
@@ -119,14 +123,19 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
   // Zoom out / vacuum shrink into the phone screen when scrolling past Fake News
   let fakeNewsZoomOutScale = 1.0;
   let fakeNewsZoomOutOpacity = 1.0;
-  if (p >= 0.93) {
-    const zp = Math.min(1, (p - 0.93) / 0.06);
+  if (p >= 0.94) {
+    const zp = Math.min(1, (p - 0.94) / 0.05);
     const easeZoomIn = zp * zp;
     fakeNewsZoomOutScale = Math.max(0.12, 1.0 - easeZoomIn * 0.88);
     fakeNewsZoomOutOpacity = Math.max(0, 1.0 - zp * 1.15);
   }
 
   const isDesktop = viewportWidth >= 768;
+
+  // Split positions for the 3 sheets (from reference images)
+  const s1 = NEWS_DATA[0].foldSplit; // 0.530
+  const s2 = NEWS_DATA[1].foldSplit; // 0.535
+  const s3 = NEWS_DATA[2].foldSplit; // 0.540
 
   return (
     <section
@@ -237,10 +246,19 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     className="w-full h-full object-cover block select-none pointer-events-none"
                   />
 
-                  {/* Center paper crease shadow */}
-                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-10 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-10 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-10 pointer-events-none" />
+                  {/* Center paper crease shadow positioned accurately along the fold */}
+                  <div
+                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/25 z-10 pointer-events-none"
+                    style={{ left: `${item.foldSplit * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-10 pointer-events-none"
+                    style={{ left: `${item.foldSplit * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 w-8 bg-gradient-to-l from-transparent to-black/15 z-10 pointer-events-none"
+                    style={{ left: `${item.foldSplit * 100}%` }}
+                  />
                 </div>
               );
             })}
@@ -290,8 +308,8 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
 
       {/* ===================================================================== */}
       {/* MODE B: 3D NEWSPAPER MIDDLE-FOLD TURNING STAGE FOR ALL THREE NEWS */}
-      {/* When turning, the back side is a realistic Blurred Newspaper Page, and the */}
-      {/* sheet underneath is blurred during transition to avoid premature repetition! */}
+      {/* Middle fold crease is aligned slightly to the right (53% - 54%) as in reference */}
+      {/* images so the right side part of the broadsheet is NEVER cut off! */}
       {/* ===================================================================== */}
       {spreadT < 1 && (
         <div
@@ -321,9 +339,18 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                 alt={NEWS_DATA[2].title}
                 className="w-full h-full object-cover block select-none pointer-events-none"
               />
-              <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none" />
-              <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none" />
-              <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none" />
+              <div
+                className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none"
+                style={{ left: `${s3 * 100}%` }}
+              />
+              <div
+                className="absolute inset-y-0 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none"
+                style={{ left: `${s3 * 100}%` }}
+              />
+              <div
+                className="absolute inset-y-0 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none"
+                style={{ left: `${s3 * 100}%` }}
+              />
             </div>
           </div>
 
@@ -346,16 +373,31 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     alt={NEWS_DATA[1].title}
                     className="w-full h-full object-cover block select-none pointer-events-none"
                   />
-                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none" />
+                  <div
+                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none"
+                    style={{ left: `${s2 * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none"
+                    style={{ left: `${s2 * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none"
+                    style={{ left: `${s2 * 100}%` }}
+                  />
                 </div>
               ) : (
-                // 3D MIDDLE FOLD SHEET 2 (Right half folds over center crease)
+                // 3D MIDDLE FOLD SHEET 2 (Right half folds over crease moved to the right)
                 <div className="w-full h-full relative" style={{ transformStyle: 'preserve-3d' }}>
                   {/* Left Half (Underneath: News 2 left half with fold shadow deepening) */}
-                  <div className="absolute top-0 bottom-0 left-0 w-1/2 overflow-hidden z-10 rounded-l-xl">
-                    <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
+                  <div
+                    className="absolute top-0 bottom-0 left-0 overflow-hidden z-10 rounded-l-xl"
+                    style={{ width: `${s2 * 100}%` }}
+                  >
+                    <div
+                      className="absolute top-0 bottom-0 left-0 h-full"
+                      style={{ width: `${(100 / s2)}%` }}
+                    >
                       <img
                         src={NEWS_DATA[1].src}
                         alt={NEWS_DATA[1].title}
@@ -371,23 +413,31 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     )}
                   </div>
 
-                  {/* Right Half (Folds and turns across the middle crease to the left!) */}
+                  {/* Right Half (Folds and turns across the right crease to the left!) */}
                   <div
-                    className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-visible z-30 will-change-transform rounded-r-xl"
+                    className="absolute top-0 bottom-0 overflow-visible z-30 will-change-transform rounded-r-xl"
                     style={{
-                      transformOrigin: 'left center', // Center crease!
+                      left: `${s2 * 100}%`,
+                      width: `${(1 - s2) * 100}%`,
+                      transformOrigin: 'left center', // Crease moved to the right!
                       transformStyle: 'preserve-3d',
                       transform: `rotateY(${-turn2 * 180}deg) rotateZ(${-Math.sin(turn2 * Math.PI) * 3.5}deg) scale(${
                         1 - Math.sin(turn2 * Math.PI) * 0.02
                       })`,
                     }}
                   >
-                    {/* Front of right half: Image 2 right half (visible 0 to 90 deg) */}
+                    {/* Front of right half: Image 2 right half (visible 0 to 90 deg, zero right-side clipping!) */}
                     <div
                       className="absolute inset-0 overflow-hidden rounded-r-xl"
                       style={{ backfaceVisibility: 'hidden' }}
                     >
-                      <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
+                      <div
+                        className="absolute top-0 bottom-0 h-full"
+                        style={{
+                          left: `-${(s2 / (1 - s2)) * 100}%`,
+                          width: `${(100 / (1 - s2))}%`,
+                        }}
+                      >
                         <img
                           src={NEWS_DATA[1].src}
                           alt={NEWS_DATA[1].title}
@@ -410,7 +460,10 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                         backgroundColor: '#171717',
                       }}
                     >
-                      <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
+                      <div
+                        className="absolute top-0 bottom-0 left-0 h-full"
+                        style={{ width: `${(100 / s3)}%` }}
+                      >
                         <img
                           src={NEWS_DATA[2].src}
                           alt={NEWS_DATA[2].title}
@@ -425,9 +478,21 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     </div>
                   </div>
 
-                  {/* Underneath right side: Sheet 3 right half is revealed crystal clear */}
-                  <div className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-hidden z-0 rounded-r-xl">
-                    <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
+                  {/* Underneath right side: Sheet 3 right half is revealed crystal clear without cut */}
+                  <div
+                    className="absolute top-0 bottom-0 overflow-hidden z-0 rounded-r-xl"
+                    style={{
+                      left: `${s3 * 100}%`,
+                      width: `${(1 - s3) * 100}%`,
+                    }}
+                  >
+                    <div
+                      className="absolute top-0 bottom-0 h-full"
+                      style={{
+                        left: `-${(s3 / (1 - s3)) * 100}%`,
+                        width: `${(100 / (1 - s3))}%`,
+                      }}
+                    >
                       <img
                         src={NEWS_DATA[2].src}
                         alt={NEWS_DATA[2].title}
@@ -437,7 +502,10 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                   </div>
 
                   {/* Center Crease Divider */}
-                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/40 z-40 pointer-events-none" />
+                  <div
+                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/40 z-40 pointer-events-none"
+                    style={{ left: `${s2 * 100}%` }}
+                  />
                 </div>
               )}
             </div>
@@ -462,16 +530,31 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     alt={NEWS_DATA[0].title}
                     className="w-full h-full object-cover block select-none pointer-events-none"
                   />
-                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none" />
-                  <div className="absolute inset-y-0 left-1/2 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none" />
+                  <div
+                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/25 z-20 pointer-events-none"
+                    style={{ left: `${s1 * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 -translate-x-full w-8 bg-gradient-to-r from-transparent to-black/15 z-20 pointer-events-none"
+                    style={{ left: `${s1 * 100}%` }}
+                  />
+                  <div
+                    className="absolute inset-y-0 w-8 bg-gradient-to-l from-transparent to-black/15 z-20 pointer-events-none"
+                    style={{ left: `${s1 * 100}%` }}
+                  />
                 </div>
               ) : (
-                // 3D MIDDLE FOLD SHEET 1 (Right half folds over center crease)
+                // 3D MIDDLE FOLD SHEET 1 (Right half folds over crease moved to the right)
                 <div className="w-full h-full relative" style={{ transformStyle: 'preserve-3d' }}>
                   {/* Left Half (Underneath: News 1 left half with fold shadow deepening) */}
-                  <div className="absolute top-0 bottom-0 left-0 w-1/2 overflow-hidden z-10 rounded-l-xl">
-                    <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
+                  <div
+                    className="absolute top-0 bottom-0 left-0 overflow-hidden z-10 rounded-l-xl"
+                    style={{ width: `${s1 * 100}%` }}
+                  >
+                    <div
+                      className="absolute top-0 bottom-0 left-0 h-full"
+                      style={{ width: `${(100 / s1)}%` }}
+                    >
                       <img
                         src={NEWS_DATA[0].src}
                         alt={NEWS_DATA[0].title}
@@ -487,23 +570,31 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     )}
                   </div>
 
-                  {/* Right Half (Folds and turns across the middle crease to the left!) */}
+                  {/* Right Half (Folds and turns across the right crease to the left!) */}
                   <div
-                    className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-visible z-30 will-change-transform rounded-r-xl"
+                    className="absolute top-0 bottom-0 overflow-visible z-30 will-change-transform rounded-r-xl"
                     style={{
-                      transformOrigin: 'left center', // The center crease!
+                      left: `${s1 * 100}%`,
+                      width: `${(1 - s1) * 100}%`,
+                      transformOrigin: 'left center', // The center crease moved to the right!
                       transformStyle: 'preserve-3d',
                       transform: `rotateY(${-turn1 * 180}deg) rotateZ(${-Math.sin(turn1 * Math.PI) * 3.5}deg) scale(${
                         1 - Math.sin(turn1 * Math.PI) * 0.02
                       })`,
                     }}
                   >
-                    {/* Front of right half: Image 1 right half (visible 0 to 90 deg) */}
+                    {/* Front of right half: Image 1 right half (visible 0 to 90 deg, uncut & fully intact!) */}
                     <div
                       className="absolute inset-0 overflow-hidden rounded-r-xl"
                       style={{ backfaceVisibility: 'hidden' }}
                     >
-                      <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
+                      <div
+                        className="absolute top-0 bottom-0 h-full"
+                        style={{
+                          left: `-${(s1 / (1 - s1)) * 100}%`,
+                          width: `${(100 / (1 - s1))}%`,
+                        }}
+                      >
                         <img
                           src={NEWS_DATA[0].src}
                           alt={NEWS_DATA[0].title}
@@ -526,7 +617,10 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                         backgroundColor: '#171717',
                       }}
                     >
-                      <div className="absolute top-0 bottom-0 left-0 w-[200%] h-full">
+                      <div
+                        className="absolute top-0 bottom-0 left-0 h-full"
+                        style={{ width: `${(100 / s2)}%` }}
+                      >
                         <img
                           src={NEWS_DATA[1].src}
                           alt={NEWS_DATA[1].title}
@@ -541,9 +635,21 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                     </div>
                   </div>
 
-                  {/* Underneath right side: Sheet 2 right half is revealed crystal clear (NO BLUR on right side!) */}
-                  <div className="absolute top-0 bottom-0 left-1/2 w-1/2 overflow-hidden z-0 rounded-r-xl">
-                    <div className="absolute top-0 bottom-0 left-[-100%] w-[200%] h-full">
+                  {/* Underneath right side: Sheet 2 right half is revealed crystal clear without cut! */}
+                  <div
+                    className="absolute top-0 bottom-0 overflow-hidden z-0 rounded-r-xl"
+                    style={{
+                      left: `${s2 * 100}%`,
+                      width: `${(1 - s2) * 100}%`,
+                    }}
+                  >
+                    <div
+                      className="absolute top-0 bottom-0 h-full"
+                      style={{
+                        left: `-${(s2 / (1 - s2)) * 100}%`,
+                        width: `${(100 / (1 - s2))}%`,
+                      }}
+                    >
                       <img
                         src={NEWS_DATA[1].src}
                         alt={NEWS_DATA[1].title}
@@ -553,7 +659,10 @@ export const Carousel3DScene: React.FC<Carousel3DSceneProps> = ({
                   </div>
 
                   {/* Center Crease Divider */}
-                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/40 z-40 pointer-events-none" />
+                  <div
+                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-black/40 z-40 pointer-events-none"
+                    style={{ left: `${s1 * 100}%` }}
+                  />
                 </div>
               )}
             </div>
