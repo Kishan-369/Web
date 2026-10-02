@@ -1052,6 +1052,9 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
               }}
               className="relative inline-flex items-center justify-center px-1 sm:px-2 md:px-3 mx-1 shrink-0 z-10 overflow-visible"
             >
+              {/* Clean, pure ambient backlight plate (gives atmospheric red glow without clipping or raster tearing) */}
+              <div className="absolute inset-0 -m-4 sm:-m-6 rounded-full bg-red-600/20 blur-2xl pointer-events-none -z-10" />
+
               {/* Word: THE (Centered above the center intersection of the LOOP) */}
               <span
                 style={{
@@ -1068,63 +1071,65 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
               </span>
               <svg
                 viewBox="0 0 240 120"
-                className="w-36 h-18 sm:w-48 sm:h-24 md:w-64 md:h-32 lg:w-80 lg:h-40 xl:w-[360px] xl:h-[180px] drop-shadow-[0_0_28px_rgba(239,68,68,0.85)] drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] overflow-visible transition-all duration-300"
+                className="w-36 h-18 sm:w-48 sm:h-24 md:w-64 md:h-32 lg:w-80 lg:h-40 xl:w-[360px] xl:h-[180px] overflow-visible transition-all duration-300"
               >
                 <defs>
+                  {/* Clean High-Definition Red-to-Orange Laser Core Gradient */}
                   <linearGradient id="laserLoopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="25%" stopColor="#ff4d6d" />
+                    <stop offset="25%" stopColor="#ff3b68" />
                     <stop offset="50%" stopColor="#fb923c" />
                     <stop offset="75%" stopColor="#ff0055" />
                     <stop offset="100%" stopColor="#ef4444" />
                   </linearGradient>
 
                   <linearGradient id="innerWhiteCore" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                    <stop offset="50%" stopColor="#ffe4e6" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.9" />
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                    <stop offset="50%" stopColor="#fff1f2" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
                   </linearGradient>
 
-                  <filter id="cinematicNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-                    <feGaussianBlur stdDeviation="14" result="outerBlur" />
-                    <feMerge>
-                      <feMergeNode in="outerBlur" />
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
+                  {/* Clean, Sharp, Perfectly Focused Shadow & Laser Glow Filter */}
+                  <filter id="cleanLaserShadow" x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+                    {/* Razor-sharp, focused contact drop shadow directly beneath laser loop */}
+                    <feDropShadow dx="0" dy="3.5" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.95" />
+                    {/* Secondary soft ambient ground occlusion shadow */}
+                    <feDropShadow dx="0" dy="7" stdDeviation="7" floodColor="#000000" floodOpacity="0.55" />
+                    {/* Focused laser edge rim glow */}
+                    <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#ef4444" floodOpacity="0.85" />
+                  </filter>
+
+                  {/* Traveling Photon Glow */}
+                  <filter id="photonGlow" x="-60%" y="-60%" width="220%" height="220%" colorInterpolationFilters="sRGB">
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#ffffff" floodOpacity="1" />
+                    <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ff4d6d" floodOpacity="0.9" />
                   </filter>
                 </defs>
 
-                <g filter="url(#cinematicNeonGlow)">
-                  <path
-                    d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
-                    fill="none"
-                    stroke="#ef4444"
-                    strokeWidth="19"
-                    strokeOpacity="0.30"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                {/* Main Laser Infinity Symbol with Clean, Sharp, Focused Shadow */}
+                <g filter="url(#cleanLaserShadow)">
+                  {/* Outer vivid laser tube */}
                   <path
                     d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     fill="none"
                     stroke="url(#laserLoopGrad)"
-                    strokeWidth="12"
+                    strokeWidth="11"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
+                  {/* Razor-sharp white-hot inner core */}
                   <path
                     d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     fill="none"
                     stroke="url(#innerWhiteCore)"
-                    strokeWidth="3.8"
+                    strokeWidth="3.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </g>
 
-                <circle r="6" fill="#ffffff" className="drop-shadow-[0_0_16px_#ffffff]">
+                {/* Traveling Energy Photons with Hardware-Accelerated SVG Glow */}
+                <circle r="5" fill="#ffffff" filter="url(#photonGlow)">
                   <animateMotion
                     path="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     dur="3.2s"
@@ -1132,7 +1137,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
                   />
                 </circle>
 
-                <circle r="4.2" fill="#ff7170" opacity="0.9">
+                <circle r="3.6" fill="#ff7170" opacity="0.95" filter="url(#photonGlow)">
                   <animateMotion
                     path="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     dur="3.2s"

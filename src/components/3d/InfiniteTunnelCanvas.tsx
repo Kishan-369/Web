@@ -14,12 +14,12 @@ const EMOJI_LIST = [
 ];
 
 export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
-  isRunning = false,
+  isRunning = true,
   speedResetTrigger = 0,
   onSpeedChange,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const speedRef = useRef(0.9); // Calibrated for target vortex velocity 36 km/h
+  const speedRef = useRef(0.35); // Start at comfortable vortex speed, accelerating up to 0.9 (36 km/h)
   const isRunningRef = useRef(isRunning);
   const onSpeedChangeRef = useRef(onSpeedChange);
   const isFirstMount = useRef(true);
@@ -52,7 +52,7 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     const height = container.clientHeight || window.innerHeight;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 8, 55);
+    scene.fog = new THREE.Fog(0x000000, 6, 50);
 
     const camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 100);
     camera.position.z = 2;
@@ -62,19 +62,22 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // Create Canvas Textures for Emojis
+    // Create Canvas Textures for Emojis with high-compatibility emoji font stack
     const emojiTextures = EMOJI_LIST.map((emoji) => {
       const canvas = document.createElement('canvas');
       canvas.width = 128;
       canvas.height = 128;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.font = '84px sans-serif';
+        ctx.clearRect(0, 0, 128, 128);
+        ctx.font = '72px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, 64, 64);
+        ctx.fillText(emoji, 64, 66);
       }
-      return new THREE.CanvasTexture(canvas);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      return tex;
     });
 
     // Central Black Hole Core at distant Z
@@ -96,7 +99,7 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     accretionDisk.position.set(0, 0, -44.9);
     scene.add(accretionDisk);
 
-    // Tunnel Rings
+    // Tunnel Rings (Spanning smoothly between z = 1.5 and z = -44)
     const ringCount = 28;
     const rings: THREE.Mesh[] = [];
 
@@ -109,14 +112,13 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
         opacity: 0.65,
       });
       const ring = new THREE.Mesh(geo, mat);
-      ring.position.z = -i * 2.2;
+      ring.position.z = 1.5 - i * 1.6;
       scene.add(ring);
       rings.push(ring);
     }
 
-    // Swirling Emoji Particle Vortex being eaten by Black Hole
-    // Reduced count from 80 to 35 for a cleaner, less cluttered tunnel
-    const emojiCount = 35;
+    // Swirling Emoji Particle Vortex being sucked into Black Hole
+    const emojiCount = 36;
     const emojiGroup = new THREE.Group();
     const emojiItems: {
       sprite: THREE.Sprite;
@@ -129,7 +131,7 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
       baseSize: number;
     }[] = [];
 
-    // Ghost trail materials for speed pathways (reduced to 1 for clarity)
+    // Ghost trail materials for speed pathways
     const ghostCount = 1;
 
     for (let i = 0; i < emojiCount; i++) {
@@ -143,16 +145,16 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
       const baseSize = 1.2 + Math.random() * 0.8;
       sprite.scale.set(baseSize, baseSize, 1);
 
-      // 360-degree distribution around outer screen edge
+      // 360-degree distribution around outer screen edge, strictly in front of camera (Z <= 0.5)
       const angle = (i / emojiCount) * Math.PI * 2 + Math.random() * 0.2;
-      const radius = 5.5 + Math.random() * 3.5; // Distributes around top, bottom, left, right, diagonals
-      const z = 5 - Math.random() * 50; // Distributed along tunnel length
+      const radius = 5.0 + Math.random() * 3.5;
+      const z = -Math.random() * 44; // Distributed safely along tunnel
 
       sprite.position.x = Math.cos(angle) * radius;
       sprite.position.y = Math.sin(angle) * radius;
       sprite.position.z = z;
 
-      // Create trailing ghost sprites for visible motion pathway at high speeds
+      // Trailing ghost sprites for visible motion pathway
       const trailSprites: THREE.Sprite[] = [];
       for (let g = 0; g < ghostCount; g++) {
         const trailMat = new THREE.SpriteMaterial({
@@ -193,7 +195,7 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
 
       for (let s = 0; s <= segments; s++) {
         const frac = s / segments;
-        const curZ = 5 - frac * 50; // z from +5 to -45
+        const curZ = 0 - frac * 45; // z from 0 to -45
         const curR = startR * Math.pow(1 - frac, 1.3);
         const curAngle = lineAngle + frac * 1.8; // spiral curve
         points.push(new THREE.Vector3(Math.cos(curAngle) * curR, Math.sin(curAngle) * curR, curZ));
@@ -221,14 +223,17 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
 
     const handleResize = () => {
       if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      if (w === 0 || h === 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
 
     window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(() => handleResize());
+    resizeObserver.observe(container);
 
     let reqId: number;
     let frameCounter = 0;
@@ -236,11 +241,13 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     const animate = () => {
       reqId = requestAnimationFrame(animate);
 
-      const currentMultiplier = speedRef.current;
+      // Active vs paused velocity multiplier
+      const isLive = isRunningRef.current;
+      const currentMultiplier = isLive ? speedRef.current : 0.12; // Slow aesthetic ambient drift when paused
 
       // Rotate Accretion Disk & Pathway Lines continuously
-      accretionDisk.rotation.z += 0.02 * (isRunningRef.current ? currentMultiplier : 1);
-      pathwayGroup.rotation.z += 0.004 * (isRunningRef.current ? currentMultiplier : 0.5);
+      accretionDisk.rotation.z += 0.02 * currentMultiplier;
+      pathwayGroup.rotation.z += 0.004 * currentMultiplier;
 
       // Make pathway lines glow brightly at higher speeds
       pathwayLines.forEach((line) => {
@@ -248,44 +255,35 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
         mat.opacity = Math.min(0.85, 0.25 + currentMultiplier * 0.18);
       });
 
-      if (!isRunningRef.current) {
-        renderer.render(scene, camera);
-        return;
-      }
-
-      // GRADUAL SELF-ACCELERATION when running: Start slowly (0.15x) and gradually speed up to (0.9x = 9.0x display)
-      if (speedRef.current < 0.9) {
-        speedRef.current += 0.0025; // Accelerates automatically
+      // GRADUAL SELF-ACCELERATION when running: smoothly accelerate up to 0.9x (36 km/h)
+      if (isLive && speedRef.current < 0.9) {
+        speedRef.current += 0.0025;
       }
 
       frameCounter++;
-      if (frameCounter % 15 === 0 && onSpeedChangeRef.current) {
+      if (isLive && frameCounter % 15 === 0 && onSpeedChangeRef.current) {
         onSpeedChangeRef.current(currentMultiplier);
       }
 
       // Move tunnel rings towards camera (giving inward pull illusion)
       rings.forEach((ring) => {
-        ring.position.z += 0.05 * currentMultiplier; // Calibrated for 36 km/h
+        ring.position.z += 0.06 * currentMultiplier; // Calibrated for 36 km/h
         ring.rotation.z += 0.0025 * currentMultiplier;
-        if (ring.position.z > 2) {
-          ring.position.z = -(ringCount * 2.2);
+        if (ring.position.z > 1.8) {
+          ring.position.z = -44;
         }
       });
 
-      // Swirl and suck emojis from 360-degree outer screen edges DEEP into the central black hole (Z = -45)
+      // Swirl and suck emojis into the central black hole (Z = -44)
       emojiItems.forEach((item) => {
-        // Store previous position for ghost trails
-        const prevZ = item.z;
-        const prevAngle = item.angle;
-
-        // Advance item deeper into the black hole singularity (calibrated for 36 km/h)
-        item.z -= item.speedZ * 0.28 * currentMultiplier;
+        // Advance item deeper into the black hole singularity
+        item.z -= item.speedZ * 0.3 * currentMultiplier;
         item.angle += item.swirlSpeed * 0.75 * currentMultiplier;
 
-        // Calculate progress t from outer viewport (Z=5) to black hole center (Z=-45)
-        const t = Math.max(0, Math.min(1, (5 - item.z) / 50));
+        // Calculate progress t from front (Z=0) to black hole center (Z=-44)
+        const t = Math.max(0, Math.min(1, -item.z / 44));
 
-        // Spiral radius shrinks from outer screen edge (5.5-9.0) down to center (0.1)
+        // Spiral radius shrinks from outer screen edge down to center
         const currentRadius = Math.max(0.1, item.radius * Math.pow(1 - t, 1.3));
         const spiralAngle = item.angle + t * 2.5;
 
@@ -297,11 +295,11 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
         const currentScale = Math.max(0.2, item.baseSize * (1 - t * 0.7));
         item.sprite.scale.set(currentScale, currentScale, 1);
 
-        // Update motion trail ghost sprites behind the main emoji along its 360-degree trajectory
+        // Update motion trail ghost sprites behind the main emoji
         const trailOffset = 1.2 * (0.3 + currentMultiplier * 0.4);
         item.trailSprites.forEach((trailSprite, idx) => {
           const trailZ = item.z + (idx + 1) * trailOffset;
-          const trailT = Math.max(0, Math.min(1, (5 - trailZ) / 50));
+          const trailT = Math.max(0, Math.min(1, -trailZ / 44));
           const trailRadius = Math.max(0.1, item.radius * Math.pow(1 - trailT, 1.3));
           const trailSpiralAngle = item.angle - (idx + 1) * 0.1 + trailT * 2.5;
 
@@ -312,16 +310,15 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
           const trailScale = Math.max(0.15, currentScale * (0.85 - idx * 0.2));
           trailSprite.scale.set(trailScale, trailScale, 1);
 
-          // Trail opacity increases at max speed
           const trailMat = trailSprite.material as THREE.SpriteMaterial;
           trailMat.opacity = Math.min(0.8, (0.35 / (idx + 1)) * (0.6 + currentMultiplier * 0.3));
         });
 
-        // Respawn emoji at outer screen edge when swallowed by black hole singularity at Z <= -45
-        if (item.z <= -45) {
-          item.z = 5;
-          item.angle = Math.random() * Math.PI * 2; // 360-degree random direction
-          item.radius = 5.5 + Math.random() * 3.5;  // Outer viewport perimeter
+        // Respawn emoji at outer screen perimeter when swallowed by black hole at Z <= -44
+        if (item.z <= -44) {
+          item.z = 0;
+          item.angle = Math.random() * Math.PI * 2;
+          item.radius = 5.0 + Math.random() * 3.5;
         }
       });
 
@@ -333,6 +330,7 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     return () => {
       cancelAnimationFrame(reqId);
       window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }

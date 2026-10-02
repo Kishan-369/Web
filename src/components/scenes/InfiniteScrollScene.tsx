@@ -6,9 +6,9 @@ import { ChevronDown, RefreshCw, Gauge, RotateCcw, Zap, Play, Pause, Square } fr
 export const InfiniteScrollScene: React.FC = () => {
   const [scrollMeters, setScrollMeters] = useState(140);
   const [postsGenerated, setPostsGenerated] = useState(12);
-  const [tunnelSpeed, setTunnelSpeed] = useState(0.15);
-  const [isRunning, setIsRunning] = useState(false); // Initially stopped
-  const [hasStarted, setHasStarted] = useState(false);
+  const [tunnelSpeed, setTunnelSpeed] = useState(0.35);
+  const [isRunning, setIsRunning] = useState(true); // Actively running by default
+  const [hasStarted, setHasStarted] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
 
   const handleSimulatedScroll = () => {

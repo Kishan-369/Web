@@ -177,50 +177,53 @@ export default function App() {
           <BlankPauseScene />
         </div>
 
-        {/* Scene 11: Dopamine Loop & Infinite Scroll Tunnel */}
-        <div ref={(el) => (sceneRefs.current[10] = el)} data-scene-id="11" className="h-[300vh] w-full snap-start relative sticky-scene-container">
-          <div className="sticky top-0 h-screen w-full overflow-hidden">
-            <DopamineScene />
-          </div>
+        {/* Scene 11: Dopamine Loop */}
+        <div ref={(el) => (sceneRefs.current[10] = el)} data-scene-id="11" className="h-screen w-full snap-start snap-always">
+          <DopamineScene />
         </div>
 
-        {/* Scene 12: Easy Access & Frictionless Addiction */}
+        {/* Scene 12: The Infinite Scroll Tunnel */}
         <div ref={(el) => (sceneRefs.current[11] = el)} data-scene-id="12" className="h-screen w-full snap-start snap-always">
+          <InfiniteScrollScene />
+        </div>
+
+        {/* Scene 13: Easy Access & Frictionless Addiction */}
+        <div ref={(el) => (sceneRefs.current[12] = el)} data-scene-id="13" className="h-screen w-full snap-start snap-always">
           <EasyAccessScene />
         </div>
 
-        {/* Scene 13: Why India's Youth Is Most Targeted */}
-        <div ref={(el) => (sceneRefs.current[12] = el)} data-scene-id="13" className="h-screen w-full snap-start snap-always">
+        {/* Scene 14: Why India's Youth Is Most Targeted */}
+        <div ref={(el) => (sceneRefs.current[13] = el)} data-scene-id="14" className="h-screen w-full snap-start snap-always">
           <IndiaYouthImpactScene />
         </div>
 
-        {/* Scene 14: Life Expectancy & Social Media Reality Check */}
-        <div ref={(el) => (sceneRefs.current[13] = el)} data-scene-id="14" className="h-screen w-full snap-start snap-always">
+        {/* Scene 15: Life Expectancy & Social Media Reality Check */}
+        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
           <LifeCalculatorInfographicScene />
         </div>
 
-        {/* Scene 15: Global Statistics */}
-        <div ref={(el) => (sceneRefs.current[14] = el)} data-scene-id="15" className="h-screen w-full snap-start snap-always">
+        {/* Scene 16: Global Statistics */}
+        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
           <StatisticsScene />
         </div>
 
-        {/* Scene 16: Family Dinner Table */}
-        <div ref={(el) => (sceneRefs.current[15] = el)} data-scene-id="16" className="h-screen w-full snap-start snap-always">
+        {/* Scene 17: Family Dinner Table */}
+        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
           <FamilyDinnerScene />
         </div>
 
-        {/* Scene 17: Human Relationships */}
-        <div ref={(el) => (sceneRefs.current[16] = el)} data-scene-id="17" className="h-screen w-full snap-start snap-always">
+        {/* Scene 18: Human Relationships */}
+        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
           <RelationshipsScene />
         </div>
 
-        {/* Scene 18: Career Focus & Deep Work */}
-        <div ref={(el) => (sceneRefs.current[17] = el)} data-scene-id="18" className="h-screen w-full snap-start snap-always">
+        {/* Scene 19: Career Focus & Deep Work */}
+        <div ref={(el) => (sceneRefs.current[18] = el)} data-scene-id="19" className="h-screen w-full snap-start snap-always">
           <CareerFocusScene />
         </div>
 
-        {/* Scene 19: The Loop Closing Scene */}
-        <div ref={(el) => (sceneRefs.current[18] = el)} data-scene-id="19" className="h-screen w-full snap-start snap-always">
+        {/* Scene 20: The Loop Closing Scene */}
+        <div ref={(el) => (sceneRefs.current[19] = el)} data-scene-id="20" className="h-screen w-full snap-start snap-always">
           <TheLoopClosingScene onRestart={() => scrollToScene(1)} />
         </div>
       </main>

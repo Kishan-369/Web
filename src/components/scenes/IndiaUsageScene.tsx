@@ -716,7 +716,7 @@ export const IndiaUsageScene: React.FC<Props> = ({
                     {/* Uploaded Image Container */}
                     <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center bg-black/60 ring-1 ring-pink-500/25 group">
                       <img
-                        src="/image.png"
+                        src="/glued_to_phones.jpg"
                         alt="Indian Family Glued to Screens"
                         className="w-full h-full object-cover sm:object-contain rounded-2xl shadow-2xl transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                       />
