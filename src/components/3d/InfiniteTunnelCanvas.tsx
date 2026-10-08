@@ -8,39 +8,82 @@ interface InfiniteTunnelCanvasProps {
 }
 
 const EMOJI_LIST = [
-  '📱', '❤️', '💬', '🎮', '🚀', '🔔', '🤡', '😱',
-  '🍕', '🛍️', '🔥', '💸', '🍿', '📷', '🎧', '🕹️',
-  '🧠', '⚡', '💎', '🏆', '🍔', '🎁', '🎬', '✈️',
+  '📱', '❤️', '🔥', '💬', '⚡', '🔔', '😱', '🍕',
+  '🚀', '💸', '🎮', '🍔', '🎁', '🎬', '🍿', '👑',
+  '💎', '🏆', '📸', '✨', '💯', '🤩', '🍩', '🛍️',
+  '🧠', '👀', '🎯', '🚨', '🍬', '☕', '🎪', '🎉',
 ];
 
+const NEON_COLORS = [
+  0x00f0ff, // Cyan
+  0xff007f, // Neon Pink
+  0x7928ca, // Electric Violet
+  0xff0055, // Hot Magenta
+  0x00ffcc, // Bright Mint
+  0xffbe0b, // Cyber Amber
+];
+
+function createEmojiTexture(emoji: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, 128, 128);
+
+    // Subtle dark circular badge background with neon rim glow
+    ctx.beginPath();
+    ctx.arc(64, 64, 52, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(12, 12, 22, 0.82)';
+    ctx.fill();
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+    ctx.stroke();
+
+    // High quality emoji rendering with standard emoji fonts
+    ctx.font = '64px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, 64, 68);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  return texture;
+}
+
 export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
-  isRunning = false,
+  isRunning = true,
   speedResetTrigger = 0,
   onSpeedChange,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const speedRef = useRef(0.9); // Calibrated for target vortex velocity 36 km/h
+  const speedRef = useRef(0.4); // Start at comfortable energetic vortex speed
+  const targetSpeedRef = useRef(0.4);
   const isRunningRef = useRef(isRunning);
   const onSpeedChangeRef = useRef(onSpeedChange);
   const isFirstMount = useRef(true);
 
   useEffect(() => {
     isRunningRef.current = isRunning;
+    targetSpeedRef.current = isRunning ? Math.max(0.4, speedRef.current) : 0.08;
   }, [isRunning]);
 
   useEffect(() => {
     onSpeedChangeRef.current = onSpeedChange;
   }, [onSpeedChange]);
 
-  // Reset speed when reset trigger fires (skipping initial mount)
+  // Reset speed when reset trigger fires
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
-    speedRef.current = 0.35;
+    speedRef.current = 0.4;
+    targetSpeedRef.current = 0.4;
     if (onSpeedChangeRef.current) {
-      onSpeedChangeRef.current(0.35);
+      onSpeedChangeRef.current(0.4);
     }
   }, [speedResetTrigger]);
 
@@ -48,89 +91,168 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || window.innerWidth;
-    const height = container.clientHeight || window.innerHeight;
+    // Get current dimensions with reliable window fallbacks
+    const getWidth = () => container.clientWidth || window.innerWidth;
+    const getHeight = () => container.clientHeight || window.innerHeight;
 
+    let width = getWidth();
+    let height = getHeight();
+
+    // Setup Three.js Scene
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 8, 55);
+    scene.fog = new THREE.FogExp2(0x000000, 0.028);
 
+    // Perspective Camera at (0, 0, 2)
     const camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 100);
-    camera.position.z = 2;
+    camera.position.set(0, 0, 2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // High performance WebGL Renderer
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
 
-    // Create Canvas Textures for Emojis
-    const emojiTextures = EMOJI_LIST.map((emoji) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 128;
-      canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.font = '84px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, 64, 64);
-      }
-      return new THREE.CanvasTexture(canvas);
-    });
+    const canvasEl = renderer.domElement;
+    canvasEl.style.position = 'absolute';
+    canvasEl.style.top = '0';
+    canvasEl.style.left = '0';
+    canvasEl.style.width = '100%';
+    canvasEl.style.height = '100%';
+    canvasEl.style.display = 'block';
+    canvasEl.style.pointerEvents = 'none';
+    container.appendChild(canvasEl);
 
-    // Central Black Hole Core at distant Z
-    const blackHoleGeo = new THREE.SphereGeometry(2.5, 32, 32);
-    const blackHoleMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const blackHole = new THREE.Mesh(blackHoleGeo, blackHoleMat);
-    blackHole.position.set(0, 0, -45);
-    scene.add(blackHole);
+    // Pre-render Emoji Canvas Textures
+    const emojiTextures = EMOJI_LIST.map((emoji) => createEmojiTexture(emoji));
 
-    // Accretion Disk Glow Ring around Black Hole
-    const diskGeo = new THREE.RingGeometry(2.6, 6.5, 64);
+    // 1. Distant Black Hole Singularity at Z = -50
+    const blackHoleGroup = new THREE.Group();
+    blackHoleGroup.position.set(0, 0, -50);
+
+    const holeGeo = new THREE.SphereGeometry(2.8, 32, 32);
+    const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const holeMesh = new THREE.Mesh(holeGeo, holeMat);
+    blackHoleGroup.add(holeMesh);
+
+    // Glowing Accretion Disk around Black Hole
+    const diskGeo = new THREE.RingGeometry(3.0, 7.5, 64);
     const diskMat = new THREE.MeshBasicMaterial({
       color: 0xff0055,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.85,
     });
-    const accretionDisk = new THREE.Mesh(diskGeo, diskMat);
-    accretionDisk.position.set(0, 0, -44.9);
-    scene.add(accretionDisk);
+    const diskMesh = new THREE.Mesh(diskGeo, diskMat);
+    blackHoleGroup.add(diskMesh);
 
-    // Tunnel Rings
-    const ringCount = 28;
-    const rings: THREE.Mesh[] = [];
+    // Secondary Pulsing Inner Ring
+    const innerDiskGeo = new THREE.RingGeometry(2.8, 3.8, 48);
+    const innerDiskMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const innerDiskMesh = new THREE.Mesh(innerDiskGeo, innerDiskMat);
+    blackHoleGroup.add(innerDiskMesh);
+
+    scene.add(blackHoleGroup);
+
+    // 2. Concentric Neon Tunnel Rings (Moving forward towards camera)
+    const ringCount = 32;
+    const ringZMin = -50;
+    const ringZMax = 3.5;
+    const ringZSpan = ringZMax - ringZMin;
+    const rings: { mesh: THREE.Mesh; baseZ: number; colorIndex: number }[] = [];
+
+    const ringGeometry = new THREE.RingGeometry(3.6, 3.82, 40);
 
     for (let i = 0; i < ringCount; i++) {
-      const geo = new THREE.RingGeometry(3.8, 4.0, 32);
+      const colorIndex = i % NEON_COLORS.length;
       const mat = new THREE.MeshBasicMaterial({
-        color: i % 3 === 0 ? 0xe50914 : i % 3 === 1 ? 0x00d9ff : 0xbf00ff,
+        color: NEON_COLORS[colorIndex],
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.75,
       });
-      const ring = new THREE.Mesh(geo, mat);
-      ring.position.z = -i * 2.2;
-      scene.add(ring);
-      rings.push(ring);
+      const mesh = new THREE.Mesh(ringGeometry, mat);
+      const initialZ = ringZMin + (i / ringCount) * ringZSpan;
+      mesh.position.set(0, 0, initialZ);
+      scene.add(mesh);
+      rings.push({ mesh, baseZ: initialZ, colorIndex });
     }
 
-    // Swirling Emoji Particle Vortex being eaten by Black Hole
-    // Reduced count from 80 to 35 for a cleaner, less cluttered tunnel
-    const emojiCount = 35;
+    // 3. Radial Laser Stream Pathway Lines along Tunnel Walls
+    const lineCount = 18;
+    const pathwayGroup = new THREE.Group();
+    const pathwayLines: THREE.Line[] = [];
+
+    for (let l = 0; l < lineCount; l++) {
+      const angle = (l / lineCount) * Math.PI * 2;
+      const points: THREE.Vector3[] = [];
+      const segments = 20;
+
+      for (let s = 0; s <= segments; s++) {
+        const frac = s / segments;
+        const curZ = -50 + frac * 53; // From -50 to +3
+        const r = 3.7 + Math.sin(frac * Math.PI) * 0.2;
+        const curAngle = angle + frac * 0.6; // subtle spiral twist
+        points.push(new THREE.Vector3(Math.cos(curAngle) * r, Math.sin(curAngle) * r, curZ));
+      }
+
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMat = new THREE.LineBasicMaterial({
+        color: l % 2 === 0 ? 0x00f0ff : 0xff007f,
+        transparent: true,
+        opacity: 0.45,
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      pathwayGroup.add(line);
+      pathwayLines.push(line);
+    }
+    scene.add(pathwayGroup);
+
+    // 4. Cyber Space Star Dust Particles
+    const starCount = 350;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const starVelocities = new Float32Array(starCount);
+
+    for (let s = 0; s < starCount; s++) {
+      const starAngle = Math.random() * Math.PI * 2;
+      const starRadius = 0.5 + Math.random() * 3.8;
+      starPositions[s * 3] = Math.cos(starAngle) * starRadius;
+      starPositions[s * 3 + 1] = Math.sin(starAngle) * starRadius;
+      starPositions[s * 3 + 2] = -50 + Math.random() * 52;
+      starVelocities[s] = 0.4 + Math.random() * 0.6;
+    }
+
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMat = new THREE.PointsMaterial({
+      color: 0x00f0ff,
+      size: 0.12,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+    });
+    const starParticles = new THREE.Points(starGeo, starMat);
+    scene.add(starParticles);
+
+    // 5. Swirling Emojis rushing towards the user
+    const emojiCount = 30;
     const emojiGroup = new THREE.Group();
     const emojiItems: {
       sprite: THREE.Sprite;
-      trailSprites: THREE.Sprite[];
       angle: number;
       radius: number;
       z: number;
       speedZ: number;
-      swirlSpeed: number;
-      baseSize: number;
+      swirlRate: number;
+      baseScale: number;
     }[] = [];
-
-    // Ghost trail materials for speed pathways (reduced to 1 for clarity)
-    const ghostCount = 1;
 
     for (let i = 0; i < emojiCount; i++) {
       const tex = emojiTextures[i % emojiTextures.length];
@@ -140,188 +262,157 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
         opacity: 0.95,
       });
       const sprite = new THREE.Sprite(mat);
-      const baseSize = 1.2 + Math.random() * 0.8;
-      sprite.scale.set(baseSize, baseSize, 1);
+      const baseScale = 0.9 + Math.random() * 0.4;
+      sprite.scale.set(baseScale, baseScale, 1);
 
-      // 360-degree distribution around outer screen edge
       const angle = (i / emojiCount) * Math.PI * 2 + Math.random() * 0.2;
-      const radius = 5.5 + Math.random() * 3.5; // Distributes around top, bottom, left, right, diagonals
-      const z = 5 - Math.random() * 50; // Distributed along tunnel length
+      const radius = 1.4 + Math.random() * 2.2;
+      const z = -48 + (i / emojiCount) * 50;
 
       sprite.position.x = Math.cos(angle) * radius;
       sprite.position.y = Math.sin(angle) * radius;
       sprite.position.z = z;
 
-      // Create trailing ghost sprites for visible motion pathway at high speeds
-      const trailSprites: THREE.Sprite[] = [];
-      for (let g = 0; g < ghostCount; g++) {
-        const trailMat = new THREE.SpriteMaterial({
-          map: tex,
-          transparent: true,
-          opacity: 0.4 / (g + 1),
-          blending: THREE.AdditiveBlending,
-        });
-        const trailSprite = new THREE.Sprite(trailMat);
-        trailSprite.scale.set(baseSize * 0.8, baseSize * 0.8, 1);
-        emojiGroup.add(trailSprite);
-        trailSprites.push(trailSprite);
-      }
-
       emojiGroup.add(sprite);
       emojiItems.push({
         sprite,
-        trailSprites,
         angle,
         radius,
         z,
-        speedZ: 0.25 + Math.random() * 0.25,
-        swirlSpeed: (Math.random() > 0.5 ? 1 : -1) * (0.015 + Math.random() * 0.02),
-        baseSize,
+        speedZ: 0.35 + Math.random() * 0.25,
+        swirlRate: (Math.random() > 0.5 ? 1 : -1) * (0.015 + Math.random() * 0.02),
+        baseScale,
       });
     }
-
-    // Radial Speed Pathway Lines (360-degree laser streams into black hole)
-    const lineCount = 20;
-    const pathwayGroup = new THREE.Group();
-    const pathwayLines: THREE.Line[] = [];
-
-    for (let l = 0; l < lineCount; l++) {
-      const lineAngle = (l / lineCount) * Math.PI * 2;
-      const points: THREE.Vector3[] = [];
-      const segments = 25;
-      const startR = 8.5;
-
-      for (let s = 0; s <= segments; s++) {
-        const frac = s / segments;
-        const curZ = 5 - frac * 50; // z from +5 to -45
-        const curR = startR * Math.pow(1 - frac, 1.3);
-        const curAngle = lineAngle + frac * 1.8; // spiral curve
-        points.push(new THREE.Vector3(Math.cos(curAngle) * curR, Math.sin(curAngle) * curR, curZ));
-      }
-
-      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-      const lineMat = new THREE.LineBasicMaterial({
-        color: l % 2 === 0 ? 0x00ffff : 0xff0088,
-        transparent: true,
-        opacity: 0.35,
-        linewidth: 2,
-      });
-      const line = new THREE.Line(lineGeo, lineMat);
-      pathwayGroup.add(line);
-      pathwayLines.push(line);
-    }
-    scene.add(pathwayGroup);
-
     scene.add(emojiGroup);
 
-    // Ambient & Point Lighting
-    const light = new THREE.PointLight(0xff0055, 3, 50);
-    light.position.set(0, 0, -10);
-    scene.add(light);
-
+    // Dynamic Resizing handler
     const handleResize = () => {
       if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
+      width = getWidth();
+      height = getHeight();
+      if (width === 0 || height === 0) return;
+
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(() => handleResize());
+    resizeObserver.observe(container);
 
+    // Double-check dimensions after layout tick
+    const initTimer = setTimeout(handleResize, 60);
+
+    // Animation Loop
     let reqId: number;
+    let clock = new THREE.Clock();
     let frameCounter = 0;
 
     const animate = () => {
       reqId = requestAnimationFrame(animate);
 
-      const currentMultiplier = speedRef.current;
+      const delta = Math.min(clock.getDelta(), 0.08); // cap max delta on tab switch
+      const isLive = isRunningRef.current;
 
-      // Rotate Accretion Disk & Pathway Lines continuously
-      accretionDisk.rotation.z += 0.02 * (isRunningRef.current ? currentMultiplier : 1);
-      pathwayGroup.rotation.z += 0.004 * (isRunningRef.current ? currentMultiplier : 0.5);
-
-      // Make pathway lines glow brightly at higher speeds
-      pathwayLines.forEach((line) => {
-        const mat = line.material as THREE.LineBasicMaterial;
-        mat.opacity = Math.min(0.85, 0.25 + currentMultiplier * 0.18);
-      });
-
-      if (!isRunningRef.current) {
-        renderer.render(scene, camera);
-        return;
+      // Smooth interpolation of speed towards target
+      if (isLive) {
+        if (targetSpeedRef.current < 0.9) {
+          targetSpeedRef.current += 0.0015; // self-accelerates gently up to 0.9
+        }
       }
 
-      // GRADUAL SELF-ACCELERATION when running: Start slowly (0.15x) and gradually speed up to (0.9x = 9.0x display)
-      if (speedRef.current < 0.9) {
-        speedRef.current += 0.0025; // Accelerates automatically
-      }
+      speedRef.current += (targetSpeedRef.current - speedRef.current) * 0.08;
+      const curSpeed = isLive ? speedRef.current : 0.06;
 
       frameCounter++;
-      if (frameCounter % 15 === 0 && onSpeedChangeRef.current) {
-        onSpeedChangeRef.current(currentMultiplier);
+      if (isLive && frameCounter % 15 === 0 && onSpeedChangeRef.current) {
+        onSpeedChangeRef.current(curSpeed);
       }
 
-      // Move tunnel rings towards camera (giving inward pull illusion)
-      rings.forEach((ring) => {
-        ring.position.z += 0.05 * currentMultiplier; // Calibrated for 36 km/h
-        ring.rotation.z += 0.0025 * currentMultiplier;
-        if (ring.position.z > 2) {
-          ring.position.z = -(ringCount * 2.2);
+      // Rotate Black hole accretion disks
+      diskMesh.rotation.z -= 0.018 * curSpeed * (60 * delta);
+      innerDiskMesh.rotation.z += 0.032 * curSpeed * (60 * delta);
+      pathwayGroup.rotation.z += 0.005 * curSpeed * (60 * delta);
+
+      // Pulse accretion disk scale
+      const pulse = 1 + Math.sin(frameCounter * 0.05) * 0.05;
+      diskMesh.scale.set(pulse, pulse, 1);
+
+      // Move Rings forward towards camera (+Z)
+      const ringSpeed = 12.0 * curSpeed * delta;
+      rings.forEach((item) => {
+        item.mesh.position.z += ringSpeed;
+        item.mesh.rotation.z += 0.004 * curSpeed * (60 * delta);
+
+        // Calculate opacity based on Z depth
+        const z = item.mesh.position.z;
+        const mat = item.mesh.material as THREE.MeshBasicMaterial;
+
+        if (z < -40) {
+          // Fade in near distant singularity
+          mat.opacity = Math.max(0, (z + 50) / 10) * 0.75;
+        } else if (z > 1.2) {
+          // Fade out as it passes camera
+          mat.opacity = Math.max(0, (3.2 - z) / 2.0) * 0.75;
+        } else {
+          mat.opacity = 0.75;
+        }
+
+        // Recycle ring back to distant singularity
+        if (item.mesh.position.z > ringZMax) {
+          item.mesh.position.z = ringZMin + (item.mesh.position.z - ringZMax);
         }
       });
 
-      // Swirl and suck emojis from 360-degree outer screen edges DEEP into the central black hole (Z = -45)
+      // Move Star Particles forward
+      const posAttr = starGeo.getAttribute('position') as THREE.BufferAttribute;
+      const posArray = posAttr.array as Float32Array;
+      const starBaseSpeed = 24.0 * curSpeed * delta;
+
+      for (let s = 0; s < starCount; s++) {
+        let starZ = posArray[s * 3 + 2] + starBaseSpeed * starVelocities[s];
+        if (starZ > 2.5) {
+          starZ = -50;
+        }
+        posArray[s * 3 + 2] = starZ;
+      }
+      posAttr.needsUpdate = true;
+
+      // Move Emojis forward towards camera along spiral vortex
+      const emojiSpeed = 16.0 * curSpeed * delta;
       emojiItems.forEach((item) => {
-        // Store previous position for ghost trails
-        const prevZ = item.z;
-        const prevAngle = item.angle;
+        item.z += emojiSpeed * item.speedZ;
+        item.angle += item.swirlRate * (60 * delta) * curSpeed;
 
-        // Advance item deeper into the black hole singularity (calibrated for 36 km/h)
-        item.z -= item.speedZ * 0.28 * currentMultiplier;
-        item.angle += item.swirlSpeed * 0.75 * currentMultiplier;
+        // As it approaches camera, spiral radius expands slightly into periphery
+        const zFrac = Math.max(0, Math.min(1, (item.z + 50) / 52));
+        const currentR = item.radius * (0.35 + zFrac * 0.65);
 
-        // Calculate progress t from outer viewport (Z=5) to black hole center (Z=-45)
-        const t = Math.max(0, Math.min(1, (5 - item.z) / 50));
-
-        // Spiral radius shrinks from outer screen edge (5.5-9.0) down to center (0.1)
-        const currentRadius = Math.max(0.1, item.radius * Math.pow(1 - t, 1.3));
-        const spiralAngle = item.angle + t * 2.5;
-
-        item.sprite.position.x = Math.cos(spiralAngle) * currentRadius;
-        item.sprite.position.y = Math.sin(spiralAngle) * currentRadius;
+        item.sprite.position.x = Math.cos(item.angle) * currentR;
+        item.sprite.position.y = Math.sin(item.angle) * currentR;
         item.sprite.position.z = item.z;
 
-        // Scale sprite as it gets sucked into the singularity
-        const currentScale = Math.max(0.2, item.baseSize * (1 - t * 0.7));
-        item.sprite.scale.set(currentScale, currentScale, 1);
+        // Scale & opacity based on depth
+        const mat = item.sprite.material as THREE.SpriteMaterial;
+        if (item.z > 1.0) {
+          // Fade out before clipping camera plane
+          mat.opacity = Math.max(0, (2.2 - item.z) / 1.2);
+        } else if (item.z < -42) {
+          mat.opacity = Math.max(0, (item.z + 48) / 6);
+        } else {
+          mat.opacity = 0.95;
+        }
 
-        // Update motion trail ghost sprites behind the main emoji along its 360-degree trajectory
-        const trailOffset = 1.2 * (0.3 + currentMultiplier * 0.4);
-        item.trailSprites.forEach((trailSprite, idx) => {
-          const trailZ = item.z + (idx + 1) * trailOffset;
-          const trailT = Math.max(0, Math.min(1, (5 - trailZ) / 50));
-          const trailRadius = Math.max(0.1, item.radius * Math.pow(1 - trailT, 1.3));
-          const trailSpiralAngle = item.angle - (idx + 1) * 0.1 + trailT * 2.5;
-
-          trailSprite.position.x = Math.cos(trailSpiralAngle) * trailRadius;
-          trailSprite.position.y = Math.sin(trailSpiralAngle) * trailRadius;
-          trailSprite.position.z = trailZ;
-
-          const trailScale = Math.max(0.15, currentScale * (0.85 - idx * 0.2));
-          trailSprite.scale.set(trailScale, trailScale, 1);
-
-          // Trail opacity increases at max speed
-          const trailMat = trailSprite.material as THREE.SpriteMaterial;
-          trailMat.opacity = Math.min(0.8, (0.35 / (idx + 1)) * (0.6 + currentMultiplier * 0.3));
-        });
-
-        // Respawn emoji at outer screen edge when swallowed by black hole singularity at Z <= -45
-        if (item.z <= -45) {
-          item.z = 5;
-          item.angle = Math.random() * Math.PI * 2; // 360-degree random direction
-          item.radius = 5.5 + Math.random() * 3.5;  // Outer viewport perimeter
+        // Recycle emoji back to singularity
+        if (item.z > 2.2) {
+          item.z = -50 + Math.random() * 4;
+          item.angle = Math.random() * Math.PI * 2;
+          item.radius = 1.4 + Math.random() * 2.2;
+          // Randomize texture on respawn for variety
+          const newTex = emojiTextures[Math.floor(Math.random() * emojiTextures.length)];
+          mat.map = newTex;
         }
       });
 
@@ -332,15 +423,45 @@ export const InfiniteTunnelCanvas: React.FC<InfiniteTunnelCanvasProps> = ({
 
     return () => {
       cancelAnimationFrame(reqId);
+      clearTimeout(initTimer);
       window.removeEventListener('resize', handleResize);
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+      resizeObserver.disconnect();
+
+      if (container.contains(canvasEl)) {
+        container.removeChild(canvasEl);
       }
+
+      // Dispose Resources
+      ringGeometry.dispose();
+      holeGeo.dispose();
+      holeMat.dispose();
+      diskGeo.dispose();
+      diskMat.dispose();
+      innerDiskGeo.dispose();
+      innerDiskMat.dispose();
+      starGeo.dispose();
+      starMat.dispose();
+
       emojiTextures.forEach((t) => t.dispose());
+      emojiItems.forEach((item) => {
+        item.sprite.material.dispose();
+      });
+      rings.forEach((r) => {
+        (r.mesh.material as THREE.Material).dispose();
+      });
+      pathwayLines.forEach((l) => {
+        l.geometry.dispose();
+        (l.material as THREE.Material).dispose();
+      });
+
       renderer.dispose();
     };
   }, []);
 
-  return <div ref={mountRef} className="w-full h-full absolute inset-0 pointer-events-none opacity-80" />;
+  return (
+    <div
+      ref={mountRef}
+      className="w-full h-full absolute inset-0 pointer-events-none opacity-90 select-none overflow-hidden"
+    />
+  );
 };
-

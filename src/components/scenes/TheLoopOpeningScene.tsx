@@ -1068,7 +1068,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
               </span>
               <svg
                 viewBox="0 0 240 120"
-                className="w-36 h-18 sm:w-48 sm:h-24 md:w-64 md:h-32 lg:w-80 lg:h-40 xl:w-[360px] xl:h-[180px] drop-shadow-[0_0_28px_rgba(239,68,68,0.85)] drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] overflow-visible transition-all duration-300"
+                className="w-36 h-18 sm:w-48 sm:h-24 md:w-64 md:h-32 lg:w-80 lg:h-40 xl:w-[360px] xl:h-[180px] drop-shadow-[0_8px_18px_rgba(0,0,0,0.85)] drop-shadow-[0_2px_8px_rgba(239,68,68,0.45)] overflow-visible transition-all duration-300"
               >
                 <defs>
                   <linearGradient id="laserLoopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1080,51 +1080,59 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
                   </linearGradient>
 
                   <linearGradient id="innerWhiteCore" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
                     <stop offset="50%" stopColor="#ffe4e6" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
                   </linearGradient>
 
-                  <filter id="cinematicNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-                    <feGaussianBlur stdDeviation="14" result="outerBlur" />
-                    <feMerge>
-                      <feMergeNode in="outerBlur" />
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
+                  {/* Clean, high-definition drop shadow that preserves razor-sharp vector edges without blur */}
+                  <filter id="sharpLoopShadow" x="-30%" y="-30%" width="160%" height="170%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="4" floodColor="#000000" floodOpacity="0.85" />
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#b91c1c" floodOpacity="0.5" />
                   </filter>
                 </defs>
 
-                <g filter="url(#cinematicNeonGlow)">
+                <g filter="url(#sharpLoopShadow)">
+                  {/* High-contrast crisp border / rim for razor sharpness */}
+                  <path
+                    d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
+                    fill="none"
+                    stroke="#0a0a0c"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* Crisp outer crimson border for color definition */}
                   <path
                     d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     fill="none"
                     stroke="#ef4444"
-                    strokeWidth="19"
-                    strokeOpacity="0.30"
+                    strokeWidth="12"
+                    strokeOpacity="0.45"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
+                  {/* Vibrant, razor-sharp laser gradient stroke */}
                   <path
                     d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     fill="none"
                     stroke="url(#laserLoopGrad)"
-                    strokeWidth="12"
+                    strokeWidth="9.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
+                  {/* Razor-sharp white filament core */}
                   <path
                     d="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     fill="none"
                     stroke="url(#innerWhiteCore)"
-                    strokeWidth="3.8"
+                    strokeWidth="2.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </g>
 
-                <circle r="6" fill="#ffffff" className="drop-shadow-[0_0_16px_#ffffff]">
+                <circle r="5.5" fill="#ffffff" className="drop-shadow-[0_0_6px_#ffffff]">
                   <animateMotion
                     path="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     dur="3.2s"
@@ -1132,7 +1140,7 @@ export const TheLoopOpeningScene: React.FC<Props> = ({
                   />
                 </circle>
 
-                <circle r="4.2" fill="#ff7170" opacity="0.9">
+                <circle r="3.8" fill="#ff7170" opacity="0.95" className="drop-shadow-[0_0_4px_#ef4444]">
                   <animateMotion
                     path="M 120,60 C 90,20 30,20 30,60 C 30,100 90,100 120,60 C 150,20 210,20 210,60 C 210,100 150,100 120,60 Z"
                     dur="3.2s"
